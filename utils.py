@@ -1,4 +1,4 @@
-import os
+import os, datetime
 from github import Github
 import secrets
 from model import (Repo, User, Follower,
@@ -34,11 +34,15 @@ def add_repo(repo):
     db.session.add(this_repo)
     db.session.commit()
 
+    add_stars(repo)
+    add_watchers(repo)
+    add_contributors(repo)
+
 
 def update_repo(this_repo, new_repo):
     """Update repo if it hasn't been updated in more than 7 days."""
 
-    delta = now.timestamp() - this_repo.updated_at.timestamp()
+    delta = datetime.datetime.now().timestamp() - this_repo.updated_at.timestamp()
     if delta/60/60/24/7 < 1:
         print("Repo {} is up to date.".format(this_repo.name))
         return
@@ -80,7 +84,7 @@ def add_user(user):
 def update_user(this_user, new_user):
     """Update user if it hasn't been updated in more than 7 days."""
 
-    delta = now.timestamp() - this_user.updated_at.timestamp()
+    delta = datetime.datetime.now().timestamp() - this_user.updated_at.timestamp()
     if delta/60/60/24/7 < 1:
         print("User {} is up to date.".format(this_user.login))
         return
@@ -112,6 +116,10 @@ def add_stars(repo):
     for star in stars:
         add_user(star)
 
+        this_star = Stargazer(repo_id=repo.id, user_id=star.id)
+        db.session.add(this_star)
+        db.session.commit()
+
 
 def add_watchers(repo):
     """Add all watchers of repo to db."""
@@ -119,6 +127,22 @@ def add_watchers(repo):
 
     for watcher in watchers:
         add_user(watcher)
+
+        this_watcher = Watcher(repo_id=repo.id, user_id=watcher.id)
+        db.session.add(this_watcher)
+        db.session.commit()
+
+
+def add_contributors(repo):
+    """Add all contributors of repo to db."""
+    contributors = repo.get_contributors()
+
+    for contributor in contributors:
+        add_user(contributor)
+
+        this_contributor = Contributor(repo_id=repo.id, user_id=contributor.id)
+        db.session.add(this_contributor)
+        db.session.commit()
 
 
 if __name__ == "__main__":
