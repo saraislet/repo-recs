@@ -18,7 +18,7 @@ g = Github(token, client_id=client_id, client_secret=client_secret)
 def add_repo(repo):
     """Query API, and update repo details in db."""
 
-    if is_repo_in_db(repo)
+    if is_repo_in_db(repo):
         return
 
     owner = repo.owner
@@ -67,6 +67,9 @@ def is_repo_in_db(repo):
 def add_user(user):
     """Query API, and update user details in db."""
 
+    if is_user_in_db(user):
+        return
+
     this_user = User(user_id=user.id,
                      name=user.name,
                      login=user.login,
@@ -98,6 +101,6 @@ def is_user_in_db(user):
     this_user = User.query.filter_by(user_id=user.id).first()
     if this_user:
         print("User {} in db; updating.".format(user.id))
-        update_repo(this_user, user)
+        update_user(this_user, user)
         return True
     return False
