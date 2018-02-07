@@ -68,8 +68,8 @@ def example_data():
     db.session.add_all([py_lang, c_lang])
     db.session.commit()
 
-    py_lang_rep1 = RepoLanguage(language_id="1", repo_id="1")
-    c_lang_rep1 = RepoLanguage(language_id="2", repo_id="1")
+    py_lang_rep1 = RepoLanguage(language_id="1", repo_id="1", language_bytes=5000)
+    c_lang_rep1 = RepoLanguage(language_id="2", repo_id="1", language_bytes=100)
     db.session.add_all([py_lang_rep1, c_lang_rep1])
     db.session.commit()
 
