@@ -41,6 +41,11 @@ class Repo(db.Model):
                                order_by="Topic.topic_name",
                                backref=db.backref("repos", order_by=repo_id))
 
+    languages = db.relationship("Language",
+                               secondary='repo_languages',
+                               order_by="Language.language_name",
+                               backref=db.backref("repos", order_by=repo_id))
+
     def __repr__(self):
         """Provide helpful representation when printed."""
 
@@ -182,6 +187,40 @@ class RepoTopic(db.Model):
                 .format(self.repo_topic_id,
                         self.repo_id,
                         self.topic_id))
+
+
+class Language(db.Model):
+    """Languages model."""
+
+    __tablename__ = "languages"
+
+    language_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    language_name = db.Column(db.String(100), nullable=False, unique=True)
+
+    def __repr__(self):
+        """Provide helpful representation when printed."""
+
+        return ("<Language {} name={}>"
+                .format(self.language_id,
+                        self.language_name))
+
+
+class RepoLanguage(db.Model):
+    """Association table between Repository and Language."""
+
+    __tablename__ = "repo_languages"
+
+    repo_language_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    repo_id = db.Column(db.Integer, db.ForeignKey("repos.repo_id"), nullable=False)
+    language_id = db.Column(db.Integer, db.ForeignKey("languages.language_id"), nullable=False)
+
+    def __repr__(self):
+        """Provide helpful representation when printed."""
+
+        return ("<RepoLanguage {} repo_id={} language_id={}>"
+                .format(self.repo_language_id,
+                        self.repo_id,
+                        self.language_id))
 
 
 def init_app():

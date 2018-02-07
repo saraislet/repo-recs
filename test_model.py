@@ -1,6 +1,7 @@
 from model import (Repo, User, Follower,
                    Stargazer, Watcher, Contributor,
                    Topic, RepoTopic,
+                   Language, RepoLanguage,
                    db, connect_to_db)
 from flask import Flask
 
@@ -14,6 +15,8 @@ def example_data():
     Contributor.query.delete()
     RepoTopic.query.delete()
     Topic.query.delete()
+    RepoLanguage.query.delete()
+    Language.query.delete()
     Repo.query.delete()
     User.query.delete()
 
@@ -58,6 +61,16 @@ def example_data():
     py_rep1 = RepoTopic(topic_id="1", repo_id="1")
     api_rep1 = RepoTopic(topic_id="2", repo_id="1")
     db.session.add_all([py_rep1, api_rep1])
+    db.session.commit()
+
+    py_lang = Language(language_id="1", language_name="python")
+    c_lang = Language(language_id="2", language_name="c")
+    db.session.add_all([py_lang, c_lang])
+    db.session.commit()
+
+    py_lang_rep1 = RepoLanguage(language_id="1", repo_id="1")
+    c_lang_rep1 = RepoLanguage(language_id="2", repo_id="1")
+    db.session.add_all([py_lang_rep1, c_lang_rep1])
     db.session.commit()
 
     print("Created test data.")
