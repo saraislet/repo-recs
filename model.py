@@ -3,6 +3,7 @@
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
+db_uri = "postgres:///git_data"
 
 
 class Repo(db.Model):
@@ -20,11 +21,25 @@ class Repo(db.Model):
     owner = db.relationship("User",
                             backref=db.backref("repos", order_by=repo_id))
 
-    stargazers = db.relationship("User", secondary='stargazers', order_by=user_id,
+    stargazers = db.relationship("User",
+                                 secondary='stargazers',
+                                 order_by="User.user_id",
                                  backref=db.backref("stars", order_by=repo_id))
 
-    watchers = db.relationship("User", secondary='watchers', order_by=user_id,
+    watchers = db.relationship("User",
+                               secondary='watchers',
+                               order_by="User.user_id",
                                backref=db.backref("watches", order_by=repo_id))
+
+    contributors = db.relationship("User",
+                                   secondary='contributors',
+                                   order_by="User.user_id",
+                                   backref=db.backref("contributions", order_by=repo_id))
+
+    topics = db.relationship("Topic",
+                               secondary='repo_topics',
+                               order_by="Topic.topic_name",
+                               backref=db.backref("repos", order_by=repo_id))
 
     def __repr__(self):
         """Provide helpful representation when printed."""
@@ -68,7 +83,7 @@ class Follower(db.Model):
 
     __tablename__ = "followers"
 
-    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    follow_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     user_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
     follower_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
 
@@ -76,7 +91,7 @@ class Follower(db.Model):
         """Provide helpful representation when printed."""
 
         return ("<Follower {} user_id={} follower_id={}>"
-                .format(self.watcher_id,
+                .format(self.follow_id,
                         self.user_id,
                         self.follower_id))
 
@@ -117,20 +132,72 @@ class Watcher(db.Model):
                         self.user_id))
 
 
+class Contributor(db.Model):
+    """Contributor model."""
+
+    __tablename__ = "contributors"
+
+    contributor_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    repo_id = db.Column(db.ForeignKey("repos.repo_id"), nullable=False)
+    user_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
+
+    def __repr__(self):
+        """Provide helpful representation when printed."""
+
+        return ("<Contributor {} repo_id={} user_id={}>"
+                .format(self.contributor_id,
+                        self.repo_id,
+                        self.user_id))
+
+
+class Topic(db.Model):
+    """Topics model."""
+
+    __tablename__ = "topics"
+
+    topic_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    topic_name = db.Column(db.String(100), nullable=False, unique=True)
+
+    def __repr__(self):
+        """Provide helpful representation when printed."""
+
+        return ("<Topic {} name={}>"
+                .format(self.topic_id,
+                        self.topic_name))
+
+
+class RepoTopic(db.Model):
+    """Association table between Repository and Topic."""
+
+    __tablename__ = "repo_topics"
+
+    repo_topic_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    repo_id = db.Column(db.ForeignKey("repos.repo_id"), nullable=False)
+    topic_id = db.Column(db.ForeignKey("topics.topic_name"), nullable=False)
+
+    def __repr__(self):
+        """Provide helpful representation when printed."""
+
+        return ("<RepoTopic {} repo_id={} topic_id={}>"
+                .format(self.repo_topic_id,
+                        self.repo_id,
+                        self.topic_id))
+
+
 def init_app():
     # So that we can use Flask-SQLAlchemy, we'll make a Flask app.
     from flask import Flask
     app = Flask(__name__)
 
     connect_to_db(app)
-    print "Connected to DB."
+    print("Connected to DB.")
 
 
-def connect_to_db(app):
+def connect_to_db(app, uri=db_uri):
     """Connect the database to our Flask app."""
 
     # Configure to use our database.
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres:///git_data'
+    app.config['SQLALCHEMY_DATABASE_URI'] = uri
     app.config['SQLALCHEMY_ECHO'] = False
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.app = app
@@ -147,4 +214,4 @@ if __name__ == "__main__":
     app = Flask(__name__)
 
     connect_to_db(app)
-    print "Connected to DB."
+    print("Connected to DB {}.".format(db_uri))
