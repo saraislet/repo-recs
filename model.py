@@ -1,5 +1,6 @@
 """Models and database functions for git_data db."""
 
+import datetime
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
