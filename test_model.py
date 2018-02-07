@@ -55,10 +55,10 @@ def example_data():
     db.session.add_all([python, api])
     db.session.commit()
 
-    # py_rep1 = RepoTopic(topic_id="1", repo_id="1")
-    # api_rep1 = RepoTopic(topic_id="2", repo_id="1")
-    # db.session.add_all([py_rep1, api_rep1])
-    # db.session.commit()
+    py_rep1 = RepoTopic(topic_id="1", repo_id="1")
+    api_rep1 = RepoTopic(topic_id="2", repo_id="1")
+    db.session.add_all([py_rep1, api_rep1])
+    db.session.commit()
 
     print("Created test data.")
 
