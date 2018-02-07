@@ -172,8 +172,8 @@ class RepoTopic(db.Model):
     __tablename__ = "repo_topics"
 
     repo_topic_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    repo_id = db.Column(db.ForeignKey("repos.repo_id"), nullable=False)
-    topic_id = db.Column(db.ForeignKey("topics.topic_name"), nullable=False)
+    repo_id = db.Column(db.Integer, db.ForeignKey("repos.repo_id"), nullable=False)
+    topic_id = db.Column(db.Integer, db.ForeignKey("topics.topic_id"), nullable=False)
 
     def __repr__(self):
         """Provide helpful representation when printed."""
