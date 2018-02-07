@@ -15,8 +15,10 @@ class Repo(db.Model):
     owner_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(1000), nullable=False)
-    created_at = db.Column(db.DateTime(), nullable=True)
-    updated_at = db.Column(db.DateTime(), nullable=True)
+    created_at = db.Column(db.DateTime(), nullable=True,
+                           default=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime(), nullable=True,
+                           default=datetime.datetime.utcnow)
 
     owner = db.relationship("User",
                             backref=db.backref("repos", order_by=repo_id))
@@ -63,8 +65,10 @@ class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String(50), nullable=False)
     name = db.Column(db.String(50), nullable=True)
-    created_at = db.Column(db.DateTime(), nullable=True)
-    updated_at = db.Column(db.DateTime(), nullable=True)
+    created_at = db.Column(db.DateTime(), nullable=True,
+                           default=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime(), nullable=True,
+                           default=datetime.datetime.utcnow)
     
     followers = db.relationship("User",
                                 secondary="followers",
