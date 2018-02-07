@@ -38,6 +38,7 @@ def add_repo(repo):
     add_stars(repo)
     add_watchers(repo)
     add_contributors(repo)
+    add_languages(repo)
 
 
 def update_repo(this_repo, new_repo):
