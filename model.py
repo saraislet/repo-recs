@@ -49,6 +49,9 @@ class Repo(db.Model):
                                order_by="Language.language_name",
                                backref=db.backref("repos", order_by=repo_id))
 
+    repo_langs = db.relationship("RepoLanguage",
+                                 backref=db.backref("repos", order_by=repo_id))
+
     def __repr__(self):
         """Provide helpful representation when printed."""
 
@@ -218,14 +221,16 @@ class RepoLanguage(db.Model):
     repo_language_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     repo_id = db.Column(db.Integer, db.ForeignKey("repos.repo_id"), nullable=False)
     language_id = db.Column(db.Integer, db.ForeignKey("languages.language_id"), nullable=False)
+    language_bytes = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
         """Provide helpful representation when printed."""
 
-        return ("<RepoLanguage {} repo_id={} language_id={}>"
+        return ("<RepoLanguage {} repo_id={} language_id={} bytes={}>"
                 .format(self.repo_language_id,
                         self.repo_id,
-                        self.language_id))
+                        self.language_id,
+                        self.language_bytes))
 
 
 def init_app():
