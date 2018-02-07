@@ -4,6 +4,7 @@ import secrets
 from model import (Repo, User, Follower,
                    Stargazer, Watcher, Contributor,
                    Topic, RepoTopic,
+                   Language, RepoLanguage,
                    db, connect_to_db, db_uri)
 
 token = secrets.personal_access_token
@@ -143,6 +144,47 @@ def add_contributors(repo):
         this_contributor = Contributor(repo_id=repo.id, user_id=contributor.id)
         db.session.add(this_contributor)
         db.session.commit()
+
+
+def add_lang(lang):
+    """Add lang string to db."""
+    print("Adding lang {}.".format(lang))
+    this_lang = Language.query.filter_by(language_name=lang).first()
+
+    if this_lang:
+        return
+
+    this_lang = Language(language_name=lang)
+    db.session.add(this_lang)
+    db.session.commit()
+
+
+def add_repo_lang(repo, lang, num):
+    """Add repo-lang association and number of bytes to db."""
+    print("Adding repo-lang {}.".format(lang))
+    this_lang = Language.query.filter_by(language_name=lang).first()
+    this_repo_lang = RepoLanguage.query.filter_by(language_id=this_lang.language_id,
+                                                  repo_id=repo.id).first()
+
+    if this_repo_lang:
+        this_repo_lang.language_bytes = num
+        db.session.add(this_repo_lang)
+        db.session.commit()
+
+    this_repo_lang = RepoLanguage(repo_id=repo.id,
+                                  language_id=this_lang.language_id,
+                                  language_bytes=num)
+    db.session.add(this_repo_lang)
+    db.session.commit()
+
+
+def add_languages(repo):
+    """Add all languages of repo to db."""
+    langs = repo.get_languages()
+
+    for lang in langs.keys():
+        add_lang(lang)
+        add_repo_lang(repo, lang, langs[lang])
 
 
 if __name__ == "__main__":
