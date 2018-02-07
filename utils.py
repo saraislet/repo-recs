@@ -35,10 +35,31 @@ def add_repo(repo):
     db.session.add(this_repo)
     db.session.commit()
 
-    add_stars(repo)
-    add_watchers(repo)
-    add_contributors(repo)
     add_languages(repo)
+    #TODO: add_topics(repo)
+
+
+def crawl_from_repo_to_users(repo):
+    """Add repo, and add all users connected to that repo.
+
+    Adds stargazers, watchers, and contributors."""
+
+    # Note the start time to estimate time to complete process.
+    start_time = datetime.datetime.now()
+
+    # First, verify that repo is added to db.
+    add_repo(repo)
+    num_users = 1
+
+    # Then crawl the graph out to connected users and add to db.
+    num_users += add_stars(repo)
+    num_users += add_watchers(repo)
+    num_users += add_contributors(repo)
+
+    end_time = datetime.datetime.now()
+    time_delta = (time_twitter_api_complete - start_time).total_seconds()
+    time_delta = round(time_delta, 3)
+    print(str(num_users) + " users loaded in " + str(time_delta) + " seconds.")
 
 
 def update_repo(this_repo, new_repo):
@@ -73,7 +94,7 @@ def add_user(user):
     """Query API, and update user details in db."""
 
     if is_user_in_db(user):
-        return
+        return 0
 
     this_user = User(user_id=user.id,
                      name=user.name,
@@ -81,6 +102,7 @@ def add_user(user):
                      created_at=user.created_at)
     db.session.add(this_user)
     db.session.commit()
+    return 1
 
 
 def update_user(this_user, new_user):
@@ -98,6 +120,7 @@ def update_user(this_user, new_user):
 
     db.session.add(this_user)
     db.session.commit()
+    return
 
 
 def is_user_in_db(user):
@@ -114,37 +137,43 @@ def is_user_in_db(user):
 def add_stars(repo):
     """Add all stargazers of repo to db."""
     stars = repo.get_stargazers()
+    num_users = 0
 
     for star in stars:
-        add_user(star)
+        num_users += add_user(star)
 
         this_star = Stargazer(repo_id=repo.id, user_id=star.id)
         db.session.add(this_star)
         db.session.commit()
+    return num_users
 
 
 def add_watchers(repo):
     """Add all watchers of repo to db."""
     watchers = repo.get_watchers()
+    num_users = 0
 
     for watcher in watchers:
-        add_user(watcher)
+        num_users += add_user(watcher)
 
         this_watcher = Watcher(repo_id=repo.id, user_id=watcher.id)
         db.session.add(this_watcher)
         db.session.commit()
+    return num_users
 
 
 def add_contributors(repo):
     """Add all contributors of repo to db."""
     contributors = repo.get_contributors()
+    num_users = 0
 
     for contributor in contributors:
-        add_user(contributor)
+        num_users += add_user(contributor)
 
         this_contributor = Contributor(repo_id=repo.id, user_id=contributor.id)
         db.session.add(this_contributor)
         db.session.commit()
+    return num_users
 
 
 def add_lang(lang):
