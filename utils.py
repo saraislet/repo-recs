@@ -139,9 +139,13 @@ def is_user_in_db(user):
     return False
 
 
+def get_stars_from_repo(repo):
+    return repo.get_stargazers()
+
+
 def add_stars(repo):
     """Add all stargazers of repo to db."""
-    stars = repo.get_stargazers()
+    stars = get_stars_from_repo(repo)
     num_stars = repo.stargazers_count
     num_users = 0
 
