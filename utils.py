@@ -1,5 +1,7 @@
 import os, datetime
 from github import Github
+from progress.bar import ShadyBar
+from progress.spinner import Spinner
 import secrets
 from model import (Repo, User, Follower,
                    Stargazer, Watcher, Contributor,
@@ -12,6 +14,8 @@ client_id = secrets.client_id
 client_secret = secrets.client_secret
 
 g = Github(token, client_id=client_id, client_secret=client_secret)
+progress_bar_suffix = "%(index)d/%(max)d, estimated %(eta)d seconds remaining."
+spinner_suffix = "%(index)d added, avg %(avg)ds each, %(elapsed)d time elapsed."
 
 # for repo in g.get_user().get_repos():
 #     print(repo.name)
@@ -59,7 +63,7 @@ def crawl_from_repo_to_users(repo):
     end_time = datetime.datetime.now()
     time_delta = (end_time - start_time).total_seconds()
     time_delta = round(time_delta, 3)
-    print(str(num_users) + " users loaded in " + str(time_delta) + " seconds.")
+    print("\r\x1b[K\n" + str(num_users) + " users loaded in " + str(time_delta) + " seconds.")
 
 
 def update_repo(this_repo, new_repo):
@@ -110,10 +114,10 @@ def update_user(this_user, new_user):
 
     delta = datetime.datetime.now().timestamp() - this_user.updated_at.timestamp()
     if delta/60/60/24/7 < 1:
-        print("User {} is up to date.".format(this_user.login))
+        print("User {} is up to date.  ".format(this_user.login), end="\r\x1b[K")
         return
 
-    print("Updating old user data for {}.".format(new_user.login))
+    print("Updating old user data for {}.".format(new_user.login), end="\r\x1b[K")
 
     this_user.name = new_user.name
     this_user.login = new_user.login
@@ -128,7 +132,7 @@ def is_user_in_db(user):
 
     this_user = User.query.filter_by(user_id=user.id).first()
     if this_user:
-        print("User {} in db; updating.".format(user.login), end="\r")
+        print("User {} in db; updating.".format(user.login), end="\r\x1b[K")
         update_user(this_user, user)
         return True
     return False
@@ -137,7 +141,11 @@ def is_user_in_db(user):
 def add_stars(repo):
     """Add all stargazers of repo to db."""
     stars = repo.get_stargazers()
+    num_stars = repo.stargazers_count
     num_users = 0
+
+    msg = "Adding {} stargazers.".format(num_stars)
+    bar = ShadyBar(msg, max=num_stars, suffix=progress_bar_suffix)
 
     for star in stars:
         num_users += add_user(star)
@@ -145,13 +153,20 @@ def add_stars(repo):
         this_star = Stargazer(repo_id=repo.id, user_id=star.id)
         db.session.add(this_star)
         db.session.commit()
+
+        bar.next()
+    bar.finish()
     return num_users
 
 
 def add_watchers(repo):
     """Add all watchers of repo to db."""
     watchers = repo.get_watchers()
+    num_watchers = repo.watchers_count
     num_users = 0
+
+    msg = "Adding {} watchers.".format(num_watchers)
+    bar = ShadyBar(msg, max=num_watchers, suffix=progress_bar_suffix)
 
     for watcher in watchers:
         num_users += add_user(watcher)
@@ -159,13 +174,20 @@ def add_watchers(repo):
         this_watcher = Watcher(repo_id=repo.id, user_id=watcher.id)
         db.session.add(this_watcher)
         db.session.commit()
+
+        bar.next()
+    bar.finish()
     return num_users
 
 
 def add_contributors(repo):
     """Add all contributors of repo to db."""
     contributors = repo.get_contributors()
+    # num_contributors = repo.contributors_count
     num_users = 0
+
+    msg = "Adding contributors."#.format(num_contributors)
+    bar = Spinner(msg, suffix=progress_bar_suffix)
 
     for contributor in contributors:
         num_users += add_user(contributor)
@@ -173,6 +195,9 @@ def add_contributors(repo):
         this_contributor = Contributor(repo_id=repo.id, user_id=contributor.id)
         db.session.add(this_contributor)
         db.session.commit()
+
+        bar.next()
+    bar.finish()
     return num_users
 
 
