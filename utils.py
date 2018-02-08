@@ -206,6 +206,7 @@ def add_contributors(repo):
 
 def add_lang(lang):
     """Add lang string to db."""
+    lang = lang.lower()
     this_lang = Language.query.filter_by(language_name=lang).first()
 
     if this_lang:
