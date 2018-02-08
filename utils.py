@@ -5,7 +5,6 @@ from progress.spinner import Spinner
 import secrets
 from model import (Repo, User, Follower,
                    Stargazer, Watcher, Contributor,
-                   # Topic, RepoTopic,
                    Language, RepoLanguage,
                    db, connect_to_db, db_uri)
 # TODO: try Tenacity library
@@ -41,7 +40,6 @@ def add_repo(repo):
     db.session.commit()
 
     add_languages(repo)
-    #TODO: add_topics(repo)
 
 
 def crawl_from_repo_to_users(repo):
@@ -219,19 +217,19 @@ def add_lang(lang):
     db.session.commit()
 
 
-def add_repo_lang(repo, lang, num):
+def add_repo_lang(repo_id, lang, num):
     """Add repo-lang association and number of bytes to db."""
     print("Adding repo-lang {}.".format(lang))
     this_lang = Language.query.filter_by(language_name=lang).first()
     this_repo_lang = RepoLanguage.query.filter_by(language_id=this_lang.language_id,
-                                                  repo_id=repo.id).first()
+                                                  repo_id=repo_id).first()
 
     if this_repo_lang:
         this_repo_lang.language_bytes = num
         db.session.add(this_repo_lang)
         db.session.commit()
 
-    this_repo_lang = RepoLanguage(repo_id=repo.id,
+    this_repo_lang = RepoLanguage(repo_id=repo_id,
                                   language_id=this_lang.language_id,
                                   language_bytes=num)
     db.session.add(this_repo_lang)
@@ -244,7 +242,7 @@ def add_languages(repo):
 
     for lang in langs.keys():
         add_lang(lang)
-        add_repo_lang(repo, lang, langs[lang])
+        add_repo_lang(repo.id, lang, langs[lang])
 
 
 if __name__ == "__main__":
