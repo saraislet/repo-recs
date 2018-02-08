@@ -24,7 +24,7 @@ def add_repo(repo):
     """Query API, and update repo details in db."""
 
     if is_repo_in_db(repo):
-        return
+        return 0
 
     owner = repo.owner
     owner_id = owner.id
@@ -40,6 +40,7 @@ def add_repo(repo):
     db.session.commit()
 
     add_languages(repo)
+    return 1
 
 
 def crawl_from_repo_to_users(repo):
@@ -190,7 +191,7 @@ def add_contributors(repo):
     num_users = 0
 
     msg = "Adding contributors."#.format(num_contributors)
-    bar = Spinner(msg, suffix=progress_bar_suffix)
+    bar = Spinner(msg, suffix=spinner_suffix)
 
     for contributor in contributors:
         num_users += add_user(contributor)
@@ -246,6 +247,53 @@ def add_languages(repo):
     for lang in langs.keys():
         add_lang(lang)
         add_repo_lang(repo.id, lang, langs[lang])
+
+
+def crawl_from_user_to_repos(user):
+    """Add user, and add all repos connected to that user.
+
+    Adds repos that are starred.
+
+    This does not add a user's repos!"""
+
+    # Note the start time to estimate time to complete process.
+    start_time = datetime.datetime.now()
+
+    # First, verify that user is added to db.
+    add_user(user)
+
+    # Then crawl the graph out to starred repos and add to db.
+    num_repos += add_starred_repos(user)
+
+    end_time = datetime.datetime.now()
+    time_delta = (end_time - start_time).total_seconds()
+    time_delta = round(time_delta, 3)
+    print("\r\x1b[K\n" + str(num_repos) + " repos loaded in " + str(time_delta) + " seconds.")
+
+
+def get_starred_repos(user):
+    """Get all repos starred by user from api."""
+    return user.get_starred()
+
+
+def add_starred_repos(user):
+    """Add all repos starred by user to db."""
+    stars = get_starred_repos(user)
+    num_repos = 0
+
+    msg = "Adding starred repositories for {}.".format(user.login)
+    bar = Spinner(msg, suffix=spinner_suffix)
+
+    for star in stars:
+        num_repos += add_repo(star)
+
+        this_star = Stargazer(repo_id=star.id, user_id=user.id)
+        db.session.add(this_star)
+        db.session.commit()
+
+        bar.next()
+    bar.finish()
+    return num_repos
 
 
 if __name__ == "__main__":
