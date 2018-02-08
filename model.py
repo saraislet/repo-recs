@@ -163,38 +163,38 @@ class Contributor(db.Model):
                         self.user_id))
 
 
-class Topic(db.Model):
-    """Topics model."""
+# class Topic(db.Model):
+#     """Topics model."""
 
-    __tablename__ = "topics"
+#     __tablename__ = "topics"
 
-    topic_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    topic_name = db.Column(db.String(100), nullable=False, unique=True)
+#     topic_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+#     topic_name = db.Column(db.String(100), nullable=False, unique=True)
 
-    def __repr__(self):
-        """Provide helpful representation when printed."""
+#     def __repr__(self):
+#         """Provide helpful representation when printed."""
 
-        return ("<Topic {} name={}>"
-                .format(self.topic_id,
-                        self.topic_name))
+#         return ("<Topic {} name={}>"
+#                 .format(self.topic_id,
+#                         self.topic_name))
 
 
-class RepoTopic(db.Model):
-    """Association table between Repository and Topic."""
+# class RepoTopic(db.Model):
+#     """Association table between Repository and Topic."""
 
-    __tablename__ = "repo_topics"
+#     __tablename__ = "repo_topics"
 
-    repo_topic_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    repo_id = db.Column(db.Integer, db.ForeignKey("repos.repo_id"), nullable=False)
-    topic_id = db.Column(db.Integer, db.ForeignKey("topics.topic_id"), nullable=False)
+#     repo_topic_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+#     repo_id = db.Column(db.Integer, db.ForeignKey("repos.repo_id"), nullable=False)
+#     topic_id = db.Column(db.Integer, db.ForeignKey("topics.topic_id"), nullable=False)
 
-    def __repr__(self):
-        """Provide helpful representation when printed."""
+#     def __repr__(self):
+#         """Provide helpful representation when printed."""
 
-        return ("<RepoTopic {} repo_id={} topic_id={}>"
-                .format(self.repo_topic_id,
-                        self.repo_id,
-                        self.topic_id))
+#         return ("<RepoTopic {} repo_id={} topic_id={}>"
+#                 .format(self.repo_topic_id,
+#                         self.repo_id,
+#                         self.topic_id))
 
 
 class Language(db.Model):
