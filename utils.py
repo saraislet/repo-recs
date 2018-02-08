@@ -90,7 +90,7 @@ def update_repo(this_repo, new_repo):
 def is_repo_in_db(repo):
     """Check db for repo, and update xor return false."""
 
-    this_repo = Repo.query.filter_by(repo_id=repo.id).first()
+    this_repo = Repo.query.get(repo.id)
     if this_repo:
         print("Repo {} in db; updating.".format(repo.name), end="\r\x1b[K")
         update_repo(this_repo, repo)
@@ -144,7 +144,7 @@ def update_user(this_user, new_user):
 def is_user_in_db(user):
     """Check db for user, and update xor return false."""
 
-    this_user = User.query.filter_by(user_id=user.id).first()
+    this_user = User.query.get(user.id)
     if this_user:
         print("User {} in db; updating.".format(user.login), end="\r\x1b[K")
         update_user(this_user, user)
