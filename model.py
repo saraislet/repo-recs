@@ -39,10 +39,10 @@ class Repo(db.Model):
                                    order_by="User.user_id",
                                    backref=db.backref("contributions", order_by=repo_id))
 
-    topics = db.relationship("Topic",
-                               secondary='repo_topics',
-                               order_by="Topic.topic_name",
-                               backref=db.backref("repos", order_by=repo_id))
+    # topics = db.relationship("Topic",
+    #                            secondary='repo_topics',
+    #                            order_by="Topic.topic_name",
+    #                            backref=db.backref("repos", order_by=repo_id))
 
     languages = db.relationship("Language",
                                secondary='repo_languages',
