@@ -33,13 +33,20 @@ class TestDB(unittest.TestCase):
         lang = "Haskell"
         utils.add_lang(lang)
 
-        self.assertEqual(1, Language.query.filter_by(language_name=lang).count())
+        self.assertEqual(1, Language.query.filter_by(language_name=lang.lower()).count())
 
     def test_add_lang_existing(self):
         lang = "c"
         utils.add_lang(lang)
 
         self.assertEqual(1, Language.query.filter_by(language_name=lang).count())
+
+    def test_add_lang_casing(self):
+        lang = "C"
+        utils.add_lang(lang)
+
+        self.assertEqual(0, Language.query.filter_by(language_name=lang).count())
+        self.assertEqual(1, Language.query.filter_by(language_name=lang.lower()).count())
 
     def test_add_repo_lang_new(self):
         repo_id = 1
@@ -48,7 +55,7 @@ class TestDB(unittest.TestCase):
         utils.add_lang(lang)
         utils.add_repo_lang(repo_id, lang, num)
 
-        this_lang = Language.query.filter_by(language_name=lang).one()
+        this_lang = Language.query.filter_by(language_name=lang.lower()).one()
         this_repo_lang = RepoLanguage.query.filter_by(repo_id=repo_id,
                                                       language_id=this_lang.language_id).one()
 
@@ -61,7 +68,7 @@ class TestDB(unittest.TestCase):
         utils.add_lang(lang)
         utils.add_repo_lang(repo_id, lang, num)
 
-        this_lang = Language.query.filter_by(language_name=lang).one()
+        this_lang = Language.query.filter_by(language_name=lang.lower()).one()
         this_repo_lang = RepoLanguage.query.filter_by(repo_id=repo_id,
                                                       language_id=this_lang.language_id).one()
 
