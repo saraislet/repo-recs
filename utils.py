@@ -57,7 +57,7 @@ def crawl_from_repo_to_users(repo):
     num_users += add_contributors(repo)
 
     end_time = datetime.datetime.now()
-    time_delta = (time_twitter_api_complete - start_time).total_seconds()
+    time_delta = (end_time - start_time).total_seconds()
     time_delta = round(time_delta, 3)
     print(str(num_users) + " users loaded in " + str(time_delta) + " seconds.")
 
@@ -128,7 +128,7 @@ def is_user_in_db(user):
 
     this_user = User.query.filter_by(user_id=user.id).first()
     if this_user:
-        print("User {} in db; updating.".format(user.login))
+        print("User {} in db; updating.".format(user.login), end="\r")
         update_user(this_user, user)
         return True
     return False
@@ -178,12 +178,12 @@ def add_contributors(repo):
 
 def add_lang(lang):
     """Add lang string to db."""
-    print("Adding lang {}.".format(lang))
     this_lang = Language.query.filter_by(language_name=lang).first()
 
     if this_lang:
         return
 
+    print("Adding lang {}.".format(lang))
     this_lang = Language(language_name=lang)
     db.session.add(this_lang)
     db.session.commit()
