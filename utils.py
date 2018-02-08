@@ -19,6 +19,7 @@ spinner_suffix = "%(index)d added, avg %(avg)ds each, %(elapsed)d time elapsed."
 
 # for repo in g.get_user().get_repos():
 #     print(repo.name)
+me = g.get_user()
 
 def add_repo(repo):
     """Query API, and update repo details in db."""
@@ -65,19 +66,22 @@ def crawl_from_repo_to_users(repo):
     time_delta = round(time_delta, 3)
     print("\r\x1b[K\n" + str(num_users) + " users loaded in " + str(time_delta) + " seconds.")
 
+    set_last_crawled_in_repo(repo)
+
 
 def update_repo(this_repo, new_repo):
     """Update repo if it hasn't been updated in more than 7 days."""
 
     delta = datetime.datetime.now().timestamp() - this_repo.updated_at.timestamp()
     if delta/60/60/24/7 < 1:
-        print("Repo {} is up to date.".format(this_repo.name))
+        print("Repo {} is up to date.".format(this_repo.name), end="\r\x1b[K")
         return
 
-    print("Updating old repo data for {}.".format(new_repo.name))
+    print("Updating old repo data for {}.".format(new_repo.name), end="\r\x1b[K")
 
     this_repo.name = new_repo.name
     this_repo.description = new_repo.description
+    this_repo.updated_at = datetime.datetime.utcnow()
 
     db.session.add(this_repo)
     db.session.commit()
@@ -88,10 +92,19 @@ def is_repo_in_db(repo):
 
     this_repo = Repo.query.filter_by(repo_id=repo.id).first()
     if this_repo:
-        print("Repo {} in db; updating.".format(repo.name))
+        print("Repo {} in db; updating.".format(repo.name), end="\r\x1b[K")
         update_repo(this_repo, repo)
         return True
     return False
+
+
+def set_last_crawled_in_repo(repo):
+    """Set last_crawled to now() in repo."""
+    this_repo = Repo.query.get(repo.id)
+    this_repo.last_crawled = datetime.datetime.now()
+
+    db.session.add(this_repo)
+    db.session.commit()
 
 
 def add_user(user):
@@ -121,6 +134,7 @@ def update_user(this_user, new_user):
 
     this_user.name = new_user.name
     this_user.login = new_user.login
+    this_user.updated_at = datetime.datetime.utcnow()
 
     db.session.add(this_user)
     db.session.commit()
@@ -136,6 +150,15 @@ def is_user_in_db(user):
         update_user(this_user, user)
         return True
     return False
+
+
+def set_last_crawled_in_user(user):
+    """Set last_crawled to now() in user."""
+    this_user = User.query.get(user.id)
+    this_user.last_crawled = datetime.datetime.now()
+
+    db.session.add(this_user)
+    db.session.commit()
 
 
 def get_stars_from_repo(repo):
@@ -263,7 +286,7 @@ def crawl_from_user_to_repos(user):
     add_user(user)
 
     # Then crawl the graph out to starred repos and add to db.
-    num_repos += add_starred_repos(user)
+    num_repos = add_starred_repos(user)
 
     end_time = datetime.datetime.now()
     time_delta = (end_time - start_time).total_seconds()
