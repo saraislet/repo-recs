@@ -221,6 +221,7 @@ def add_lang(lang):
 def add_repo_lang(repo_id, lang, num):
     """Add repo-lang association and number of bytes to db."""
     print("Adding repo-lang {}.".format(lang))
+    lang = lang.lower()
     this_lang = Language.query.filter_by(language_name=lang).first()
     this_repo_lang = RepoLanguage.query.filter_by(language_id=this_lang.language_id,
                                                   repo_id=repo_id).first()
