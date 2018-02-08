@@ -251,6 +251,7 @@ def connect_to_db(app, uri=db_uri):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.app = app
     db.init_app(app)
+    db.create_all()
 
 
 if __name__ == "__main__":
