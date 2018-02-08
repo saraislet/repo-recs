@@ -1,6 +1,6 @@
 from model import (Repo, User, Follower,
                    Stargazer, Watcher, Contributor,
-                   Topic, RepoTopic,
+                   # Topic, RepoTopic,
                    Language, RepoLanguage,
                    db, connect_to_db)
 from flask import Flask
@@ -13,8 +13,8 @@ def example_data():
     Watcher.query.delete()
     Follower.query.delete()
     Contributor.query.delete()
-    RepoTopic.query.delete()
-    Topic.query.delete()
+    # RepoTopic.query.delete()
+    # Topic.query.delete()
     RepoLanguage.query.delete()
     Language.query.delete()
     Repo.query.delete()
@@ -53,15 +53,15 @@ def example_data():
     db.session.add_all([jcon, kcon])
     db.session.commit()
 
-    python = Topic(topic_id="1", topic_name="python")
-    api = Topic(topic_id="2", topic_name="api")
-    db.session.add_all([python, api])
-    db.session.commit()
+    # python = Topic(topic_id="1", topic_name="python")
+    # api = Topic(topic_id="2", topic_name="api")
+    # db.session.add_all([python, api])
+    # db.session.commit()
 
-    py_rep1 = RepoTopic(topic_id="1", repo_id="1")
-    api_rep1 = RepoTopic(topic_id="2", repo_id="1")
-    db.session.add_all([py_rep1, api_rep1])
-    db.session.commit()
+    # py_rep1 = RepoTopic(topic_id="1", repo_id="1")
+    # api_rep1 = RepoTopic(topic_id="2", repo_id="1")
+    # db.session.add_all([py_rep1, api_rep1])
+    # db.session.commit()
 
     py_lang = Language(language_id="1", language_name="python")
     c_lang = Language(language_id="2", language_name="c")

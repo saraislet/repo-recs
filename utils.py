@@ -3,7 +3,7 @@ from github import Github
 import secrets
 from model import (Repo, User, Follower,
                    Stargazer, Watcher, Contributor,
-                   Topic, RepoTopic,
+                   # Topic, RepoTopic,
                    Language, RepoLanguage,
                    db, connect_to_db, db_uri)
 
