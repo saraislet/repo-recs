@@ -8,6 +8,7 @@ from model import (Repo, User, Follower,
                    # Topic, RepoTopic,
                    Language, RepoLanguage,
                    db, connect_to_db, db_uri)
+# TODO: try Tenacity library
 
 token = secrets.personal_access_token
 client_id = secrets.client_id
