@@ -228,6 +228,7 @@ def add_repo_lang(repo_id, lang, num):
         this_repo_lang.language_bytes = num
         db.session.add(this_repo_lang)
         db.session.commit()
+        return
 
     this_repo_lang = RepoLanguage(repo_id=repo_id,
                                   language_id=this_lang.language_id,
