@@ -1,4 +1,4 @@
-import unittest
+import unittest, datetime
 from flask import Flask
 import utils, update_pkey_seqs
 from model import (Repo, User, Follower,
@@ -74,6 +74,19 @@ class TestDB(unittest.TestCase):
 
         self.assertEqual(1024, this_repo_lang.language_bytes)
 
+    def test_set_last_crawled_in_repo(self):
+        this_repo = Repo.query.get(1)
+        now = datetime.datetime.now()
+        utils.set_last_crawled_in_repo(this_repo.repo_id, now) 
+
+        self.assertEqual(now, Repo.query.get(1).last_crawled)
+
+    def test_set_last_crawled_in_user(self):
+        this_user = User.query.get(1)
+        now = datetime.datetime.now()
+        utils.set_last_crawled_in_user(this_user.user_id, now) 
+
+        self.assertEqual(now, User.query.get(1).last_crawled)
 
 if __name__ == '__main__':
     unittest.main()
