@@ -1,5 +1,5 @@
 import os, datetime
-from github import Github
+import github
 from progress.bar import ShadyBar
 from progress.spinner import Spinner
 import secrets
@@ -13,7 +13,7 @@ token = secrets.personal_access_token
 client_id = secrets.client_id
 client_secret = secrets.client_secret
 
-g = Github(token, client_id=client_id, client_secret=client_secret)
+g = github.Github(token, client_id=client_id, client_secret=client_secret)
 progress_bar_suffix = "%(index)d/%(max)d, estimated %(eta)d seconds remaining."
 spinner_suffix = "%(index)d added, avg %(avg)ds each, %(elapsed)d time elapsed."
 
@@ -52,6 +52,18 @@ def crawl_from_repo_to_users(repo):
     # Note the start time to estimate time to complete process.
     start_time = datetime.datetime.now()
 
+    # If the argument is not a PyGithub repo object, get the PyGithub repo object:
+    if type(repo) != github.Repository.Repository:
+        # If argument is an integer, assume it's the repo_id
+        if type(repo) == int:
+            repo_id = repo
+        # If argument is model.Repo, get repo_id
+        elif type(repo) == Repo:
+            repo_id = repo.repo_id
+        else:
+            raise TypeError("expected id, string, or PyGithub user object, {} found".format(type(user)))
+        repo = g.get_repo(repo_id)
+
     # First, verify that repo is added to db.
     add_repo(repo)
     num_users = 1
@@ -74,10 +86,10 @@ def update_repo(this_repo, new_repo):
 
     delta = datetime.datetime.now().timestamp() - this_repo.updated_at.timestamp()
     if delta/60/60/24/7 < 1:
-        print("Repo {} is up to date.".format(this_repo.name), end="\r\x1b[K")
+        # print("Repo {} is up to date.".format(this_repo.name), end="\r\x1b[K")
         return
 
-    print("Updating old repo data for {}.".format(new_repo.name), end="\r\x1b[K")
+    # print("Updating old repo data for {}.".format(new_repo.name), end="\r\x1b[K")
 
     this_repo.name = new_repo.name
     this_repo.description = new_repo.description
@@ -92,7 +104,7 @@ def is_repo_in_db(repo):
 
     this_repo = Repo.query.get(repo.id)
     if this_repo:
-        print("Repo {} in db; updating.".format(repo.name), end="\r\x1b[K")
+        # print("Repo {} in db; updating.".format(repo.name), end="\r\x1b[K")
         update_repo(this_repo, repo)
         return True
     return False
@@ -127,10 +139,10 @@ def update_user(this_user, new_user):
 
     delta = datetime.datetime.now().timestamp() - this_user.updated_at.timestamp()
     if delta/60/60/24/7 < 1:
-        print("User {} is up to date.  ".format(this_user.login), end="\r\x1b[K")
+        # print("User {} is up to date.  ".format(this_user.login), end="\r\x1b[K")
         return
 
-    print("Updating old user data for {}.".format(new_user.login), end="\r\x1b[K")
+    # print("Updating old user data for {}.".format(new_user.login), end="\r\x1b[K")
 
     this_user.name = new_user.name
     this_user.login = new_user.login
@@ -146,7 +158,7 @@ def is_user_in_db(user):
 
     this_user = User.query.get(user.id)
     if this_user:
-        print("User {} in db; updating.".format(user.login), end="\r\x1b[K")
+        # print("User {} in db; updating.".format(user.login), end="\r\x1b[K")
         update_user(this_user, user)
         return True
     return False
@@ -171,7 +183,7 @@ def add_stars(repo):
     num_stars = repo.stargazers_count
     num_users = 0
 
-    msg = "Adding {} stargazers.".format(num_stars)
+    msg = "Adding {} stargazers: ".format(num_stars)
     bar = ShadyBar(msg, max=num_stars, suffix=progress_bar_suffix)
 
     for star in stars:
@@ -192,7 +204,7 @@ def add_watchers(repo):
     num_watchers = repo.watchers_count
     num_users = 0
 
-    msg = "Adding {} watchers.".format(num_watchers)
+    msg = "Adding {} watchers: ".format(num_watchers)
     bar = ShadyBar(msg, max=num_watchers, suffix=progress_bar_suffix)
 
     for watcher in watchers:
@@ -213,7 +225,7 @@ def add_contributors(repo):
     # num_contributors = repo.contributors_count
     num_users = 0
 
-    msg = "Adding contributors."#.format(num_contributors)
+    msg = "Adding contributors: "#.format(num_contributors)
     bar = Spinner(msg, suffix=spinner_suffix)
 
     for contributor in contributors:
@@ -244,7 +256,7 @@ def add_lang(lang):
 
 def add_repo_lang(repo_id, lang, num):
     """Add repo-lang association and number of bytes to db."""
-    print("Adding repo-lang {}.".format(lang))
+    # print("Adding repo-lang {}.".format(lang))
     lang = lang.lower()
     this_lang = Language.query.filter_by(language_name=lang).first()
     this_repo_lang = RepoLanguage.query.filter_by(language_id=this_lang.language_id,
@@ -285,12 +297,24 @@ def crawl_from_user_to_repos(user):
     # If the argument is not a PyGithub user object, get the PyGithub user object:
     if (type(user) != github.NamedUser.NamedUser and 
         type(user) != github.AuthenticatedUser.AuthenticatedUser):
-        # If the argument is an integer, assume it's the user_id:
+
+        # If argument is an integer, assume it's the user_id:
         if type(user) == int:
-            login = User.query.get(user).login
-        # If the argument is a string, assume it's the login:
+            this_user = User.query.get(user)
+
+            # If no user is in the database with this id, raise IOError.
+            if not this_user:
+                raise OSError("no user found with id {}".format(user))
+            login = this_user.login
+
+        # If argument is a string, assume it's the login:
         elif type(user) == str:
             login = user
+        # If argument is a model.User object, get the login:
+        elif type(user) == User:
+            login = user.login
+        else:
+            raise TypeError("expected id, string, or PyGithub user object, {} found".format(type(user)))
         user = g.get_user(login=login)
 
     # Verify that user is added to db.
@@ -302,7 +326,7 @@ def crawl_from_user_to_repos(user):
     end_time = datetime.datetime.now()
     time_delta = (end_time - start_time).total_seconds()
     time_delta = round(time_delta, 3)
-    print("\r\x1b[K\n" + str(num_repos) + " repos loaded in " + str(time_delta) + " seconds.")
+    print("\r\x1b[K" + "\n{}repos loaded for {} in {} seconds.".format(num_repos, user.login, time_delta))
 
     set_last_crawled_in_user(user.id, datetime.datetime.now())
 
@@ -317,11 +341,15 @@ def add_starred_repos(user):
     stars = get_starred_repos(user)
     num_repos = 0
 
-    msg = "Adding starred repositories for {}.".format(user.login)
+    msg = "Adding starred repositories for " + user.login + ": "
     bar = Spinner(msg, suffix=spinner_suffix)
 
     for star in stars:
-        num_repos += add_repo(star)
+        try:
+            num_repos += add_repo(star)
+        except BaseException as e:
+            print("Error in add_starred_repos(): ", e)
+            continue
 
         this_star = Stargazer(repo_id=star.id, user_id=user.id)
         db.session.add(this_star)
