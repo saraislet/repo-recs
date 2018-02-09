@@ -282,7 +282,18 @@ def crawl_from_user_to_repos(user):
     # Note the start time to estimate time to complete process.
     start_time = datetime.datetime.now()
 
-    # First, verify that user is added to db.
+    # If the argument is not a PyGithub user object, get the PyGithub user object:
+    if (type(user) != github.NamedUser.NamedUser and 
+        type(user) != github.AuthenticatedUser.AuthenticatedUser):
+        # If the argument is an integer, assume it's the user_id:
+        if type(user) == int:
+            login = User.query.get(user).login
+        # If the argument is a string, assume it's the login:
+        elif type(user) == str:
+            login = user
+        user = g.get_user(login=login)
+
+    # Verify that user is added to db.
     add_user(user)
 
     # Then crawl the graph out to starred repos and add to db.
