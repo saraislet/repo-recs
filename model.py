@@ -15,7 +15,7 @@ class Repo(db.Model):
     repo_id = db.Column(db.Integer, primary_key=True)
     owner_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(1000), nullable=True)
+    description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime(), nullable=True,
                            default=datetime.datetime.utcnow)
     updated_at = db.Column(db.DateTime(), nullable=True,
