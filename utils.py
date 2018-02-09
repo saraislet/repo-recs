@@ -66,7 +66,7 @@ def crawl_from_repo_to_users(repo):
     time_delta = round(time_delta, 3)
     print("\r\x1b[K\n" + str(num_users) + " users loaded in " + str(time_delta) + " seconds.")
 
-    set_last_crawled_in_repo(repo, datetime.datetime.now())
+    set_last_crawled_in_repo(repo.id, datetime.datetime.now())
 
 
 def update_repo(this_repo, new_repo):
@@ -98,9 +98,9 @@ def is_repo_in_db(repo):
     return False
 
 
-def set_last_crawled_in_repo(repo, last_crawled_time):
+def set_last_crawled_in_repo(repo_id, last_crawled_time):
     """Set last_crawled to now() in repo."""
-    this_repo = Repo.query.get(repo.id)
+    this_repo = Repo.query.get(repo_id)
     this_repo.last_crawled = last_crawled_time
 
     db.session.add(this_repo)
@@ -152,9 +152,9 @@ def is_user_in_db(user):
     return False
 
 
-def set_last_crawled_in_user(user, last_crawled_time):
+def set_last_crawled_in_user(user_id, last_crawled_time):
     """Set last_crawled to now() in user."""
-    this_user = User.query.get(user.id)
+    this_user = User.query.get(user_id)
     this_user.last_crawled = last_crawled_time
 
     db.session.add(this_user)
@@ -293,7 +293,7 @@ def crawl_from_user_to_repos(user):
     time_delta = round(time_delta, 3)
     print("\r\x1b[K\n" + str(num_repos) + " repos loaded in " + str(time_delta) + " seconds.")
 
-    set_last_crawled_in_user(user, datetime.datetime.now())
+    set_last_crawled_in_user(user.id, datetime.datetime.now())
 
 
 def get_starred_repos(user):
