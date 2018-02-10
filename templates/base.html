@@ -1,52 +1,40 @@
 <html>
 <head>
     <title>Repo Recommender</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <!-- <link rel=stylesheet type=text/css href="/static/style.css"> -->
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
+    <link rel=stylesheet type=text/css href="/static/style.css">
 </head>
 <body>
-  <nav class="navbar navbar-default navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#">Repo Recommender</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li class="active"><a href="/">Home</a></li>
-            <li class="disabled"><a href="/about">About</a></li>
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
-            {% if "user_id" not in session %}
-            <li><a href="/login">Profile</a></li>
-            {% endif %}
-            {% if "user_id" in session %}
-            <li><a href="/me">Profile</a></li>
-            <li><a href="/logout">Logout</a></li>
-            {% endif %}
-            <li class="active"><a href="./">Fixed top <span class="sr-only">(current)</span></a></li>
-          </ul>
-        </div><!--/.nav-collapse -->
-      </div>
-    </nav>
+  <nav class="w3-bar w3-light-grey w3-card">
+    <span class="w3-bar-item w3-mobile w3-blue-grey nav-brand">Repo Recommender</span>
+    <a href="/" class="w3-bar-item w3-button w3-mobile">Home</a>
+    <a href="/about" class="w3-bar-item hover-subtle w3-button w3-mobile">About</a>
+    {% if "user_id" in session %}
+        <a href="/me" class="w3-bar-item w3-right hover-subtle w3-button w3-mobile">Profile</a>
+        <a href="/logout" class="w3-bar-item w3-right hover-subtle w3-button w3-pale-red w3-mobile">Logout</a>
+    {% endif %}
+    {% if "user_id" not in session %}
+        <a href="/login" class="w3-bar-item w3-right hover-subtle w3-button w3-pale-red w3-mobile">Login</a>
+    {% endif %}
+  </nav>
   
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <ul class="flashes">
         {% for message in messages %}
-          <li>{{ message }}</li>
+          <li class="alert alert-warning" role="alert">{{ message }}</li>
         {% endfor %}
         </ul>
       {% endif %}
     {% endwith %}
 
-    {% block content %}{% endblock %}
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
 
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <script
+        src="http://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
 </body>
 </html>

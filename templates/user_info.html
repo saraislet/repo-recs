@@ -4,18 +4,16 @@
 <h1>Repo Recommender</h1>
 <p>Welcome!</p>
 
+<p>{ user.name }</p>
+{ user.login }
+
 {% if "user_id" not in session %}
   <div class="w3-card-4 w3-margin" style="width:400px">
     <header class="w3-container w3-blue">
       <h2>Authenticate with Github</h2>
     </header>
     <div class="w3-container">
-      <p>Please click here to authenticate with Github OAuth.</p>
-      <p>
-        <i>To view your profile details, follow users, or 
-        star/watch repositories, Repo Recommender needs access to
-        read your profile and to update your follows.</i>
-      </p>
+      <p>(This will be a link to authenticate using Github OAuth.)</p>
     </div>
   </div>
 {% endif %}
