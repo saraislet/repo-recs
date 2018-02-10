@@ -6,11 +6,13 @@
 
 {% if "user_id" not in session %}
   <div class="w3-card-4 w3-margin" style="width:400px">
-    <header class="w3-container w3-blue">
+    <header class="w3-container w3-blue-grey">
       <h2>Authenticate with Github</h2>
     </header>
     <div class="w3-container">
-      <p>Please click here to authenticate with Github OAuth.</p>
+      <p>
+        Please <a href="/login">click here</a> 
+        to authenticate with Github OAuth.</p>
       <p>
         <i>To view your profile details, follow users, or 
         star/watch repositories, Repo Recommender needs access to
