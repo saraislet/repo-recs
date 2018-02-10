@@ -1,4 +1,4 @@
-import json, requests
+import json, requests, urllib
 from flask import Flask, flash, redirect, render_template, request, session
 from jinja2 import StrictUndefined
 import github
@@ -8,7 +8,7 @@ from model import connect_to_db
 github_auth_request_code_url = "https://github.com/login/oauth/authorize"
 github_auth_request_token_url = "https://github.com/login/oauth/access_token"
 auth_callback_url = "http://127.0.0.1:5000/auth"
-oauth_scope = "user:follow read:user"
+oauth_scope = "user user:follow read:user"
 endpoint = "https://api.github.com"
 authenticated_user_path = "/user"
 
@@ -62,18 +62,9 @@ def auth():
 
     code = request.args.get("code")
     state = request.args.get("state")
-    access_token = request.args.get("access_token")
 
     if not code or state != session.get("state"):
-        print("Oops. We couldn't authorize your Github account; please try again.")
         flash("Oops. We couldn't authorize your Github account; please try again.")
-        return redirect("/")
-
-    if access_token:
-        print("Received access token: ", access_token)
-        session["access_token"] = access_token
-        print("Successfully authenticated with Github!!")
-        flash("Successfully authenticated with Github!!")
         return redirect("/")
 
     print("Preparing OAuth post request for access token.")
@@ -85,29 +76,34 @@ def auth():
                "scope": oauth_scope}
 
     r = requests.post(github_auth_request_token_url, params=payload)
-    print(r.content)
+    print(r.text)
+    access_token =  urllib.parse.parse_qs(r.text).get("access_token")
+    if not access_token:
+        flash("Oops. We couldn't authorize your Github account; please try again.")
+        return redirect("/")
+    access_token = access_token[0]
 
     g = github.Github(access_token,
                       client_id=secrets.client_id,
                       client_secret=secrets.client_secret)
-    # user = g.get_user()
-    # utils.add_user(user)
+    user = g.get_user()
+    utils.add_user(user)
+    session["user_id"] = user.id
 
-    payload = {"access_token": access_token}
-    path = endpoint + authenticated_user_path
-    r = requests.get(path, params=payload)
-    print(type(r.text), type(r.content))
-    user_data = json.loads(r.text)
-    utils.add_user(user_data.get("id"))
+    # print("Getting user data from Github API.")
+    # payload = {"access_token": access_token}
+    # path = endpoint + authenticated_user_path
 
-    session["user_id"] = user_data.get("id")
+    # r = requests.get(path, params=payload,
+    #                  headers={'Authorization': 'token ' + access_token})
 
-    print("Successfully authenticated {} with Github!".format(user_data.get("login")))
-    flash("Successfully authenticated {} with Github!".format(user_data.get("login")))
+    # print("Adding authenticated user ({}) to db.".format(user_data.get("id")))
+    # user_data = json.loads(r.text)
+    # session["user_id"] = user_data.get("id")
+    # utils.add_user(user_data.get("login"))
 
+    flash("Successfully authenticated {} with Github!".format(user.login))
     return redirect("/")
-
-
 
 
 if __name__ == "__main__":
