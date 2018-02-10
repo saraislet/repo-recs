@@ -1,13 +1,16 @@
-import requests
+import json, requests
 from flask import Flask, flash, redirect, render_template, request, session
 from jinja2 import StrictUndefined
 import github
 import secrets, utils
+from model import connect_to_db
 
 github_auth_request_code_url = "https://github.com/login/oauth/authorize"
 github_auth_request_token_url = "https://github.com/login/oauth/access_token"
 auth_callback_url = "http://127.0.0.1:5000/auth"
 oauth_scope = "user:follow read:user"
+endpoint = "https://api.github.com"
+authenticated_user_path = "/user"
 
 app = Flask(__name__)
 app.secret_key = "temp"
@@ -89,10 +92,18 @@ def auth():
                       client_secret=secrets.client_secret)
     # user = g.get_user()
     # utils.add_user(user)
-    session["user_id"] = user.id
 
-    print("Successfully authenticated {} with Github!".format(user.login))
-    flash("Successfully authenticated {} with Github!".format(user.login))
+    payload = {"access_token": access_token}
+    path = endpoint + authenticated_user_path
+    r = requests.get(path, params=payload)
+    print(type(r.text), type(r.content))
+    user_data = json.loads(r.text)
+    utils.add_user(user_data.get("id"))
+
+    session["user_id"] = user_data.get("id")
+
+    print("Successfully authenticated {} with Github!".format(user_data.get("login")))
+    flash("Successfully authenticated {} with Github!".format(user_data.get("login")))
 
     return redirect("/")
 
@@ -110,7 +121,7 @@ if __name__ == "__main__":
     # Use the DebugToolbar
     # DebugToolbarExtension(app)
 
-    # connect_to_db(app)
+    connect_to_db(app)
 
 
     # app.run(port=5000, host='0.0.0.0')
