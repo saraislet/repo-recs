@@ -21,7 +21,7 @@ spinner_suffix = "%(index)d added, avg %(avg)ds each, %(elapsed)d time elapsed."
 #     print(repo.name)
 me = g.get_user()
 
-def get_repo_object_from_input(repo_info)
+def get_repo_object_from_input(repo_info):
     # If the argument is not a PyGithub repo object, get the PyGithub repo object:
     if type(repo_info) == github.Repository.Repository:
         return repo_info
@@ -131,7 +131,7 @@ def set_last_crawled_in_repo(repo_id, last_crawled_time):
     db.session.commit()
 
 
-def get_user_object_from_input(user_info)
+def get_user_object_from_input(user_info):
     if (type(user_info) == github.NamedUser.NamedUser or 
         type(user_info) == github.AuthenticatedUser.AuthenticatedUser):
         return user_info
