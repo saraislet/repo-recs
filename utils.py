@@ -21,8 +21,29 @@ spinner_suffix = "%(index)d added, avg %(avg)ds each, %(elapsed)d time elapsed."
 #     print(repo.name)
 me = g.get_user()
 
-def add_repo(repo):
+def get_repo_object_from_input(repo_info)
+    # If the argument is not a PyGithub repo object, get the PyGithub repo object:
+    if type(repo_info) == github.Repository.Repository:
+        return repo_info
+
+    # If argument is an integer, assume it's the repo_id
+    if type(repo_info) == int:
+        repo_id = repo_info
+    # If argument is model.Repo, get repo_id
+    elif type(repo) == Repo:
+        repo_id = repo_info.repo_id
+    else:
+        raise TypeError("expected id, string, or PyGithub user object, {} found".format(type(user)))
+    
+    # Return PyGithub repository object.
+    return g.get_repo(repo_id)
+
+
+def add_repo(repo_info):
     """Query API, and update repo details in db."""
+
+    # If the argument is not a PyGithub repo object, get the PyGithub repo object:
+    repo = get_repo_object_from_input(repo_info)
 
     if is_repo_in_db(repo):
         return 0
@@ -44,7 +65,7 @@ def add_repo(repo):
     return 1
 
 
-def crawl_from_repo_to_users(repo):
+def crawl_from_repo_to_users(repo_info):
     """Add repo, and add all users connected to that repo.
 
     Adds stargazers, watchers, and contributors."""
@@ -53,16 +74,7 @@ def crawl_from_repo_to_users(repo):
     start_time = datetime.datetime.now()
 
     # If the argument is not a PyGithub repo object, get the PyGithub repo object:
-    if type(repo) != github.Repository.Repository:
-        # If argument is an integer, assume it's the repo_id
-        if type(repo) == int:
-            repo_id = repo
-        # If argument is model.Repo, get repo_id
-        elif type(repo) == Repo:
-            repo_id = repo.repo_id
-        else:
-            raise TypeError("expected id, string, or PyGithub user object, {} found".format(type(user)))
-        repo = g.get_repo(repo_id)
+    repo = get_repo_object_from_input(repo_info)
 
     # First, verify that repo is added to db.
     add_repo(repo)
@@ -119,8 +131,36 @@ def set_last_crawled_in_repo(repo_id, last_crawled_time):
     db.session.commit()
 
 
-def add_user(user):
+def get_user_object_from_input(user_info)
+    if (type(user_info) == github.NamedUser.NamedUser or 
+        type(user_info) == github.AuthenticatedUser.AuthenticatedUser):
+        return user_info
+
+    # If argument is an integer, assume it's the user_id:
+    if type(user_info) == int:
+        this_user = User.query.get(user_info)
+
+        # If no user is in the database with this id, raise IOError.
+        if not this_user:
+            raise OSError("no user found with id {}".format(user_info))
+        login = this_user.login
+
+    # If argument is a string, assume it's the login:
+    elif type(user_info) == str:
+        login = user_info
+    # If argument is a model.User object, get the login:
+    elif type(user_info) == User:
+        login = user_info.login
+    else:
+        raise TypeError("expected id, string, or PyGithub user object, {} found".format(type(user)))
+    
+    # Get the PyGithub user object.
+    return g.get_user(login=login)
+
+
+def add_user(user_info):
     """Query API, and update user details in db."""
+    user = get_user_object_from_input(user_info)
 
     if is_user_in_db(user):
         return 0
@@ -295,27 +335,7 @@ def crawl_from_user_to_repos(user):
     start_time = datetime.datetime.now()
 
     # If the argument is not a PyGithub user object, get the PyGithub user object:
-    if (type(user) != github.NamedUser.NamedUser and 
-        type(user) != github.AuthenticatedUser.AuthenticatedUser):
-
-        # If argument is an integer, assume it's the user_id:
-        if type(user) == int:
-            this_user = User.query.get(user)
-
-            # If no user is in the database with this id, raise IOError.
-            if not this_user:
-                raise OSError("no user found with id {}".format(user))
-            login = this_user.login
-
-        # If argument is a string, assume it's the login:
-        elif type(user) == str:
-            login = user
-        # If argument is a model.User object, get the login:
-        elif type(user) == User:
-            login = user.login
-        else:
-            raise TypeError("expected id, string, or PyGithub user object, {} found".format(type(user)))
-        user = g.get_user(login=login)
+    user = get_user_object_from_input(user)
 
     # Verify that user is added to db.
     add_user(user)
