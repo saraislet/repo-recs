@@ -17,8 +17,6 @@ g = github.Github(token, client_id=client_id, client_secret=client_secret)
 progress_bar_suffix = "%(index)d/%(max)d, estimated %(eta)d seconds remaining."
 spinner_suffix = "%(index)d added, avg %(avg)ds each, %(elapsed)d time elapsed."
 
-# for repo in g.get_user().get_repos():
-#     print(repo.name)
 me = g.get_user()
 
 def get_repo_object_from_input(repo_info):
@@ -33,7 +31,8 @@ def get_repo_object_from_input(repo_info):
     elif type(repo) == Repo:
         repo_id = repo_info.repo_id
     else:
-        raise TypeError("expected id, string, or PyGithub user object, {} found".format(type(user)))
+        raise TypeError("""expected id, string, or PyGithub user object, 
+                           {} found.""".format(type(repo_info)))
     
     # Return PyGithub repository object.
     return g.get_repo(repo_id)
@@ -98,10 +97,7 @@ def update_repo(this_repo, new_repo):
 
     delta = datetime.datetime.now().timestamp() - this_repo.updated_at.timestamp()
     if delta/60/60/24/7 < 1:
-        # print("Repo {} is up to date.".format(this_repo.name), end="\r\x1b[K")
         return
-
-    # print("Updating old repo data for {}.".format(new_repo.name), end="\r\x1b[K")
 
     this_repo.name = new_repo.name
     this_repo.description = new_repo.description
@@ -116,7 +112,6 @@ def is_repo_in_db(repo):
 
     this_repo = Repo.query.get(repo.id)
     if this_repo:
-        # print("Repo {} in db; updating.".format(repo.name), end="\r\x1b[K")
         update_repo(this_repo, repo)
         return True
     return False
@@ -138,6 +133,7 @@ def get_user_object_from_input(user_info):
 
     # If argument is an integer, assume it's the user_id:
     if type(user_info) == int:
+        #TODO: This assumes that the user is in the db.
         this_user = User.query.get(user_info)
 
         # If no user is in the database with this id, raise IOError.
@@ -152,7 +148,8 @@ def get_user_object_from_input(user_info):
     elif type(user_info) == User:
         login = user_info.login
     else:
-        raise TypeError("expected id, string, or PyGithub user object, {} found".format(type(user)))
+        raise TypeError("""expected id, string, or PyGithub user object, 
+                           {} found""".format(type(user_info)))
     
     # Get the PyGithub user object.
     return g.get_user(login=login)
