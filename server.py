@@ -3,7 +3,10 @@ from flask import Flask, flash, redirect, render_template, request, session
 from jinja2 import StrictUndefined
 import github
 import secrets, utils
-from model import connect_to_db
+from model import (Repo, User, Follower,
+                   Stargazer, Watcher, Contributor,
+                   Language, RepoLanguage,
+                   db, connect_to_db, db_uri)
 
 github_auth_request_code_url = "https://github.com/login/oauth/authorize"
 github_auth_request_token_url = "https://github.com/login/oauth/access_token"
@@ -22,17 +25,28 @@ def main():
     return render_template("home.html")
 
 
+@app.route("/about")
+def about():
+    flash("Oops! Not available yet.")
+    return redirect("/")
+
+
 @app.route("/me")
 def get_my_profile():
     if "user_id" not in session:
         return redirect("/")
-    return render_template("home.html")
+
+    user = User.query.get(session["user_id"])
+    return render_template("user_info.html",
+                           user=user,
+                           repos=user.repos)
 
 
 @app.route("/logout")
 def logout():
     if "user_id" in session:
         del session["user_id"]
+        flash("Logged out.")
 
     return redirect("/")
 
