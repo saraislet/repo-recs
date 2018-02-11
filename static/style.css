@@ -1,7 +1,17 @@
-body {
-}
-
 p {
     /*background-color: blue;*/
-    /*color: red;*/
+    /*color: blue;*/
+}
+
+.flash {
+    max-width: 500px;
+}
+
+#body {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#auth {
+    max-width: 500px;
 }
