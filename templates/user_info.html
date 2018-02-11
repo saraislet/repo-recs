@@ -1,21 +1,45 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h1>Repo Recommender</h1>
-<p>Welcome!</p>
-
-<p>{ user.name }</p>
-{ user.login }
-
-{% if "user_id" not in session %}
-  <div class="w3-card-4 w3-margin" style="width:400px">
-    <header class="w3-container w3-blue">
-      <h2>Authenticate with Github</h2>
-    </header>
-    <div class="w3-container">
-      <p>(This will be a link to authenticate using Github OAuth.)</p>
+  {% if "user_id" not in session %}
+    <div id="auth" class="w3-card-4 w3-margin">
+      <header class="w3-container w3-blue-grey">
+        <h2>Authenticate with Github</h2>
+      </header>
+      <div class="w3-container">
+        <p>
+          Please <a href="/login">click here</a> 
+          to authenticate with Github OAuth.</p>
+        <p>
+          <i>To view your profile details, follow users, or 
+          star/watch repositories, Repo Recommender needs access to
+          read your profile and to update your follows.</i>
+        </p>
+      </div>
     </div>
-  </div>
-{% endif %}
+  {% endif %}
+
+  {% if "user_id" in session %}
+    <h1>{{ user.name }}</h1>
+    <p>{{ user.login }}</p>
+
+    {% for repo in repos %}
+    <div class="w3-card-4 w3-margin" style="width:400px">
+      <header class="w3-container w3-blue-grey">
+        <h2>{{repo.name}}</h2>
+      </header>
+      <div class="w3-container">
+        <p>{{repo.description}}</p>
+        <ul>
+          {% for lang in repo.repo_langs %}
+          <li>
+            {{ lang.language.language_name }}: {{ lang.language_bytes }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>      
+    {% endfor %}
+  {% endif %}
 
 {% endblock %}
