@@ -343,7 +343,7 @@ def crawl_from_user_to_repos(user):
     end_time = datetime.datetime.now()
     time_delta = (end_time - start_time).total_seconds()
     time_delta = round(time_delta, 3)
-    print("\r\x1b[K" + "\n{}repos loaded for {} in {} seconds.".format(num_repos, user.login, time_delta))
+    print("\r\x1b[K" + "\n{} repos loaded for {} in {} seconds.".format(num_repos, user.login, time_delta))
 
     set_last_crawled_in_user(user.id, datetime.datetime.now())
 
