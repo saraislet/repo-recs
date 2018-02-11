@@ -23,35 +23,41 @@ class Repo(db.Model):
     last_crawled = db.Column(db.DateTime(), nullable=True)
 
     owner = db.relationship("User",
-                            backref=db.backref("repos", order_by=repo_id))
+                            backref=db.backref("repos",
+                                               order_by="desc(Repo.repo_id)"))
 
     stargazers = db.relationship("User",
                                  secondary='stargazers',
                                  order_by="User.user_id",
-                                 backref=db.backref("stars", order_by=repo_id))
+                                 backref=db.backref("stars",
+                                                    order_by="desc(Repo.repo_id)"))
 
     watchers = db.relationship("User",
                                secondary='watchers',
                                order_by="User.user_id",
-                               backref=db.backref("watches", order_by=repo_id))
+                               backref=db.backref("watches",
+                                                  order_by="desc(Repo.repo_id)"))
 
     contributors = db.relationship("User",
                                    secondary='contributors',
                                    order_by="User.user_id",
-                                   backref=db.backref("contributions", order_by=repo_id))
+                                   backref=db.backref("contributions",
+                                                      order_by="desc(Repo.repo_id)"))
 
     # topics = db.relationship("Topic",
     #                            secondary='repo_topics',
     #                            order_by="Topic.topic_name",
-    #                            backref=db.backref("repos", order_by=repo_id))
+    #                            backref=db.backref("repos", order_by=desc(Repo.repo_id)))
 
     languages = db.relationship("Language",
                                secondary='repo_languages',
                                order_by="Language.language_name",
-                               backref=db.backref("repos", order_by=repo_id))
+                               backref=db.backref("repos",
+                                                  order_by="desc(Repo.repo_id)"))
 
     repo_langs = db.relationship("RepoLanguage",
-                                 backref=db.backref("repos", order_by=repo_id))
+                                 backref=db.backref("repos",
+                                                    order_by="desc(Repo.repo_id)"))
 
     def __repr__(self):
         """Provide helpful representation when printed."""
@@ -221,9 +227,15 @@ class RepoLanguage(db.Model):
     __tablename__ = "repo_languages"
 
     repo_language_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    repo_id = db.Column(db.Integer, db.ForeignKey("repos.repo_id"), nullable=False)
-    language_id = db.Column(db.Integer, db.ForeignKey("languages.language_id"), nullable=False)
+    repo_id = db.Column(db.Integer,
+                        db.ForeignKey("repos.repo_id"),
+                        nullable=False)
+    language_id = db.Column(db.Integer,
+                            db.ForeignKey("languages.language_id"),
+                            nullable=False)
     language_bytes = db.Column(db.Integer, nullable=True)
+
+    language = db.relationship("Language")
 
     def __repr__(self):
         """Provide helpful representation when printed."""
