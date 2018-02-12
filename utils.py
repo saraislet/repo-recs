@@ -21,17 +21,18 @@ me = g.get_user()
 
 def get_repo_object_from_input(repo_info):
     # If the argument is not a PyGithub repo object, get the PyGithub repo object:
-    if type(repo_info) == github.Repository.Repository:
+    # Use isInstance()
+    if isinstance(repo_info, github.Repository.Repository):
         return repo_info
 
     # If argument is an integer, assume it's the repo_id
-    if type(repo_info) == int:
+    if isinstance(repo_info, int):
         repo_id = repo_info
     # If argument is model.Repo, get repo_id
-    elif type(repo) == Repo:
+    elif isinstance(repo_info, Repo):
         repo_id = repo_info.repo_id
     else:
-        raise TypeError("""expected id, string, or PyGithub user object, 
+        raise TypeError("""expected id, Repo model object, or PyGithub user object, 
                            {} found.""".format(type(repo_info)))
     
     # Return PyGithub repository object.
@@ -127,12 +128,12 @@ def set_last_crawled_in_repo(repo_id, last_crawled_time):
 
 
 def get_user_object_from_input(user_info):
-    if (type(user_info) == github.NamedUser.NamedUser or 
-        type(user_info) == github.AuthenticatedUser.AuthenticatedUser):
+    if (isinstance(user_info, github.NamedUser.NamedUser) or 
+        isinstance(user_info, github.AuthenticatedUser.AuthenticatedUser)):
         return user_info
 
     # If argument is an integer, assume it's the user_id:
-    if type(user_info) == int:
+    if isinstance(user_info, int):
         #TODO: This assumes that the user is in the db.
         this_user = User.query.get(user_info)
 
@@ -142,10 +143,10 @@ def get_user_object_from_input(user_info):
         login = this_user.login
 
     # If argument is a string, assume it's the login:
-    elif type(user_info) == str:
+    elif isinstance(user_info, str):
         login = user_info
     # If argument is a model.User object, get the login:
-    elif type(user_info) == User:
+    elif isinstance(user_info, User):
         login = user_info.login
     else:
         raise TypeError("""expected id, string, or PyGithub user object, 
@@ -364,7 +365,7 @@ def add_starred_repos(user):
     for star in stars:
         try:
             num_repos += add_repo(star)
-        except BaseException as e:
+        except TypeError as e:
             print("Error in add_starred_repos(): ", e)
             continue
 
