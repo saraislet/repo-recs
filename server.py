@@ -19,6 +19,8 @@ app = Flask(__name__)
 app.secret_key = "temp"
 # Don't let undefined variables fail silently.
 app.jinja_env.undefined = StrictUndefined
+# With old Flask versions, this may be necessary to auto-reload after changes.
+#app.jinja_env.auto_reload = True
 
 @app.route("/")
 def main():
