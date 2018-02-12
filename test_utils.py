@@ -1,5 +1,6 @@
 import unittest, datetime
 from flask import Flask
+import github
 import utils, update_pkey_seqs
 from model import (Repo, User, Follower,
                    Stargazer, Watcher, Contributor,
@@ -9,7 +10,7 @@ from test_model import test_db_uri, example_data
 
 app = Flask(__name__)
 
-class TestDB(unittest.TestCase):
+class TestDB_add_update(unittest.TestCase):
     """Test utils functions that use the DB."""
 
     def setUp(self):
@@ -22,7 +23,6 @@ class TestDB(unittest.TestCase):
         db.create_all()
         example_data()
         update_pkey_seqs.update_pkey_seqs()
-
 
     def tearDown(self):
         """Close session, drop db."""
@@ -87,6 +87,63 @@ class TestDB(unittest.TestCase):
         utils.set_last_crawled_in_user(this_user.user_id, now) 
 
         self.assertEqual(now, User.query.get(1).last_crawled)
+
+
+class TestTypes(unittest.TestCase):
+
+    def setUp(self):
+        """Connect to database, create tables."""
+
+        self.client = app.test_client()
+        app.config['TESTING'] = True
+        connect_to_db(app, test_db_uri)
+        db.drop_all()
+        db.create_all()
+        # example_data()
+        update_pkey_seqs.update_pkey_seqs()
+
+        self.repo = Repo(repo_id="2",
+                         name="Haskellyton",
+                         description="A Halloween repository",
+                         owner_id="1")
+
+        repo_attributes = {"id": "2",
+                           "name": "Haskellyton",
+                           "full_name": "Haskellyton",
+                           "description": "A Halloween repository",
+                           "owner_id": "1"}
+
+        self.py_repo = github.Repository.Repository(requester="",
+                                                    headers="",
+                                                    attributes=repo_attributes,
+                                                    completed="")
+        py_repo = self.py_repo
+
+        # Don't call the Github API: just return self.py_repo when this is called.
+        github.Github.get_repo = lambda self, num: py_repo
+
+
+    def tearDown(self):
+        """Close session, drop db."""
+        db.session.close()
+        db.drop_all()
+
+    def test_get_repo_object_from_input_int(self):
+        
+        self.assertEqual(self.py_repo, utils.get_repo_object_from_input(2))
+
+    def test_get_repo_object_from_input_model(self):
+
+        self.assertEqual(self.py_repo, utils.get_repo_object_from_input(self.repo))
+
+    def test_get_repo_object_from_input_pygithub_object(self):
+
+        self.assertEqual(self.py_repo, utils.get_repo_object_from_input(self.py_repo))
+
+    def test_get_repo_object_from_input_fail(self):
+
+        self.assertRaises(TypeError, utils.get_repo_object_from_input, [])
+
 
 if __name__ == '__main__':
     unittest.main()
