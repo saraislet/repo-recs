@@ -10,8 +10,11 @@
     <a href="/" class="w3-bar-item w3-button w3-mobile">Home</a>
     <a href="/about" class="w3-bar-item hover-subtle w3-button w3-mobile">About</a>
     {% if "user_id" in session %}
-        <a href="/me" class="w3-bar-item w3-right hover-subtle w3-button w3-mobile">Profile</a>
-        <a href="/logout" class="w3-bar-item w3-right hover-subtle w3-button w3-pale-red w3-mobile">Logout</a>
+        <a href="/logout" class="w3-bar-item w3-right hover-subtle w3-button w3-pale-red w3-mobile">
+          Logout
+        </a>
+        <a href="/me" class="w3-bar-item w3-right hover-subtle w3-button w3-mobile">  Profile
+        </a>
     {% endif %}
     {% if "user_id" not in session %}
         <a href="/login" class="w3-bar-item w3-right hover-subtle w3-button w3-pale-red w3-mobile">Login</a>
@@ -21,9 +24,9 @@
   <section id="body">
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <div class="flash w3-panel w3-pale-yellow w3-display-container">
+        <div class="flash w3-panel w3-pale-yellow w3-display-container w3-round-large">
            <span onclick="this.parentElement.style.display='none'"
-                 class="w3-button w3-display-topright">&times;</span> 
+                 class="w3-button w3-display-topright w3-round-large">&times;</span> 
           <ul>
           {% for message in messages %}
             <li>{{ message }}</li>
