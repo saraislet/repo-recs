@@ -89,7 +89,7 @@ class TestDB_add_update(unittest.TestCase):
         self.assertEqual(now, User.query.get(1).last_crawled)
 
 
-class TestTypes(unittest.TestCase):
+class TestRepoTypes(unittest.TestCase):
 
     def setUp(self):
         """Connect to database, create tables."""
@@ -143,6 +143,68 @@ class TestTypes(unittest.TestCase):
     def test_get_repo_object_from_input_fail(self):
 
         self.assertRaises(TypeError, utils.get_repo_object_from_input, [])
+
+
+class TestUserTypes(unittest.TestCase):
+
+    def setUp(self):
+        """Connect to database, create tables."""
+
+        self.client = app.test_client()
+        app.config['TESTING'] = True
+        connect_to_db(app, test_db_uri)
+        db.drop_all()
+        db.create_all()
+        # example_data()
+        update_pkey_seqs.update_pkey_seqs()
+
+        self.user = User(user_id="4",
+                         name="Balloonicorn Doe",
+                         login="balloonicorn")
+        db.session.add(self.user)
+        db.session.commit()
+
+        user_attributes = {"id": "4",
+                           "name": "Balloonicorn Doe",
+                           "login": "balloonicorn"}
+
+        self.py_user = github.NamedUser.NamedUser(requester="",
+                                                  headers="",
+                                                  attributes=user_attributes,
+                                                  completed="")
+        user = self.user
+        py_user = self.py_user
+
+        # don't call the github api: just return self.py_repo when this is called.
+        github.Github.get_user = lambda self, login: py_user
+        # User.query.get = lambda num: user
+        # import pdb; pdb.set_trace()
+
+
+    def tearDown(self):
+        """Close session, drop db."""
+        db.session.close()
+        db.drop_all()
+
+    def test_get_user_object_from_input_int(self):
+        
+        self.assertEqual(self.py_user, utils.get_user_object_from_input(4))
+
+    def test_get_user_object_from_input_str(self):
+        
+        self.assertEqual(self.py_user, utils.get_user_object_from_input("balloonicorn"))
+
+    def test_get_user_object_from_input_model(self):
+
+        self.assertEqual(self.py_user, utils.get_user_object_from_input(self.user))
+
+    def test_get_user_object_from_input_pygithub_object(self):
+
+        self.assertEqual(self.py_user, utils.get_user_object_from_input(self.py_user))
+
+    def test_get_user_object_from_input_fail(self):
+
+        self.assertRaises(TypeError, utils.get_user_object_from_input, [])
 
 
 if __name__ == '__main__':
