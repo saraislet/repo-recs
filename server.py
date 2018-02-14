@@ -3,7 +3,7 @@ from flask import Flask, flash, redirect, render_template, request, session
 from jinja2 import StrictUndefined
 import github
 import secrets, utils
-from model import (Repo, User, Follower,
+from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db, db_uri)
@@ -104,6 +104,7 @@ def auth():
                       client_secret=secrets.client_secret)
     user = g.get_user()
     utils.add_user(user)
+    utils.account_login(user, access_token)
     session["user_id"] = user.id
 
     # print("Getting user data from Github API.")
