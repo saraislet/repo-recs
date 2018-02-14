@@ -104,7 +104,7 @@ class Account(db.Model):
     account_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
     access_token = db.Column(db.String(100), nullable=True)
-    Last_login = db.Column(db.DateTime(), nullable=True,
+    last_login = db.Column(db.DateTime(), nullable=True,
                            default=datetime.datetime.utcnow)
 
     user = db.relationship("User", backref=db.backref("account"))
