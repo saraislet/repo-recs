@@ -3,7 +3,7 @@ import github
 from progress.bar import ShadyBar
 from progress.spinner import Spinner
 import secrets
-from model import (Repo, User, Follower,
+from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db, db_uri)
@@ -154,6 +154,23 @@ def get_user_object_from_input(user_info):
     
     # Get the PyGithub user object.
     return g.get_user(login=login)
+
+
+def account_login(user, access_token):
+    """Add account to db."""
+    this_account = Account.query.filter_by(user_id=user.id).first()
+    if this_account:
+        this_account.last_login = datetime.datetime.now()
+        db.session.add(this_account)
+        db.session.commit()
+        return
+
+    this_account = Account(user_id=user.id,
+                           access_token=access_token,
+                           last_login=datetime.datetime.now())
+    db.session.add(this_account)
+    db.session.commit()
+    return
 
 
 def add_user(user_info):
