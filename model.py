@@ -16,8 +16,7 @@ class Repo(db.Model):
     owner_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime(), nullable=True,
-                           default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime(), nullable=True)
     updated_at = db.Column(db.DateTime(), nullable=True,
                            default=datetime.datetime.utcnow)
     last_crawled = db.Column(db.DateTime(), nullable=True)
@@ -76,8 +75,7 @@ class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String(50), nullable=False)
     name = db.Column(db.String(50), nullable=True)
-    created_at = db.Column(db.DateTime(), nullable=True,
-                           default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime(), nullable=True)
     updated_at = db.Column(db.DateTime(), nullable=True,
                            default=datetime.datetime.utcnow)    
     last_crawled = db.Column(db.DateTime(), nullable=True)
@@ -97,6 +95,26 @@ class User(db.Model):
                 .format(self.user_id,
                         self.login,
                         self.name))
+
+class Account(db.Model):
+    """Account model."""
+
+    __tablename__ = "accounts"
+
+    account_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
+    access_key = db.Column(db.String(100), nullable=True)
+    Last_login = db.Column(db.DateTime(), nullable=True,
+                           default=datetime.datetime.utcnow)
+
+    user = db.relationship("User", backref=db.backref("account"))
+
+    def __repr__(self):
+        """Provide helpful representation when printed."""
+
+        return ("<Account {} user_id={}>"
+                .format(self.account_id,
+                        self.user_id))
 
 
 class Follower(db.Model):
