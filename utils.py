@@ -225,6 +225,13 @@ def add_stars(repo):
     bar = ShadyBar(msg, max=num_stars, suffix=progress_bar_suffix)
 
     for star in stars:
+        # If star is in db, skip and continue.
+        # TODO: Consider checking last_crawled of star.repo/star.user.
+        this_star = Stargazer.query.filter_by(repo_id=repo.id,
+                                              user_id=star.id).first()
+        if this_star:
+            continue
+
         num_users += add_user(star)
 
         this_star = Stargazer(repo_id=repo.id, user_id=star.id)
@@ -246,6 +253,13 @@ def add_watchers(repo):
     bar = ShadyBar(msg, max=num_watchers, suffix=progress_bar_suffix)
 
     for watcher in watchers:
+        # If watcher is in db, skip and continue.
+        # TODO: Consider checking last_crawled of watcher.repo/watcher.user.
+        this_watcher = Watcher.query.filter_by(repo_id=repo.id,
+                                               user_id=watcher.id).first()
+        if this_watcher:
+            continue
+
         num_users += add_user(watcher)
 
         this_watcher = Watcher(repo_id=repo.id, user_id=watcher.id)
@@ -267,6 +281,13 @@ def add_contributors(repo):
     bar = Spinner(msg, suffix=spinner_suffix)
 
     for contributor in contributors:
+        # If contributor is in db, skip and continue.
+        # TODO: Consider checking last_crawled of contributor.repo/contributor.user.
+        this_contributor = Contributor.query.filter_by(repo_id=repo.id,
+                                                       user_id=contributor.id).first()
+        if this_contributor:
+            continue
+
         num_users += add_user(contributor)
 
         this_contributor = Contributor(repo_id=repo.id, user_id=contributor.id)
@@ -332,7 +353,7 @@ def crawl_from_user_to_repos(user):
     # Note the start time to estimate time to complete process.
     start_time = datetime.datetime.now()
 
-    # If the argument is not a PyGithub user object, get the PyGithub user object:
+    # If argument is not a PyGithub user object, get PyGithub user object.
     user = get_user_object_from_input(user)
 
     # Verify that user is added to db.
@@ -344,7 +365,9 @@ def crawl_from_user_to_repos(user):
     end_time = datetime.datetime.now()
     time_delta = (end_time - start_time).total_seconds()
     time_delta = round(time_delta, 3)
-    print("\r\x1b[K" + "\n{} repos loaded for {} in {} seconds.".format(num_repos, user.login, time_delta))
+    print("\r\x1b[K" + "\n{} repos loaded for {} in {} seconds.".format(num_repos,
+                                                                        user.login,
+                                                                        time_delta))
 
     set_last_crawled_in_user(user.id, datetime.datetime.now())
 
@@ -363,6 +386,13 @@ def add_starred_repos(user):
     bar = Spinner(msg, suffix=spinner_suffix)
 
     for star in stars:
+        # If star is in db, skip and continue.
+        # TODO: Consider checking last_crawled of star.repo/star.user.
+        this_star = Stargazer.query.filter_by(repo_id=star.id,
+                                              user_id=user.id).first()
+        if this_star:
+            continue
+
         try:
             num_repos += add_repo(star)
         except TypeError as e:
