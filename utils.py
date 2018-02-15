@@ -39,19 +39,19 @@ def get_repo_object_from_input(repo_info):
     return g.get_repo(repo_id)
 
 
-def add_repo(repo_info):
+def add_repo(repo_info, num_layers_to_crawl=0):
     """Query API, and update repo details in db."""
 
     # If the argument is not a PyGithub repo object, get the PyGithub repo object:
     repo = get_repo_object_from_input(repo_info)
 
-    if is_repo_in_db(repo):
+    if is_repo_in_db(repo, num_layers_to_crawl):
         return 0
 
     owner = repo.owner
     owner_id = owner.id
     # Must create User for owner before commiting Repo to db.
-    add_user(owner)
+    add_user(owner, num_layers_to_crawl)
     
     this_repo = Repo(repo_id=repo.id,
                      name=repo.name,
@@ -65,10 +65,12 @@ def add_repo(repo_info):
     return 1
 
 
-def crawl_from_repo_to_users(repo_info):
+def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
     """Add repo, and add all users connected to that repo.
 
     Adds stargazers, watchers, and contributors."""
+
+    num_layers_to_crawl = max(0, num_layers_to_crawl - 1)
 
     # Note the start time to estimate time to complete process.
     start_time = datetime.datetime.now()
@@ -77,13 +79,13 @@ def crawl_from_repo_to_users(repo_info):
     repo = get_repo_object_from_input(repo_info)
 
     # First, verify that repo is added to db.
-    add_repo(repo)
+    add_repo(repo, num_layers_to_crawl)
     num_users = 1
 
     # Then crawl the graph out to connected users and add to db.
-    num_users += add_stars(repo)
-    num_users += add_watchers(repo)
-    num_users += add_contributors(repo)
+    num_users += add_stars(repo, num_layers_to_crawl)
+    num_users += add_watchers(repo, num_layers_to_crawl)
+    num_users += add_contributors(repo, num_layers_to_crawl)
 
     end_time = datetime.datetime.now()
     time_delta = (end_time - start_time).total_seconds()
@@ -93,7 +95,7 @@ def crawl_from_repo_to_users(repo_info):
     set_last_crawled_in_repo(repo.id, datetime.datetime.now())
 
 
-def update_repo(this_repo, new_repo):
+def update_repo(this_repo, new_repo, num_layers_to_crawl=0):
     """Update repo if it hasn't been updated in more than 7 days."""
 
     delta = datetime.datetime.now().timestamp() - this_repo.updated_at.timestamp()
@@ -108,18 +110,22 @@ def update_repo(this_repo, new_repo):
     db.session.commit()
 
 
-def is_repo_in_db(repo):
+def is_repo_in_db(repo, num_layers_to_crawl=0):
     """Check db for repo, and update xor return false."""
 
     this_repo = Repo.query.get(repo.id)
     if this_repo:
-        update_repo(this_repo, repo)
+        update_repo(this_repo, repo, num_layers_to_crawl)
         return True
     return False
 
 
 def set_last_crawled_in_repo(repo_id, last_crawled_time):
     """Set last_crawled to now() in repo."""
+    #TODO: Should we store and update last_crawled_depth to indicate how far it was crawled?
+    # If a crawl soon after has a lower depth, we don't need to crawl,
+    # but a deeper crawl will need to crawl from here further.
+
     this_repo = Repo.query.get(repo_id)
     this_repo.last_crawled = last_crawled_time
 
@@ -134,7 +140,7 @@ def get_user_object_from_input(user_info):
 
     # If argument is an integer, assume it's the user_id:
     if isinstance(user_info, int):
-        #TODO: This assumes that the user is in the db.
+        #TODO: This assumes that the user is in the db. Check how this is handled.
         this_user = User.query.get(user_info)
 
         # If no user is in the database with this id, raise IOError.
@@ -173,11 +179,12 @@ def account_login(user, access_token):
     return
 
 
-def add_user(user_info):
+def add_user(user_info, num_layers_to_crawl=0):
     """Query API, and update user details in db."""
+        
     user = get_user_object_from_input(user_info)
 
-    if is_user_in_db(user):
+    if is_user_in_db(user, num_layers_to_crawl):
         return 0
 
     this_user = User(user_id=user.id,
@@ -189,7 +196,7 @@ def add_user(user_info):
     return 1
 
 
-def update_user(this_user, new_user):
+def update_user(this_user, new_user, num_layers_to_crawl=0):
     """Update user if it hasn't been updated in more than 7 days."""
 
     delta = datetime.datetime.now().timestamp() - this_user.updated_at.timestamp()
@@ -208,13 +215,13 @@ def update_user(this_user, new_user):
     return
 
 
-def is_user_in_db(user):
+def is_user_in_db(user, num_layers_to_crawl=0):
     """Check db for user, and update xor return false."""
 
     this_user = User.query.get(user.id)
     if this_user:
         # print("User {} in db; updating.".format(user.login), end="\r\x1b[K")
-        update_user(this_user, user)
+        update_user(this_user, user, num_layers_to_crawl)
         return True
     return False
 
@@ -232,7 +239,7 @@ def get_stars_from_repo(repo):
     return repo.get_stargazers()
 
 
-def add_stars(repo):
+def add_stars(repo, num_layers_to_crawl=0):
     """Add all stargazers of repo to db."""
     stars = get_stars_from_repo(repo)
     num_stars = repo.stargazers_count
@@ -249,7 +256,7 @@ def add_stars(repo):
         if this_star:
             continue
 
-        num_users += add_user(star)
+        num_users += add_user(star, num_layers_to_crawl)
 
         this_star = Stargazer(repo_id=repo.id, user_id=star.id)
         db.session.add(this_star)
@@ -260,7 +267,7 @@ def add_stars(repo):
     return num_users
 
 
-def add_watchers(repo):
+def add_watchers(repo, num_layers_to_crawl=0):
     """Add all watchers of repo to db."""
     watchers = repo.get_watchers()
     num_watchers = repo.watchers_count
@@ -277,7 +284,7 @@ def add_watchers(repo):
         if this_watcher:
             continue
 
-        num_users += add_user(watcher)
+        num_users += add_user(watcher, num_layers_to_crawl)
 
         this_watcher = Watcher(repo_id=repo.id, user_id=watcher.id)
         db.session.add(this_watcher)
@@ -288,7 +295,7 @@ def add_watchers(repo):
     return num_users
 
 
-def add_contributors(repo):
+def add_contributors(repo, num_layers_to_crawl=0):
     """Add all contributors of repo to db."""
     contributors = repo.get_contributors()
     # num_contributors = repo.contributors_count
@@ -305,7 +312,7 @@ def add_contributors(repo):
         if this_contributor:
             continue
 
-        num_users += add_user(contributor)
+        num_users += add_user(contributor, num_layers_to_crawl)
 
         this_contributor = Contributor(repo_id=repo.id, user_id=contributor.id)
         db.session.add(this_contributor)
@@ -360,12 +367,15 @@ def add_languages(repo):
         add_repo_lang(repo.id, lang, langs[lang])
 
 
-def crawl_from_user_to_repos(user):
+def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
     """Add user, and add all repos connected to that user.
 
     Adds repos that are starred.
 
     This does not add a user's repos!"""
+    
+    # Decrement the number of layers to crawl, until zero.
+    num_layers_to_crawl = max(0, num_layers_to_crawl - 1)
 
     # Note the start time to estimate time to complete process.
     start_time = datetime.datetime.now()
@@ -374,10 +384,13 @@ def crawl_from_user_to_repos(user):
     user = get_user_object_from_input(user)
 
     # Verify that user is added to db.
-    add_user(user)
+    add_user(user, num_layers_to_crawl)
 
     # Then crawl the graph out to starred repos and add to db.
-    num_repos = add_starred_repos(user)
+    num_repos = add_starred_repos(user, num_layers_to_crawl)
+    #TODO: crawl follows and followers
+    # num_users = add_followers(user, num_layers_to_crawl)
+    # num_users = add_follows(user, num_layers_to_crawl)
 
     end_time = datetime.datetime.now()
     time_delta = (end_time - start_time).total_seconds()
@@ -394,7 +407,7 @@ def get_starred_repos(user):
     return user.get_starred()
 
 
-def add_starred_repos(user):
+def add_starred_repos(user, num_layers_to_crawl=0):
     """Add all repos starred by user to db."""
     stars = get_starred_repos(user)
     num_repos = 0
@@ -411,7 +424,7 @@ def add_starred_repos(user):
             continue
 
         try:
-            num_repos += add_repo(star)
+            num_repos += add_repo(star, num_layers_to_crawl)
         except TypeError as e:
             print("Error in add_starred_repos(): ", e)
             continue
