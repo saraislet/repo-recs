@@ -64,15 +64,21 @@ def add_repo(repo_info, num_layers_to_crawl=0):
         db.session.commit()
 
         add_languages(repo)
+
+        #TODO: A queue might be more robust than a recursive process.
+        if num_layers_to_crawl:
+            crawl_from_user_to_repos(user, num_layers_to_crawl)
+
         return 1
+
     # except github.GithubException as e:
         # print("Error in add_repo({}): ".format(repo_info), e)
     except TypeError as e:
         print("Error in add_repo({}): ".format(repo_info), e)
     except GithubException as e:
         print("Error in add_repo({}): ".format(repo_info), e)
-    except Exception as e:
-        print("Error in add_repo({}): ".format(repo_info), e)
+    # except Exception as e:
+        # print("Error in add_repo({}): ".format(repo_info), e)
     finally:
         return 0
 
@@ -206,15 +212,21 @@ def add_user(user_info, num_layers_to_crawl=0):
                          created_at=user.created_at)
         db.session.add(this_user)
         db.session.commit()
+
+        #TODO: A queue might be more robust than a recursive process.
+        if num_layers_to_crawl:
+            crawl_from_user_to_repos(user, num_layers_to_crawl)
+
         return 1
+        
     # except github.GithubException as e:
         # print("Error in add_user({}): ".format(user_info), e)
     except TypeError as e:
         print("Error in add_user({}): ".format(user_info), e)
     except GithubException as e:
         print("Error in add_user({}): ".format(user_info), e)        
-    except Exception as e:
-        print("Error in add_user({}): ".format(user_info), e)        
+    # except Exception as e:
+    #     print("Error in add_user({}): ".format(user_info), e)        
     finally:
         return 0
 
