@@ -196,6 +196,41 @@ def add_user(user_info, num_layers_to_crawl=0):
     return 1
 
 
+def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
+    """Add user, and add all repos connected to that user.
+
+    Adds repos that are starred.
+
+    This does not add a user's repos!"""
+    
+    # Decrement the number of layers to crawl, until zero.
+    num_layers_to_crawl = max(0, num_layers_to_crawl - 1)
+
+    # Note the start time to estimate time to complete process.
+    start_time = datetime.datetime.now()
+
+    # If argument is not a PyGithub user object, get PyGithub user object.
+    user = get_user_object_from_input(user)
+
+    # Verify that user is added to db.
+    add_user(user, num_layers_to_crawl)
+
+    # Then crawl the graph out to starred repos and add to db.
+    num_repos = add_starred_repos(user, num_layers_to_crawl)
+    #TODO: crawl follows and followers
+    # num_users = add_followers(user, num_layers_to_crawl)
+    # num_users = add_follows(user, num_layers_to_crawl)
+
+    end_time = datetime.datetime.now()
+    time_delta = (end_time - start_time).total_seconds()
+    time_delta = round(time_delta, 3)
+    print("\r\x1b[K" + "\n{} repos loaded for {} in {} seconds.".format(num_repos,
+                                                                        user.login,
+                                                                        time_delta))
+
+    set_last_crawled_in_user(user.id, datetime.datetime.now())
+
+
 def update_user(this_user, new_user, num_layers_to_crawl=0):
     """Update user if it hasn't been updated in more than 7 days."""
 
@@ -365,41 +400,6 @@ def add_languages(repo):
     for lang in langs.keys():
         add_lang(lang)
         add_repo_lang(repo.id, lang, langs[lang])
-
-
-def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
-    """Add user, and add all repos connected to that user.
-
-    Adds repos that are starred.
-
-    This does not add a user's repos!"""
-    
-    # Decrement the number of layers to crawl, until zero.
-    num_layers_to_crawl = max(0, num_layers_to_crawl - 1)
-
-    # Note the start time to estimate time to complete process.
-    start_time = datetime.datetime.now()
-
-    # If argument is not a PyGithub user object, get PyGithub user object.
-    user = get_user_object_from_input(user)
-
-    # Verify that user is added to db.
-    add_user(user, num_layers_to_crawl)
-
-    # Then crawl the graph out to starred repos and add to db.
-    num_repos = add_starred_repos(user, num_layers_to_crawl)
-    #TODO: crawl follows and followers
-    # num_users = add_followers(user, num_layers_to_crawl)
-    # num_users = add_follows(user, num_layers_to_crawl)
-
-    end_time = datetime.datetime.now()
-    time_delta = (end_time - start_time).total_seconds()
-    time_delta = round(time_delta, 3)
-    print("\r\x1b[K" + "\n{} repos loaded for {} in {} seconds.".format(num_repos,
-                                                                        user.login,
-                                                                        time_delta))
-
-    set_last_crawled_in_user(user.id, datetime.datetime.now())
 
 
 def get_starred_repos(user):
