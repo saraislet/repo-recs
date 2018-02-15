@@ -59,7 +59,7 @@ The Repository Recommendation engine uses a Github-authenticated user's stars, w
 * Set depth of crawl in data model on set_last_crawled_in_user/repo
 
 ## Acknowledgements
-* [Katie Byers](https://github.com/lobsterkatie) @lobsterkatie — Wrote update_pkey_seqs.py
+* [Katie Byers @lobsterkatie](https://github.com/lobsterkatie) — Wrote update_pkey_seqs.py
 
 ## Author
-* [Sarai Rosenberg](https://sar.ai) @Saraislet — Software engineer and mathematician, looking for opportunities
+* [Sarai Rosenberg](https://sar.ai) [@Saraislet](https://github.com/Saraislet) — Software engineer and mathematician, looking for opportunities
