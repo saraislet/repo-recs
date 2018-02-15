@@ -14,7 +14,7 @@ class Repo(db.Model):
 
     repo_id = db.Column(db.Integer, primary_key=True)
     owner_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.Text, nullable=False)
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime(), nullable=True)
     updated_at = db.Column(db.DateTime(), nullable=True,
@@ -74,7 +74,7 @@ class User(db.Model):
 
     user_id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String(50), nullable=False)
-    name = db.Column(db.String(50), nullable=True)
+    name = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime(), nullable=True)
     updated_at = db.Column(db.DateTime(), nullable=True,
                            default=datetime.datetime.utcnow)    
