@@ -71,8 +71,6 @@ def add_repo(repo_info, num_layers_to_crawl=0):
 
         return 1
 
-    # except github.GithubException as e:
-        # print("Error in add_repo({}): ".format(repo_info), e)
     except TypeError as e:
         print("Error in add_repo({}): ".format(repo_info), e)
     except GithubException as e:
@@ -219,8 +217,6 @@ def add_user(user_info, num_layers_to_crawl=0):
 
         return 1
         
-    # except github.GithubException as e:
-        # print("Error in add_user({}): ".format(user_info), e)
     except TypeError as e:
         print("Error in add_user({}): ".format(user_info), e)
     except GithubException as e:
@@ -233,7 +229,6 @@ def add_user(user_info, num_layers_to_crawl=0):
 
 def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
     """Add user, and add all repos connected to that user.
-
     Adds repos that are starred.
 
     This does not add a user's repos!"""
