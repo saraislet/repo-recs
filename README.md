@@ -4,6 +4,23 @@ See [Product Requirements Document](https://docs.google.com/document/d/1Y0B8MoOj
 
 The Repository Recommendation engine uses a Github-authenticated user's stars, watches, and follows as features to recommend other repositories or users to follow, using low-rank matrix approximation (may later add kNN or collaborative filtering with additional features).
 
+## Built With
+* Languages: Python, SQL (PostGRES), HTML, CSS
+* Frameworks: Flask, Jinja
+* [W3 CSS](https://www.w3schools.com/w3css/)
+* Libraries:
+  * [jQuery](https://jquery.com/)
+  * [PyGithub](http://pygithub.readthedocs.io)
+  * [Progress](https://github.com/verigak/progress/) by @verigak
+  * [scikit-learn](http://scikit-learn.org/stable/)
+    * [SVDS](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.svds.html)
+  * [pandas](https://pandas.pydata.org/)
+  * [numpy](http://www.numpy.org/)
+
+### Key algorithms/methods
+* [Low-rank matrix approximation](https://en.wikipedia.org/wiki/Low-rank_matrix_approximations)
+  * [Singular Value Decomposition](https://en.wikipedia.org/wiki/Singular-value_decomposition)
+
 ## File structure
 
     .
@@ -13,7 +30,7 @@ The Repository Recommendation engine uses a Github-authenticated user's stars, w
     ├── server.py                # Flask routes
     ├── test_model.py            # Tests for model.py
     ├── test_utils.py            # Tests for utils.py
-    ├── update_pkey_seqs.py      # Script by [Katie Byers](https://github.com/lobsterkatie) to introspect DB and set autoincrementing primary keys appropriately
+    ├── update_pkey_seqs.py      # Script by Katie Byers to introspect DB & set autoincrementing primary keys
     ├── utils.py                 # Helper methods for server.py
     │
     ├── static
@@ -40,3 +57,9 @@ The Repository Recommendation engine uses a Github-authenticated user's stars, w
 * Write API requests instead of using PyGithub?
 * Build queue table and handlers instead of crawling recursively
 * Set depth of crawl in data model on set_last_crawled_in_user/repo
+
+## Acknowledgements
+* [Katie Byers](https://github.com/lobsterkatie) @lobsterkatie — Wrote update_pkey_seqs.py
+
+## Author
+* [Sarai Rosenberg](https://sar.ai) @Saraislet — Software engineer and mathematician, looking for opportunities
