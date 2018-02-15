@@ -1,5 +1,6 @@
 import os, datetime
 import github
+from github import GithubException
 from progress.bar import ShadyBar
 from progress.spinner import Spinner
 import secrets
@@ -43,26 +44,38 @@ def add_repo(repo_info, num_layers_to_crawl=0):
     """Query API, and update repo details in db."""
 
     # If the argument is not a PyGithub repo object, get the PyGithub repo object:
-    repo = get_repo_object_from_input(repo_info)
+    try:
+        repo = get_repo_object_from_input(repo_info)
 
-    if is_repo_in_db(repo, num_layers_to_crawl):
+        if is_repo_in_db(repo, num_layers_to_crawl):
+            return 0
+
+        owner = repo.owner
+        owner_id = owner.id
+        # Must create User for owner before commiting Repo to db.
+        add_user(owner, num_layers_to_crawl)
+        
+        this_repo = Repo(repo_id=repo.id,
+                         name=repo.name,
+                         description=repo.description,
+                         owner_id=owner.id,
+                         created_at=repo.created_at)
+        db.session.add(this_repo)
+        db.session.commit()
+
+        add_languages(repo)
+        return 1
+    # except github.GithubException as e:
+        # print("Error in add_repo({}): ".format(repo_info), e)
+    except TypeError as e:
+        print("Error in add_repo({}): ".format(repo_info), e)
+    except GithubException as e:
+        print("Error in add_repo({}): ".format(repo_info), e)
+    except Exception as e:
+        print("Error in add_repo({}): ".format(repo_info), e)
+    finally:
         return 0
 
-    owner = repo.owner
-    owner_id = owner.id
-    # Must create User for owner before commiting Repo to db.
-    add_user(owner, num_layers_to_crawl)
-    
-    this_repo = Repo(repo_id=repo.id,
-                     name=repo.name,
-                     description=repo.description,
-                     owner_id=owner.id,
-                     created_at=repo.created_at)
-    db.session.add(this_repo)
-    db.session.commit()
-
-    add_languages(repo)
-    return 1
 
 
 def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
@@ -181,19 +194,29 @@ def account_login(user, access_token):
 
 def add_user(user_info, num_layers_to_crawl=0):
     """Query API, and update user details in db."""
-        
-    user = get_user_object_from_input(user_info)
+    try:    
+        user = get_user_object_from_input(user_info)
 
-    if is_user_in_db(user, num_layers_to_crawl):
+        if is_user_in_db(user, num_layers_to_crawl):
+            return 0
+
+        this_user = User(user_id=user.id,
+                         name=user.name,
+                         login=user.login,
+                         created_at=user.created_at)
+        db.session.add(this_user)
+        db.session.commit()
+        return 1
+    # except github.GithubException as e:
+        # print("Error in add_user({}): ".format(user_info), e)
+    except TypeError as e:
+        print("Error in add_user({}): ".format(user_info), e)
+    except GithubException as e:
+        print("Error in add_user({}): ".format(user_info), e)        
+    except Exception as e:
+        print("Error in add_user({}): ".format(user_info), e)        
+    finally:
         return 0
-
-    this_user = User(user_id=user.id,
-                     name=user.name,
-                     login=user.login,
-                     created_at=user.created_at)
-    db.session.add(this_user)
-    db.session.commit()
-    return 1
 
 
 def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
@@ -366,7 +389,7 @@ def add_lang(lang):
     if this_lang:
         return
 
-    print("Adding lang {}.".format(lang))
+    # print("Adding lang {}.".format(lang))
     this_lang = Language(language_name=lang)
     db.session.add(this_lang)
     db.session.commit()
