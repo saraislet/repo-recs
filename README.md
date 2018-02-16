@@ -43,9 +43,6 @@ The Repository Recommendation engine uses a Github-authenticated user's stars, w
         └── user_info.html       # Details about a user and their repositories
 
 ## TODO:
-* Complete MVP:
-  * Add recommendation algorithm
-  * Add route for recs
 * Plan additional features for 1.0:
   * Refine UI
   * Build React components for showing repos and users
