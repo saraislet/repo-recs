@@ -22,7 +22,6 @@ me = g.get_user()
 
 def get_repo_object_from_input(repo_info):
     # If the argument is not a PyGithub repo object, get the PyGithub repo object:
-    # Use isInstance()
     if isinstance(repo_info, github.Repository.Repository):
         return repo_info
 
@@ -53,7 +52,7 @@ def add_repo(repo_info, num_layers_to_crawl=0):
 
         owner = repo.owner
         owner_id = owner.id
-        # Must create User for owner before commiting Repo to db.
+        # Must create User for owner before committing Repo to db.
         add_user(owner, num_layers_to_crawl)
         
         this_repo = Repo(repo_id=repo.id,
@@ -80,7 +79,6 @@ def add_repo(repo_info, num_layers_to_crawl=0):
         # print("Error in add_repo({}): ".format(repo_info), e)
     finally:
         return 0
-
 
 
 def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
@@ -469,7 +467,7 @@ def add_starred_repos(user, num_layers_to_crawl=0):
     return num_repos
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # As a convenience, if we run this module interactively, it will leave
     # you in a state of being able to work with the database directly.
 
