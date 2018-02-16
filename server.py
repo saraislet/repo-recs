@@ -2,7 +2,7 @@ import json, requests, urllib
 from flask import Flask, flash, redirect, render_template, request, session
 from jinja2 import StrictUndefined
 import github
-import secrets, utils
+import rec, secrets, utils
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
@@ -42,6 +42,29 @@ def get_my_profile():
     return render_template("user_info.html",
                            user=user,
                            repos=user.repos)
+
+@app.route("/recs", methods=['GET'])
+def get_repo_recs():
+    if "user_id" not in session:
+        return redirect("/")
+
+    limit = int(request.args.get("count", 10))
+    offset = limit * (-1 + int(request.args.get("page", 1)))
+    user_id = int(request.args.get("user_id", session["user_id"]))
+    print(limit, offset, user_id)
+
+    if not utils.is_user_in_db(user_id):
+        flash("No user found with id {}.".format(user_id))
+        return redirect("/")
+
+    suggestions = rec.get_repo_suggestions(user_id)
+    repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions))
+    repos_query = repos_query.limit(limit)
+    repos_query = repos_query.offset(offset)
+    repos = repos_query.all()
+
+    return render_template("repo_recs.html",
+                           repos=repos)
 
 
 @app.route("/logout")
