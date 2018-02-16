@@ -50,9 +50,10 @@ def get_repo_recs():
 
     limit = int(request.args.get("count", 10))
     offset = limit * (-1 + int(request.args.get("page", 1)))
-    user_id = int(request.args.get("user_id"))
     login = request.args.get("login")
-    print(limit, offset, user_id, login)
+    user_id = request.args.get("user_id")
+    if user_id:
+        user_id = int(user_id)
 
     # Login parameter takes precedence.
     if login:
