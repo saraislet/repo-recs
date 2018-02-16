@@ -50,12 +50,22 @@ def get_repo_recs():
 
     limit = int(request.args.get("count", 10))
     offset = limit * (-1 + int(request.args.get("page", 1)))
-    user_id = int(request.args.get("user_id", session["user_id"]))
-    print(limit, offset, user_id)
+    user_id = int(request.args.get("user_id"))
+    login = request.args.get("login")
+    print(limit, offset, user_id, login)
 
-    if not utils.is_user_in_db(user_id):
+    # Login parameter takes precedence.
+    if login:
+        if User.query.filter_by(login=login).count() == 0:
+            flash("No user found with login {}.".format(login))
+            return redirect("/")
+        user_id = User.query.filter_by(login=login).first().user_id
+    # If user_id parameter is included but not in database, redirect.
+    elif user_id and not utils.is_user_in_db(user_id):
         flash("No user found with id {}.".format(user_id))
-        return redirect("/")
+        return redirect("/") 
+    else:
+        user_id = session["user_id"]
 
     suggestions = rec.get_repo_suggestions(user_id)
     repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions))
