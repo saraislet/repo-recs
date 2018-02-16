@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+
+  <h1>Repositories you might like:</h1>
+
+  {% for repo in repos %}
+  <div class="w3-card-4 w3-margin" style="width:400px">
+    <header class="w3-container w3-blue-grey">
+      <h2>{{repo.name}}</h2>
+    </header>
+    <div class="w3-container">
+      <p>{{repo.description}}</p>
+      <ul>
+        {% for lang in repo.repo_langs %}
+        <li>
+          {{ lang.language.language_name }}: {{ lang.language_bytes }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>      
+  {% endfor %}
+
+{% endblock %}
