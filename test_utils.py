@@ -120,13 +120,16 @@ class TestRepoTypes(unittest.TestCase):
         py_repo = self.py_repo
 
         # Don't call the Github API: just return self.py_repo when this is called.
-        github.Github.get_repo = lambda self, num: py_repo
+        self.holder_get_repo = github.Github.get_repo
+        github.Github.get_repo = lambda self, repo_info: py_repo
 
 
     def tearDown(self):
-        """Close session, drop db."""
+        """Close session, drop db, reassign monkey patch."""
         db.session.close()
         db.drop_all()
+
+        github.Github.get_repo = self.holder_get_repo
 
     def test_get_repo_object_from_input_int(self):
         
@@ -156,7 +159,7 @@ class TestUserTypes(unittest.TestCase):
         db.drop_all()
         db.create_all()
         # example_data()
-        update_pkey_seqs.update_pkey_seqs()
+        # update_pkey_seqs.update_pkey_seqs()
 
         self.user = User(user_id="4",
                          name="Balloonicorn Doe",
@@ -176,15 +179,16 @@ class TestUserTypes(unittest.TestCase):
         py_user = self.py_user
 
         # don't call the github api: just return self.py_repo when this is called.
+        self.holder_get_user = github.Github.get_user
         github.Github.get_user = lambda self, login: py_user
-        # User.query.get = lambda num: user
-        # import pdb; pdb.set_trace()
 
 
     def tearDown(self):
-        """Close session, drop db."""
+        """Close session, drop db, reassign monkey patch."""
         db.session.close()
         db.drop_all()
+
+        github.Github.get_user = self.holder_get_user
 
     def test_get_user_object_from_input_int(self):
         
@@ -206,6 +210,180 @@ class TestUserTypes(unittest.TestCase):
 
         self.assertRaises(TypeError, utils.get_user_object_from_input, [])
 
+
+class TestAddRepo(unittest.TestCase):
+
+    def setUp(self):
+        """Connect to database, create tables."""
+
+        self.client = app.test_client()
+        app.config['TESTING'] = True
+        connect_to_db(app, test_db_uri)
+        db.drop_all()
+        db.create_all()
+        # example_data()
+        # update_pkey_seqs.update_pkey_seqs()
+
+        self.user = User(user_id="4",
+                         name="Balloonicorn Doe",
+                         login="balloonicorn")
+        db.session.add(self.user)
+        db.session.commit()
+
+        user_attributes = {"id": "4",
+                           "name": "Balloonicorn Doe",
+                           "login": "balloonicorn"}
+
+        self.py_user = github.NamedUser.NamedUser(requester="",
+                                                  headers="",
+                                                  attributes=user_attributes,
+                                                  completed="")
+        user = self.user
+        py_user = self.py_user
+
+        # don't call the github api: just return self.py_repo when this is called.
+        # github.Github.get_user = lambda self, login: py_user
+
+        self.repo = Repo(repo_id="2",
+                         name="Haskell Games",
+                         description="Games in Haskell",
+                         owner_id="4")
+        db.session.add(self.repo)
+        db.session.commit()
+
+        repo_attributes = {"id": self.repo.repo_id,
+                           "name": self.repo.name,
+                           "description": self.repo.description,
+                           "owner": py_user}
+
+        self.py_repo = github.Repository.Repository(requester="",
+                                                    headers="",
+                                                    attributes=repo_attributes,
+                                                    completed="")
+        repo = self.repo
+        py_repo = self.py_repo
+
+        # don't call the github api: just return self.py_repo when this is called.
+        self.holder_get_repo_object_from_input = utils.get_repo_object_from_input
+        self.holder_update_repo = utils.update_repo
+        self.holder_is_repo_in_db = utils.is_repo_in_db
+        utils.get_repo_object_from_input = lambda repo_info: py_repo
+        utils.update_repo = lambda repo, num: None
+
+    def tearDown(self):
+        """Close session, drop db."""
+        db.session.close()
+        db.drop_all()
+
+        utils.get_repo_object_from_input = self.holder_get_repo_object_from_input
+        utils.update_repo = self.holder_update_repo
+        utils.is_repo_in_db = self.holder_is_repo_in_db
+
+    def test_add_repo_existing(self):
+        utils.is_repo_in_db = lambda repo_id: True
+
+        self.assertEqual(0, utils.add_repo(2))
+
+    def test_add_repo_new(self):
+        utils.is_repo_in_db = lambda repo_id: False
+
+        # import pdb; pdb.set_trace()
+        output = utils.add_repo(9)
+        self.assertEqual(1, output)
+
+    def test_is_repo_in_db_true(self):
+        self.assertEqual(True, utils.is_repo_in_db(2))
+
+    def test_is_repo_in_db_false(self):
+        # import pdb; pdb.set_trace()
+        self.assertEqual(False, utils.is_repo_in_db(9))
+
+class TestAddUser(unittest.TestCase):
+
+    def setUp(self):
+        """Connect to database, create tables."""
+
+        self.client = app.test_client()
+        app.config['TESTING'] = True
+        connect_to_db(app, test_db_uri)
+        db.drop_all()
+        db.create_all()
+        # example_data()
+        # update_pkey_seqs.update_pkey_seqs()
+
+        self.user = User(user_id="4",
+                         name="Balloonicorn Doe",
+                         login="balloonicorn")
+        db.session.add(self.user)
+        db.session.commit()
+
+        user_attributes = {"id": "4",
+                           "name": "Balloonicorn Doe",
+                           "login": "balloonicorn"}
+
+        self.py_user = github.NamedUser.NamedUser(requester="",
+                                                  headers="",
+                                                  attributes=user_attributes,
+                                                  completed="")
+        user = self.user
+        py_user = self.py_user
+
+        # don't call the github api: just return self.py_repo when this is called.
+        # github.Github.get_user = lambda self, login: py_user
+
+        self.repo = Repo(repo_id="2",
+                         name="Haskell Games",
+                         description="Games in Haskell",
+                         owner_id="4")
+        db.session.add(self.repo)
+        db.session.commit()
+
+        repo_attributes = {"id": self.repo.repo_id,
+                           "name": self.repo.name,
+                           "description": self.repo.description,
+                           "owner": py_user}
+
+        self.py_repo = github.Repository.Repository(requester="",
+                                                    headers="",
+                                                    attributes=repo_attributes,
+                                                    completed="")
+        repo = self.repo
+        py_repo = self.py_repo
+
+        # don't call the github api: just return self.py_repo when this is called.
+        self.holder_get_user_object_from_input = utils.get_user_object_from_input
+        self.holder_update_user = utils.update_user
+        self.holder_is_user_in_db = utils.is_user_in_db
+        utils.get_user_object_from_input = lambda user_info: py_user
+        utils.update_user = lambda repo, num: None
+
+    def tearDown(self):
+        """Close session, drop db."""
+        db.session.close()
+        db.drop_all()
+
+        utils.get_user_object_from_input = self.holder_get_user_object_from_input
+        utils.update_user = self.holder_update_user
+        utils.is_user_in_db = self.holder_is_user_in_db
+
+    def test_add_user_existing(self):
+        utils.is_user_in_db = lambda user_id: True
+
+        self.assertEqual(0, utils.add_user(2))
+
+    def test_add_user_new(self):
+        utils.is_user_in_db = lambda user_id: False
+
+        # import pdb; pdb.set_trace()
+        output = utils.add_user(9)
+        self.assertEqual(1, output)
+
+    def test_is_user_in_db_true(self):
+        self.assertEqual(True, utils.is_user_in_db(4))
+
+    def test_is_user_in_db_false(self):
+        # import pdb; pdb.set_trace()
+        self.assertEqual(False, utils.is_user_in_db(9))
 
 if __name__ == '__main__':
     unittest.main()
