@@ -58,7 +58,7 @@ class Repo(db.Model):
                                  backref=db.backref("repos",
                                                     order_by="desc(Repo.repo_id)"))
 
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         """Provide helpful representation when printed."""
 
         return ("<Repo {} owner={} name={}>"
@@ -88,7 +88,7 @@ class User(db.Model):
                                 backref=db.backref("follows",
                                                    order_by=user_id))
 
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         """Provide helpful representation when printed."""
 
         return ("<User {} login={} name={}>"
@@ -109,7 +109,7 @@ class Account(db.Model):
 
     user = db.relationship("User", backref=db.backref("account"))
 
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         """Provide helpful representation when printed."""
 
         return ("<Account {} user_id={}>"
@@ -126,7 +126,7 @@ class Follower(db.Model):
     user_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
     follower_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
 
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         """Provide helpful representation when printed."""
 
         return ("<Follower {} user_id={} follower_id={}>"
@@ -144,7 +144,7 @@ class Stargazer(db.Model):
     repo_id = db.Column(db.ForeignKey("repos.repo_id"), nullable=False)
     user_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
 
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         """Provide helpful representation when printed."""
 
         return ("<Stargazer {} repo_id={} user_id={}>"
@@ -162,7 +162,7 @@ class Watcher(db.Model):
     repo_id = db.Column(db.ForeignKey("repos.repo_id"), nullable=False)
     user_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
 
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         """Provide helpful representation when printed."""
 
         return ("<Watcher {} repo_id={} user_id={}>"
@@ -180,7 +180,7 @@ class Contributor(db.Model):
     repo_id = db.Column(db.ForeignKey("repos.repo_id"), nullable=False)
     user_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
 
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         """Provide helpful representation when printed."""
 
         return ("<Contributor {} repo_id={} user_id={}>"
@@ -231,7 +231,7 @@ class Language(db.Model):
     language_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     language_name = db.Column(db.String(100), nullable=False, unique=True)
 
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         """Provide helpful representation when printed."""
 
         return ("<Language {} name={}>"
@@ -255,7 +255,7 @@ class RepoLanguage(db.Model):
 
     language = db.relationship("Language")
 
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         """Provide helpful representation when printed."""
 
         return ("<RepoLanguage {} repo_id={} language_id={} bytes={}>"
@@ -265,13 +265,13 @@ class RepoLanguage(db.Model):
                         self.language_bytes))
 
 
-def init_app():
-    # So that we can use Flask-SQLAlchemy, we'll make a Flask app.
-    from flask import Flask
-    app = Flask(__name__)
+# def init_app():
+#     # So that we can use Flask-SQLAlchemy, we'll make a Flask app.
+#     from flask import Flask
+#     app = Flask(__name__)
 
-    connect_to_db(app)
-    print("Connected to DB.")
+#     connect_to_db(app)
+#     print("Connected to DB.")
 
 
 def connect_to_db(app, uri=db_uri):
@@ -286,7 +286,7 @@ def connect_to_db(app, uri=db_uri):
     db.create_all()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     # As a convenience, if we run this module interactively, it will leave
     # you in a state of being able to work with the database directly.
 
