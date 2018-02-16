@@ -1,4 +1,4 @@
-import os, datetime
+import datetime, json, os
 import github
 from github import GithubException
 from progress.bar import ShadyBar
@@ -465,6 +465,28 @@ def add_starred_repos(user, num_layers_to_crawl=0):
         bar.next()
     bar.finish()
     return num_repos
+
+
+def get_json_from_repos(repos):
+    """Given list of Repo objects, return json."""
+    data = []
+    repo_data = dict()
+    language_data = []
+    lang_data = dict()
+
+    for repo in repos:
+        for lang in repo.repo_langs:
+            lang_data = {"language_name": lang.language.language_name,
+                         "language_bytes": lang.language_bytes}
+            language_data.append(lang_data)
+
+        repo_data = {"repo_id": repo.repo_id,
+                     "name": repo.name,
+                     "description": repo.description,
+                     "owner_login": repo.owner.login,
+                     "langs": lang_data}
+        data.append(repo_data)
+    return json.dumps(data)
 
 
 if __name__ == "__main__":  # pragma: no cover
