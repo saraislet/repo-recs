@@ -73,10 +73,10 @@ def example_data():
     db.session.add_all([py_lang_rep1, c_lang_rep1])
     db.session.commit()
 
-    print("Created test data.")
+    # print("Created test data.")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # As a convenience, if we run this module interactively, it will leave
     # you in a state of being able to work with the database directly.
 
