@@ -77,6 +77,39 @@ def get_repo_recs():
     return render_template("repo_recs.html",
                            repos=repos)
 
+@app.route("/get_repo_recs", methods=['GET'])
+def get_repo_recs_json():
+    if "user_id" not in session:
+        return redirect("/")
+
+    limit = int(request.args.get("count", 10))
+    offset = limit * (-1 + int(request.args.get("page", 1)))
+    login = request.args.get("login")
+    user_id = request.args.get("user_id")
+    if user_id:
+        user_id = int(user_id)
+
+    # Login parameter takes precedence.
+    if login:
+        if User.query.filter_by(login=login).count() == 0:
+            flash("No user found with login {}.".format(login))
+            return redirect("/")
+        user_id = User.query.filter_by(login=login).first().user_id
+    # If user_id parameter is included but not in database, redirect.
+    elif user_id and not utils.is_user_in_db(user_id):
+        flash("No user found with id {}.".format(user_id))
+        return redirect("/") 
+    else:
+        user_id = session["user_id"]
+
+    suggestions = rec.get_repo_suggestions(user_id)
+    repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions))
+    repos_query = repos_query.limit(limit)
+    repos_query = repos_query.offset(offset)
+    repos = repos_query.all()
+
+    return utils.get_repo_recs_json(repos)
+
 
 @app.route("/logout")
 def logout():
