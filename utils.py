@@ -47,7 +47,8 @@ def add_repo(repo_info, num_layers_to_crawl=0):
     try:
         repo = get_repo_object_from_input(repo_info)
 
-        if is_repo_in_db(repo, num_layers_to_crawl):
+        if is_repo_in_db(repo.id):
+            update_repo(repo, num_layers_to_crawl)
             return 0
 
         owner = repo.owner
@@ -112,27 +113,27 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
     set_last_crawled_in_repo(repo.id, datetime.datetime.now())
 
 
-def update_repo(this_repo, new_repo, num_layers_to_crawl=0):
+def update_repo(repo, num_layers_to_crawl=0):
     """Update repo if it hasn't been updated in more than 7 days."""
+    this_repo = Repo.query.get(repo.id)
 
     delta = datetime.datetime.now().timestamp() - this_repo.updated_at.timestamp()
     if delta/60/60/24/7 < 1:
         return
 
-    this_repo.name = new_repo.name
-    this_repo.description = new_repo.description
+    this_repo.name = repo.name
+    this_repo.description = repo.description
     this_repo.updated_at = datetime.datetime.utcnow()
 
     db.session.add(this_repo)
     db.session.commit()
 
 
-def is_repo_in_db(repo, num_layers_to_crawl=0):
-    """Check db for repo, and update xor return false."""
+def is_repo_in_db(repo_id):
+    """Check db for repo, return true or false."""
 
-    this_repo = Repo.query.get(repo.id)
+    this_repo = Repo.query.get(repo_id)
     if this_repo:
-        update_repo(this_repo, repo, num_layers_to_crawl)
         return True
     return False
 
@@ -201,7 +202,8 @@ def add_user(user_info, num_layers_to_crawl=0):
     try:    
         user = get_user_object_from_input(user_info)
 
-        if is_user_in_db(user, num_layers_to_crawl):
+        if is_user_in_db(user.id):
+            update_user(user, num_layers_to_crawl)
             return 0
 
         this_user = User(user_id=user.id,
@@ -261,18 +263,19 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
     set_last_crawled_in_user(user.id, datetime.datetime.now())
 
 
-def update_user(this_user, new_user, num_layers_to_crawl=0):
+def update_user(user, num_layers_to_crawl=0):
     """Update user if it hasn't been updated in more than 7 days."""
+    this_user = User.query.get(user.id)
 
     delta = datetime.datetime.now().timestamp() - this_user.updated_at.timestamp()
     if delta/60/60/24/7 < 1:
         # print("User {} is up to date.  ".format(this_user.login), end="\r\x1b[K")
         return
 
-    # print("Updating old user data for {}.".format(new_user.login), end="\r\x1b[K")
+    # print("Updating old user data for {}.".format(user.login), end="\r\x1b[K")
 
-    this_user.name = new_user.name
-    this_user.login = new_user.login
+    this_user.name = user.name
+    this_user.login = user.login
     this_user.updated_at = datetime.datetime.utcnow()
 
     db.session.add(this_user)
@@ -280,13 +283,11 @@ def update_user(this_user, new_user, num_layers_to_crawl=0):
     return
 
 
-def is_user_in_db(user, num_layers_to_crawl=0):
+def is_user_in_db(user_id):
     """Check db for user, and update xor return false."""
 
-    this_user = User.query.get(user.id)
+    this_user = User.query.get(user_id)
     if this_user:
-        # print("User {} in db; updating.".format(user.login), end="\r\x1b[K")
-        update_user(this_user, user, num_layers_to_crawl)
         return True
     return False
 
