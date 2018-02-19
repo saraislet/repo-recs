@@ -232,7 +232,6 @@ def add_user(user_info, num_layers_to_crawl=0):
     except GithubException as e:
         print("Error in add_user({}): ".format(user_info), e)        
         return 0
-    except 
     # except Exception as e:
     #     print("Error in add_user({}): ".format(user_info), e)        
 
