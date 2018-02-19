@@ -48,7 +48,7 @@ def get_repo_recs():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", 10))
+    limit = int(request.args.get("count", 20))
     offset = limit * (-1 + int(request.args.get("page", 1)))
     login = request.args.get("login")
     user_id = request.args.get("user_id")
@@ -77,12 +77,43 @@ def get_repo_recs():
     return render_template("repo_recs.html",
                            repos=repos)
 
+@app.route("/recs_react", methods=['GET'])
+def get_repo_recs_react():
+    if "user_id" not in session:
+        return redirect("/")
+
+    limit = int(request.args.get("count", 20))
+    # offset = limit * (-1 + int(request.args.get("page", 1)))
+    page = int(request.args.get("page", 1))
+    login = request.args.get("login")
+    user_id = request.args.get("user_id")
+    if user_id:
+        user_id = int(user_id)
+
+    # Login parameter takes precedence.
+    if login:
+        if User.query.filter_by(login=login).count() == 0:
+            flash("No user found with login {}.".format(login))
+            return redirect("/")
+        user_id = User.query.filter_by(login=login).first().user_id
+    # If user_id parameter is included but not in database, redirect.
+    elif user_id and not utils.is_user_in_db(user_id):
+        flash("No user found with id {}.".format(user_id))
+        return redirect("/") 
+    else:
+        user_id = session["user_id"]
+
+    return render_template("repo_recs_json.html",
+                           user_id=user_id,
+                           count=limit,
+                           page=page)
+
 @app.route("/get_repo_recs", methods=['GET'])
 def get_repo_recs_json():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", 10))
+    limit = int(request.args.get("count", 20))
     offset = limit * (-1 + int(request.args.get("page", 1)))
     login = request.args.get("login")
     user_id = request.args.get("user_id")
@@ -108,7 +139,7 @@ def get_repo_recs_json():
     repos_query = repos_query.offset(offset)
     repos = repos_query.all()
 
-    return utils.get_repo_recs_json(repos)
+    return utils.get_json_from_repos(repos)
 
 
 @app.route("/logout")
