@@ -470,11 +470,9 @@ def add_starred_repos(user, num_layers_to_crawl=0):
 def get_json_from_repos(repos):
     """Given list of Repo objects, return json."""
     data = []
-    repo_data = dict()
-    language_data = []
-    lang_data = dict()
 
     for repo in repos:
+        language_data = []
         for lang in repo.repo_langs:
             lang_data = {"language_name": lang.language.language_name,
                          "language_bytes": lang.language_bytes}
@@ -484,7 +482,7 @@ def get_json_from_repos(repos):
                      "name": repo.name,
                      "description": repo.description,
                      "owner_login": repo.owner.login,
-                     "langs": lang_data}
+                     "langs": language_data}
         data.append(repo_data)
     return json.dumps(data)
 
