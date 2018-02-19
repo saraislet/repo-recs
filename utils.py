@@ -14,6 +14,9 @@ token = secrets.personal_access_token
 client_id = secrets.client_id
 client_secret = secrets.client_secret
 
+max_crawl_count_total = 50
+max_crawl_count_new = 50
+
 g = github.Github(token, client_id=client_id, client_secret=client_secret)
 progress_bar_suffix = "%(index)d/%(max)d, estimated %(eta)d seconds remaining."
 spinner_suffix = "%(index)d added, avg %(avg)ds each, %(elapsed)d time elapsed."
@@ -67,18 +70,18 @@ def add_repo(repo_info, num_layers_to_crawl=0):
 
         #TODO: A queue might be more robust than a recursive process.
         if num_layers_to_crawl:
-            crawl_from_user_to_repos(user, num_layers_to_crawl)
+            crawl_from_repo_to_users(repo, num_layers_to_crawl)
 
         return 1
 
     except TypeError as e:
         print("Error in add_repo({}): ".format(repo_info), e)
+        return 0
     except GithubException as e:
         print("Error in add_repo({}): ".format(repo_info), e)
+        return 0
     # except Exception as e:
         # print("Error in add_repo({}): ".format(repo_info), e)
-    finally:
-        return 0
 
 
 def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
@@ -93,22 +96,23 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
 
     # If the argument is not a PyGithub repo object, get the PyGithub repo object:
     repo = get_repo_object_from_input(repo_info)
+    print("Crawling {} layers from repo {} ({}).".format(1+num_layers_to_crawl, repo.id, repo.name))
 
     # First, verify that repo is added to db.
-    add_repo(repo, num_layers_to_crawl)
+    add_repo(repo)
     num_users = 1
 
     # Then crawl the graph out to connected users and add to db.
     num_users += add_stars(repo, num_layers_to_crawl)
-    num_users += add_watchers(repo, num_layers_to_crawl)
-    num_users += add_contributors(repo, num_layers_to_crawl)
+    # num_users += add_watchers(repo, num_layers_to_crawl)
+    # num_users += add_contributors(repo, num_layers_to_crawl)
 
     end_time = datetime.datetime.now()
     time_delta = (end_time - start_time).total_seconds()
     time_delta = round(time_delta, 3)
     print("\r\x1b[K\n" + str(num_users) + " users loaded in " + str(time_delta) + " seconds.")
 
-    set_last_crawled_in_repo(repo.id, datetime.datetime.now())
+    set_last_crawled_in_repo(repo.id, datetime.datetime.now(), 1+num_layers_to_crawl)
 
 
 def update_repo(repo, num_layers_to_crawl=0):
@@ -126,6 +130,10 @@ def update_repo(repo, num_layers_to_crawl=0):
     db.session.add(this_repo)
     db.session.commit()
 
+    #TODO: A queue might be more robust than a recursive process.
+    if num_layers_to_crawl:
+        crawl_from_repo_to_users(repo, num_layers_to_crawl)
+
 
 def is_repo_in_db(repo_id):
     """Check db for repo, return true or false."""
@@ -136,7 +144,7 @@ def is_repo_in_db(repo_id):
     return False
 
 
-def set_last_crawled_in_repo(repo_id, last_crawled_time):
+def set_last_crawled_in_repo(repo_id, last_crawled_time, last_crawled_depth):
     """Set last_crawled to now() in repo."""
     #TODO: Should we store and update last_crawled_depth to indicate how far it was crawled?
     # If a crawl soon after has a lower depth, we don't need to crawl,
@@ -144,6 +152,7 @@ def set_last_crawled_in_repo(repo_id, last_crawled_time):
 
     this_repo = Repo.query.get(repo_id)
     this_repo.last_crawled = last_crawled_time
+    this_repo.last_crawled_depth = last_crawled_depth
 
     db.session.add(this_repo)
     db.session.commit()
@@ -219,12 +228,13 @@ def add_user(user_info, num_layers_to_crawl=0):
         
     except TypeError as e:
         print("Error in add_user({}): ".format(user_info), e)
+        return 0
     except GithubException as e:
         print("Error in add_user({}): ".format(user_info), e)        
+        return 0
+    except 
     # except Exception as e:
     #     print("Error in add_user({}): ".format(user_info), e)        
-    finally:
-        return 0
 
 
 def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
@@ -232,7 +242,7 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
     Adds repos that are starred.
 
     This does not add a user's repos!"""
-    
+    # import pdb; pdb.set_trace()
     # Decrement the number of layers to crawl, until zero.
     num_layers_to_crawl = max(0, num_layers_to_crawl - 1)
 
@@ -241,9 +251,10 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
 
     # If argument is not a PyGithub user object, get PyGithub user object.
     user = get_user_object_from_input(user)
+    print("Crawling {} layers from user {} ({}).".format(1+num_layers_to_crawl, user.id, user.login))
 
     # Verify that user is added to db.
-    add_user(user, num_layers_to_crawl)
+    add_user(user)
 
     # Then crawl the graph out to starred repos and add to db.
     num_repos = add_starred_repos(user, num_layers_to_crawl)
@@ -258,7 +269,7 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
                                                                         user.login,
                                                                         time_delta))
 
-    set_last_crawled_in_user(user.id, datetime.datetime.now())
+    set_last_crawled_in_user(user.id, datetime.datetime.now(), 1+num_layers_to_crawl)
 
 
 def update_user(user, num_layers_to_crawl=0):
@@ -278,6 +289,11 @@ def update_user(user, num_layers_to_crawl=0):
 
     db.session.add(this_user)
     db.session.commit()
+
+    #TODO: A queue might be more robust than a recursive process.
+    if num_layers_to_crawl:
+        crawl_from_user_to_repos(user, num_layers_to_crawl)
+
     return
 
 
@@ -290,10 +306,11 @@ def is_user_in_db(user_id):
     return False
 
 
-def set_last_crawled_in_user(user_id, last_crawled_time):
+def set_last_crawled_in_user(user_id, last_crawled_time, last_crawled_depth):
     """Set last_crawled to now() in user."""
     this_user = User.query.get(user_id)
     this_user.last_crawled = last_crawled_time
+    this_user.last_crawled_depth = last_crawled_depth
 
     db.session.add(this_user)
     db.session.commit()
@@ -308,16 +325,22 @@ def add_stars(repo, num_layers_to_crawl=0):
     stars = get_stars_from_repo(repo)
     num_stars = repo.stargazers_count
     num_users = 0
+    count = 0
 
     msg = "Adding {} stargazers: ".format(num_stars)
     bar = ShadyBar(msg, max=num_stars, suffix=progress_bar_suffix)
 
     for star in stars:
+        bar.next()
+        count += 1
         # If star is in db, skip and continue.
         # TODO: Consider checking last_crawled of star.repo/star.user.
         this_star = Stargazer.query.filter_by(repo_id=repo.id,
                                               user_id=star.id).first()
         if this_star:
+            #TODO: A queue might be more robust than a recursive process.
+            if num_layers_to_crawl:
+                crawl_from_user_to_repos(user, num_layers_to_crawl)
             continue
 
         num_users += add_user(star, num_layers_to_crawl)
@@ -326,7 +349,9 @@ def add_stars(repo, num_layers_to_crawl=0):
         db.session.add(this_star)
         db.session.commit()
 
-        bar.next()
+        if num_users > max_crawl_count_new or count > max_crawl_count_total:
+            break
+
     bar.finish()
     return num_users
 
@@ -336,16 +361,22 @@ def add_watchers(repo, num_layers_to_crawl=0):
     watchers = repo.get_watchers()
     num_watchers = repo.watchers_count
     num_users = 0
+    count = 0
 
     msg = "Adding {} watchers: ".format(num_watchers)
     bar = ShadyBar(msg, max=num_watchers, suffix=progress_bar_suffix)
 
     for watcher in watchers:
+        bar.next()
+        count += 1
         # If watcher is in db, skip and continue.
         # TODO: Consider checking last_crawled of watcher.repo/watcher.user.
         this_watcher = Watcher.query.filter_by(repo_id=repo.id,
                                                user_id=watcher.id).first()
         if this_watcher:
+            #TODO: A queue might be more robust than a recursive process.
+            if num_layers_to_crawl:
+                crawl_from_user_to_repos(user, num_layers_to_crawl)
             continue
 
         num_users += add_user(watcher, num_layers_to_crawl)
@@ -354,7 +385,9 @@ def add_watchers(repo, num_layers_to_crawl=0):
         db.session.add(this_watcher)
         db.session.commit()
 
-        bar.next()
+        if num_users > max_crawl_count_new or count > max_crawl_count_total:
+            break
+
     bar.finish()
     return num_users
 
@@ -364,16 +397,22 @@ def add_contributors(repo, num_layers_to_crawl=0):
     contributors = repo.get_contributors()
     # num_contributors = repo.contributors_count
     num_users = 0
+    count = 0
 
     msg = "Adding contributors: "#.format(num_contributors)
     bar = Spinner(msg, suffix=spinner_suffix)
 
     for contributor in contributors:
+        bar.next()
+        count += 1
         # If contributor is in db, skip and continue.
         # TODO: Consider checking last_crawled of contributor.repo/contributor.user.
         this_contributor = Contributor.query.filter_by(repo_id=repo.id,
                                                        user_id=contributor.id).first()
         if this_contributor:
+            #TODO: A queue might be more robust than a recursive process.
+            if num_layers_to_crawl:
+                crawl_from_user_to_repos(user, num_layers_to_crawl)
             continue
 
         num_users += add_user(contributor, num_layers_to_crawl)
@@ -382,7 +421,9 @@ def add_contributors(repo, num_layers_to_crawl=0):
         db.session.add(this_contributor)
         db.session.commit()
 
-        bar.next()
+        if num_users > max_crawl_count_new or count > max_crawl_count_total:
+            break
+
     bar.finish()
     return num_users
 
@@ -440,29 +481,33 @@ def add_starred_repos(user, num_layers_to_crawl=0):
     """Add all repos starred by user to db."""
     stars = get_starred_repos(user)
     num_repos = 0
+    count = 0
 
     msg = "Adding starred repositories for " + user.login + ": "
     bar = Spinner(msg, suffix=spinner_suffix)
 
     for star in stars:
+        bar.next()
+        count += 1
         # If star is in db, skip and continue.
         # TODO: Consider checking last_crawled of star.repo/star.user.
         this_star = Stargazer.query.filter_by(repo_id=star.id,
                                               user_id=user.id).first()
         if this_star:
+            #TODO: A queue might be more robust than a recursive process.
+            if num_layers_to_crawl:
+                crawl_from_repo_to_users(this_star.repo_id, num_layers_to_crawl)
             continue
 
-        try:
-            num_repos += add_repo(star, num_layers_to_crawl)
-        except TypeError as e:
-            print("Error in add_starred_repos(): ", e)
-            continue
+        num_repos += add_repo(star, num_layers_to_crawl)
 
         this_star = Stargazer(repo_id=star.id, user_id=user.id)
         db.session.add(this_star)
         db.session.commit()
 
-        bar.next()
+        if num_repos > max_crawl_count_new or count > max_crawl_count_total:
+            break
+
     bar.finish()
     return num_repos
 
