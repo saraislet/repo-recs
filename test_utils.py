@@ -2,7 +2,7 @@ import unittest, datetime
 from flask import Flask
 import github
 import utils, update_pkey_seqs
-from model import (Repo, User, Follower,
+from model import (Repo, User, Follower, Account
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db, db_uri)
@@ -17,7 +17,7 @@ class TestDB_add_update(unittest.TestCase):
         """Connect to database, create tables, generate test data."""
 
         self.client = app.test_client()
-        app.config['TESTING'] = True
+        app.config["TESTING"] = True
         connect_to_db(app, test_db_uri)
         db.drop_all()
         db.create_all()
@@ -95,7 +95,7 @@ class TestRepoTypes(unittest.TestCase):
         """Connect to database, create tables."""
 
         self.client = app.test_client()
-        app.config['TESTING'] = True
+        app.config["TESTING"] = True
         connect_to_db(app, test_db_uri)
         db.drop_all()
         db.create_all()
@@ -154,7 +154,7 @@ class TestUserTypes(unittest.TestCase):
         """Connect to database, create tables."""
 
         self.client = app.test_client()
-        app.config['TESTING'] = True
+        app.config["TESTING"] = True
         connect_to_db(app, test_db_uri)
         db.drop_all()
         db.create_all()
@@ -178,7 +178,7 @@ class TestUserTypes(unittest.TestCase):
         user = self.user
         py_user = self.py_user
 
-        # don't call the github api: just return self.py_repo when this is called.
+        # Don't call the github api: just return self.py_repo when this is called.
         self.holder_get_user = github.Github.get_user
         github.Github.get_user = lambda self, login: py_user
 
@@ -217,7 +217,7 @@ class TestAddRepo(unittest.TestCase):
         """Connect to database, create tables."""
 
         self.client = app.test_client()
-        app.config['TESTING'] = True
+        app.config["TESTING"] = True
         connect_to_db(app, test_db_uri)
         db.drop_all()
         db.create_all()
@@ -241,7 +241,7 @@ class TestAddRepo(unittest.TestCase):
         user = self.user
         py_user = self.py_user
 
-        # don't call the github api: just return self.py_repo when this is called.
+        # Don't call the github api: just return self.py_repo when this is called.
         # github.Github.get_user = lambda self, login: py_user
 
         self.repo = Repo(repo_id="2",
@@ -263,7 +263,7 @@ class TestAddRepo(unittest.TestCase):
         repo = self.repo
         py_repo = self.py_repo
 
-        # don't call the github api: just return self.py_repo when this is called.
+        # Don't call the github api: just return self.py_repo when this is called.
         self.holder_get_repo_object_from_input = utils.get_repo_object_from_input
         self.holder_update_repo = utils.update_repo
         self.holder_is_repo_in_db = utils.is_repo_in_db
@@ -304,7 +304,7 @@ class TestAddUser(unittest.TestCase):
         """Connect to database, create tables."""
 
         self.client = app.test_client()
-        app.config['TESTING'] = True
+        app.config["TESTING"] = True
         connect_to_db(app, test_db_uri)
         db.drop_all()
         db.create_all()
@@ -328,7 +328,7 @@ class TestAddUser(unittest.TestCase):
         user = self.user
         py_user = self.py_user
 
-        # don't call the github api: just return self.py_repo when this is called.
+        # Don't call the github api: just return self.py_repo when this is called.
         # github.Github.get_user = lambda self, login: py_user
 
         self.repo = Repo(repo_id="2",
@@ -350,7 +350,7 @@ class TestAddUser(unittest.TestCase):
         repo = self.repo
         py_repo = self.py_repo
 
-        # don't call the github api: just return self.py_repo when this is called.
+        # Don't call the github api: just return self.py_repo when this is called.
         self.holder_get_user_object_from_input = utils.get_user_object_from_input
         self.holder_update_user = utils.update_user
         self.holder_is_user_in_db = utils.is_user_in_db
@@ -385,5 +385,5 @@ class TestAddUser(unittest.TestCase):
         # import pdb; pdb.set_trace()
         self.assertEqual(False, utils.is_user_in_db(9))
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
