@@ -20,6 +20,7 @@ class Repo(db.Model):
     updated_at = db.Column(db.DateTime(), nullable=True,
                            default=datetime.datetime.utcnow)
     last_crawled = db.Column(db.DateTime(), nullable=True)
+    last_crawled_depth = db.Column(db.Integer, nullable=True)
 
     owner = db.relationship("User",
                             backref=db.backref("repos",
