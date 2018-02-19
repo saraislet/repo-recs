@@ -11,6 +11,7 @@
     <a href="/about" class="w3-bar-item hover-subtle w3-button w3-mobile">About</a>
     {% if "user_id" in session %}
       <a href="/recs" class="w3-bar-item hover-subtle w3-button w3-mobile">Recommendations</a>
+      <a href="/recs_react" class="w3-bar-item hover-subtle w3-button w3-mobile">Recs (React)</a>
       <a href="/logout" class="w3-bar-item w3-right hover-subtle w3-button w3-pale-red w3-mobile">
         Logout
       </a>
@@ -41,10 +42,16 @@
       {% block content %}{% endblock %}
     </div>
   </section>
+  <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+  <script src="http://unpkg.com/babel-standalone"></script>
 
   <script
         src="http://code.jquery.com/jquery-3.3.1.min.js"
         integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
         crossorigin="anonymous"></script>
+  <script src="/static/repo.jsx" type="text/jsx"></script>
+  <script src="/static/recs.js" type="text/jsx" ></script>
+
 </body>
 </html>
