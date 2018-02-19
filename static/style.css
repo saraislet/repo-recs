@@ -7,6 +7,10 @@ p {
     max-width: 500px;
 }
 
+.repo {
+    max-width: 400px;
+}
+
 #body {
     margin-left: 10px;
     margin-right: 10px;
