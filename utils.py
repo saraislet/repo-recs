@@ -106,7 +106,7 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
     # Check last crawled time and depth.
     # Verify repo is in db, and get repo object first.
     if is_last_crawled_in_repo_good(repo.id, start_time, 1+num_layers_to_crawl):
-        break
+        return
 
     print("Crawling {} layers from repo {} ({}).".format(1+num_layers_to_crawl, repo.id, repo.name))
 
@@ -173,7 +173,7 @@ def is_last_crawled_in_repo_good(repo_id, crawl_time, crawl_depth):
     # but a deeper crawl will need to crawl from here further.
 
     this_repo = Repo.query.get(repo_id)
-    if this_repo.last_crawled_depth < crawl_depth:
+    if "last_crawled_depth" in dir(this_repo) and this_repo.last_crawled_depth < crawl_depth:
         return False
 
     delta = crawl_time.timestamp() - this_repo.last_crawled.timestamp()
@@ -283,7 +283,7 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
     # Check last crawled time and depth.
     # Verify repo is in db, and get repo object first.
     if is_last_crawled_in_user_good(user.id, start_time, 1+num_layers_to_crawl):
-        break
+        return
 
     print("Crawling {} layers from user {} ({}).".format(1+num_layers_to_crawl, user.id, user.login))
 
@@ -348,7 +348,7 @@ def is_last_crawled_in_user_good(user_id, crawl_time, crawl_depth):
     # but a deeper crawl will need to crawl from here further.
 
     this_user = User.query.get(user_id)
-    if this_user.last_crawled_depth < crawl_depth:
+    if "last_crawled_depth" in dir(this_user) and this_user.last_crawled_depth < crawl_depth:
         return False
 
     delta = crawl_time.timestamp() - this_user.last_crawled.timestamp()
