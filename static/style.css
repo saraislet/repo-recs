@@ -9,6 +9,7 @@ p {
 
 .repo {
     max-width: 400px;
+    display: inline-block;
 }
 
 #body {
