@@ -16,6 +16,9 @@ client_secret = secrets.client_secret
 
 max_crawl_count_total = 50
 max_crawl_count_new = 50
+refresh_update_repo_days = 7
+refresh_update_user_days = 7
+refresh_crawl_days = 30
 
 g = github.Github(token, client_id=client_id, client_secret=client_secret)
 progress_bar_suffix = "%(index)d/%(max)d, estimated %(eta)d seconds remaining."
@@ -88,7 +91,6 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
     """Add repo, and add all users connected to that repo.
 
     Adds stargazers, watchers, and contributors."""
-    #TODO: check last crawled time and depth
     num_layers_to_crawl = max(0, num_layers_to_crawl - 1)
 
     # Note the start time to estimate time to complete process.
@@ -96,14 +98,22 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
 
     # If the argument is not a PyGithub repo object, get the PyGithub repo object:
     repo = get_repo_object_from_input(repo_info)
-    print("Crawling {} layers from repo {} ({}).".format(1+num_layers_to_crawl, repo.id, repo.name))
 
     # First, verify that repo is added to db.
     add_repo(repo)
     num_users = 1
 
+    # Check last crawled time and depth.
+    # Verify repo is in db, and get repo object first.
+    if is_last_crawled_in_repo_good(repo.id, start_time, 1+num_layers_to_crawl):
+        break
+
+    print("Crawling {} layers from repo {} ({}).".format(1+num_layers_to_crawl, repo.id, repo.name))
+
     # Then crawl the graph out to connected users and add to db.
     num_users += add_stars(repo, num_layers_to_crawl)
+    # We may not need more details about a repo to make good suggestions, 
+    # and most watchers are duplicates of stars.
     # num_users += add_watchers(repo, num_layers_to_crawl)
     # num_users += add_contributors(repo, num_layers_to_crawl)
 
@@ -120,7 +130,7 @@ def update_repo(repo, num_layers_to_crawl=0):
     this_repo = Repo.query.get(repo.id)
 
     delta = datetime.datetime.now().timestamp() - this_repo.updated_at.timestamp()
-    if delta/60/60/24/7 < 1:
+    if delta/60/60/24/7 < refresh_update_repo_days:
         return
 
     this_repo.name = repo.name
@@ -146,7 +156,6 @@ def is_repo_in_db(repo_id):
 
 def set_last_crawled_in_repo(repo_id, last_crawled_time, last_crawled_depth):
     """Set last_crawled to now() in repo."""
-    #TODO: Should we store and update last_crawled_depth to indicate how far it was crawled?
     # If a crawl soon after has a lower depth, we don't need to crawl,
     # but a deeper crawl will need to crawl from here further.
 
@@ -156,6 +165,22 @@ def set_last_crawled_in_repo(repo_id, last_crawled_time, last_crawled_depth):
 
     db.session.add(this_repo)
     db.session.commit()
+
+
+def is_last_crawled_in_repo_good(repo_id, crawl_time, crawl_depth):
+    """Return boolean identifying if repo must be crawled further now."""
+    # If a crawl soon after has a lower depth, we don't need to crawl,
+    # but a deeper crawl will need to crawl from here further.
+
+    this_repo = Repo.query.get(repo_id)
+    if this_repo.last_crawled_depth < crawl_depth:
+        return False
+
+    delta = crawl_time.timestamp() - this_repo.last_crawled.timestamp()
+    if delta/60/60/24/7 > refresh_update_repo_days:
+        return False
+
+    return True
 
 
 def get_user_object_from_input(user_info):
@@ -251,10 +276,16 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
 
     # If argument is not a PyGithub user object, get PyGithub user object.
     user = get_user_object_from_input(user)
-    print("Crawling {} layers from user {} ({}).".format(1+num_layers_to_crawl, user.id, user.login))
 
     # Verify that user is added to db.
     add_user(user)
+
+    # Check last crawled time and depth.
+    # Verify repo is in db, and get repo object first.
+    if is_last_crawled_in_user_good(user.id, start_time, 1+num_layers_to_crawl):
+        break
+
+    print("Crawling {} layers from user {} ({}).".format(1+num_layers_to_crawl, user.id, user.login))
 
     # Then crawl the graph out to starred repos and add to db.
     num_repos = add_starred_repos(user, num_layers_to_crawl)
@@ -277,7 +308,7 @@ def update_user(user, num_layers_to_crawl=0):
     this_user = User.query.get(user.id)
 
     delta = datetime.datetime.now().timestamp() - this_user.updated_at.timestamp()
-    if delta/60/60/24/7 > 1:
+    if delta/60/60/24/7 > refresh_update_user_days:
         this_user.name = user.name
         this_user.login = user.login
         this_user.updated_at = datetime.datetime.utcnow()
@@ -309,6 +340,22 @@ def set_last_crawled_in_user(user_id, last_crawled_time, last_crawled_depth):
 
     db.session.add(this_user)
     db.session.commit()
+
+
+def is_last_crawled_in_user_good(user_id, crawl_time, crawl_depth):
+    """Return boolean identifying if user must be crawled further now."""
+    # If a crawl soon after has a lower depth, we don't need to crawl,
+    # but a deeper crawl will need to crawl from here further.
+
+    this_user = User.query.get(user_id)
+    if this_user.last_crawled_depth < crawl_depth:
+        return False
+
+    delta = crawl_time.timestamp() - this_user.last_crawled.timestamp()
+    if delta/60/60/24/7 > refresh_update_user_days:
+        return False
+
+    return True
 
 
 def get_stars_from_repo(repo):
