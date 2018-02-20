@@ -30,7 +30,7 @@ def build_repo_predictions_matrix():
     user_ratings_mean = np.mean(R, axis = 1)
     R_demeaned = R - user_ratings_mean.reshape(-1, 1)
 
-    U, sigma, Vt = svds(R_demeaned, k = 50)
+    U, sigma, Vt = svds(R_demeaned, k = 100)
     sigma = np.diag(sigma)
     predictions_matrix = np.dot(np.dot(U, sigma), Vt) + user_ratings_mean.reshape(-1, 1)
     
@@ -49,6 +49,26 @@ def get_repo_suggestions(user_id):
                                  .index.tolist())
     #TODO: Can we have Pandas interpret index items as a Python int instead of a numpy object?
     return [ int(n) for n in suggestions ]
+
+
+def compare_recs(user_id1, user_id2, num_recs=20, preds=[]):
+    if len(preds) != num_recs:
+        preds = set(get_repo_suggestions(user_id1)[:num_recs])
+    preds2 = set(get_repo_suggestions(user_id2)[:num_recs])
+
+    overlap = preds.intersection(preds2)
+
+    return len(overlap)/num_recs
+
+
+def get_comparisons(user_id, num_users=20, num_recs=20):
+    users = User.query.limit(num_users).all()
+    preds1 = set(get_repo_suggestions(user_id)[:num_recs])
+    return [ compare_recs(user_id,
+                          user.user_id, 
+                          num_recs=num_recs, 
+                          preds=preds1) for user in users ]
+
 
 
 if __name__ == "__main__":
