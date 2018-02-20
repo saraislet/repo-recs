@@ -66,7 +66,7 @@ function renderRepo(repo) {
 function buildRepo(repo) {
     return (
         <div key={ repo.name } className="w3-card-4 w3-margin repo">
-          <header>
+          <header className="w3-container w3-blue-grey">
             <h2 className="w3-container w3-blue-grey">{ repo.name }</h2>
           </header>
           <div className="w3-container">
