@@ -52,14 +52,14 @@ def add_repo(repo_info, num_layers_to_crawl=0):
     try:
         repo = get_repo_object_from_input(repo_info)
 
-        if is_repo_in_db(repo.id):
-            update_repo(repo, num_layers_to_crawl)
-            return 0
-
         owner = repo.owner
         owner_id = owner.id
         # Must create User for owner before committing Repo to db.
         add_user(owner, num_layers_to_crawl)
+
+        if is_repo_in_db(repo.id):
+            update_repo(repo, num_layers_to_crawl)
+            return 0
         
         this_repo = Repo(repo_id=repo.id,
                          name=repo.name,
@@ -173,7 +173,9 @@ def is_last_crawled_in_repo_good(repo_id, crawl_time, crawl_depth):
     # but a deeper crawl will need to crawl from here further.
 
     this_repo = Repo.query.get(repo_id)
-    if "last_crawled_depth" in dir(this_repo) and this_repo.last_crawled_depth < crawl_depth:
+    if (not this_repo.last_crawled_depth or 
+        not this_repo.last_crawled or
+        this_repo.last_crawled_depth < crawl_depth):
         return False
 
     delta = crawl_time.timestamp() - this_repo.last_crawled.timestamp()
@@ -348,7 +350,9 @@ def is_last_crawled_in_user_good(user_id, crawl_time, crawl_depth):
     # but a deeper crawl will need to crawl from here further.
 
     this_user = User.query.get(user_id)
-    if "last_crawled_depth" in dir(this_user) and this_user.last_crawled_depth < crawl_depth:
+    if (not this_user.last_crawled_depth or 
+        not this_user.last_crawled or
+        this_user.last_crawled_depth < crawl_depth):
         return False
 
     delta = crawl_time.timestamp() - this_user.last_crawled.timestamp()
@@ -377,12 +381,13 @@ def add_stars(repo, num_layers_to_crawl=0):
         count += 1
         if num_users > max_crawl_count_new or count > max_crawl_count_total:
             break
+
+        num_users += add_user(star, num_layers_to_crawl)
+
         # If star is in db, skip and continue.
         # TODO: Consider checking last_crawled of star.repo/star.user.
         this_star = Stargazer.query.filter_by(repo_id=repo.id,
                                               user_id=star.id).first()
-
-        num_users += add_user(star, num_layers_to_crawl)
 
         if this_star:
             #TODO: A queue might be more robust than a recursive process.
@@ -413,6 +418,7 @@ def add_watchers(repo, num_layers_to_crawl=0):
         count += 1
         if num_users > max_crawl_count_new or count > max_crawl_count_total:
             break
+
         # If watcher is in db, skip and continue.
         # TODO: Consider checking last_crawled of watcher.repo/watcher.user.
         this_watcher = Watcher.query.filter_by(repo_id=repo.id,
@@ -449,6 +455,7 @@ def add_contributors(repo, num_layers_to_crawl=0):
         count += 1
         if num_users > max_crawl_count_new or count > max_crawl_count_total:
             break
+
         # If contributor is in db, skip and continue.
         # TODO: Consider checking last_crawled of contributor.repo/contributor.user.
         this_contributor = Contributor.query.filter_by(repo_id=repo.id,
@@ -533,12 +540,13 @@ def add_starred_repos(user, num_layers_to_crawl=0):
         count += 1
         if num_repos > max_crawl_count_new or count > max_crawl_count_total:
             break
+
+        num_repos += add_repo(star, num_layers_to_crawl)
+
         # If star is in db, skip and continue.
         # TODO: Consider checking last_crawled of star.repo/star.user.
         this_star = Stargazer.query.filter_by(repo_id=star.id,
                                               user_id=user.id).first()
-
-        num_repos += add_repo(star, num_layers_to_crawl)
 
         if this_star:
             #TODO: A queue might be more robust than a recursive process.
