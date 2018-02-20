@@ -43,7 +43,7 @@ class RepoList extends React.Component {
         let repos = this.props.repos
         let listRepos = myData.map( (repo) => buildRepo(repo) );
         return (
-            <div>{ listRepos }</div>
+            <span>{ listRepos }</span>
         )
     }
 }
