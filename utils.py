@@ -479,8 +479,8 @@ def add_contributors(repo, num_layers_to_crawl=0):
 
 def add_lang(lang):
     """Add lang string to db."""
-    lang = lang.lower()
-    this_lang = Language.query.filter_by(language_name=lang).first()
+    # lang = lang.lower()
+    this_lang = Language.query.filter(Language.language_name.ilike(lang)).first()
 
     if this_lang:
         return
@@ -495,7 +495,7 @@ def add_repo_lang(repo_id, lang, num):
     """Add repo-lang association and number of bytes to db."""
     # print("Adding repo-lang {}.".format(lang))
     lang = lang.lower()
-    this_lang = Language.query.filter_by(language_name=lang).first()
+    this_lang = Language.query.filter(Language.language_name.ilike(lang)).first()
     this_repo_lang = RepoLanguage.query.filter_by(language_id=this_lang.language_id,
                                                   repo_id=repo_id).first()
 
@@ -569,7 +569,8 @@ def get_json_from_repos(repos):
     for repo in repos:
         language_data = []
         for lang in repo.repo_langs:
-            lang_data = {"language_name": lang.language.language_name,
+            lang_data = {"language_id": lang.language_id,
+                         "language_name": lang.language.language_name,
                          "language_bytes": lang.language_bytes}
             language_data.append(lang_data)
 
