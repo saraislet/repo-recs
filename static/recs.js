@@ -1,8 +1,12 @@
-// $("#get-repo-recs").click(getRepoRecs);
 window.onload = getRepoRecs;
 
 let myData;
 let startLoad = new Date().getTime();
+
+ReactDOM.render(
+    <PlaceholderList/>,
+    document.getElementById("repo-recs")
+);
 
 function getRepoRecs() {
     console.log("Getting repository recommendations.");
@@ -25,24 +29,6 @@ function showRepoRecs(data) {
     let endLoad = new Date().getTime();
     var delta = (endLoad - startLoad)/1000;
     console.log("Recs loaded in " + delta + "seconds.");
-}
-
-function renderRepo(repo) {
-    let name = repo.name;
-    let desc = repo.description;
-    console.log("repo: ", name, desc);
-
-    ReactDOM.render(
-      <Repo repo_name={name} repo_description={desc}/>,
-      document.getElementById("repo-recs")
-    );
-}
-
-function renderRepoList(repoList) {
-    ReactDOM.render(
-        <Repo repos={ repoList } />,
-        document.getElementById("repo-recs")
-    );
 }
 
 function renderRepoComponents(data) {

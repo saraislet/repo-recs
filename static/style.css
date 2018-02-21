@@ -13,10 +13,17 @@ p {
 
 .repo {
     width: 400px;
+    min-height: 250px;
     display: inline-block;
+    border-radius: 5px;
 }
 
-.repo .owner {
+.repo header {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.repo .repo-owner {
     color: #ccc;
     font-size: 80%;
     font-weight: 100;
@@ -30,3 +37,149 @@ p {
 #auth {
     max-width: 500px;
 }
+
+@keyframes placeHolderFrames{
+    0%{
+        background-position: -200px 0
+    }
+    100%{
+        background-position: 200px 0
+    }
+}
+
+.placeholder {
+    background: #fff;
+    border: 1px solid;
+    border-color: #e5e6e9 #dfe0e4 #d0d1d5;
+    padding: 12px;
+    margin: 0 auto;
+    max-width: 400px;
+    min-height: 250px;
+}
+
+.placeholder-bg {
+    animation-duration: 1.2s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: infinite;
+    animation-name: placeHolderFrames;
+    animation-timing-function: linear;
+    background: #f6f7f8;
+    background: linear-gradient(to right, #e8eced 8%, #dfe5e7 18%, #e8eced 33%); /*9ECFE4 B0E6FE d6f3ff ebf9ff 92A5AD e8eced dfe5e7*/
+    background-size: 400px 230px;
+    height: 200px;
+    position: relative;
+}
+
+.mask-bg {
+    background: #fff;
+    position: absolute;
+}
+
+header .mask-bg {
+    background: #607D8B;
+    position: absolute;
+}
+
+.mask-bg.header-top {
+    top: 0;
+    left: 0px;
+    right: 0;
+    height: 10px;
+}
+
+.mask-bg.header-left {
+    top: 10px;
+    left: 0px;
+    height: 24px;
+    width: 32px;
+}
+
+.mask-bg.header-middle {
+    top: 10px;
+    left: 100px;
+    right: 0;
+    height: 24px;
+    width: 30px;
+}
+
+.mask-bg.header-right {
+    top: 10px;
+    left: 300px;
+    right: 0;
+    height: 24px;
+    width: auto;
+}
+
+.mask-bg.header-bottom {
+    top: 34px;
+    left: 0px;
+    right: 0;
+    height: 10px;
+}
+
+.mask-bg.body-top {
+    top: 44px;
+    left: 0px;
+    right: 0;
+    height: 10px;
+}
+
+.mask-bg.body-left {
+    top: 54px;
+    left: 0px;
+    height: 24px;
+    width: 32px;
+}
+
+.mask-bg.body-right {
+    top: 54px;
+    left: 330px;
+    right: 0;
+    height: 24px;
+    width: auto;
+}
+
+.mask-bg.body2-top {
+    top: 78px;
+    left: 0px;
+    right: 0;
+    height: 10px;
+}
+
+.mask-bg.body2-left {
+    top: 88px;
+    left: 0px;
+    height: 24px;
+    width: 32px;
+}
+
+.mask-bg.body2-right {
+    top: 88px;
+    left: 330px;
+    right: 0;
+    height: 24px;
+    width: auto;
+}
+
+.mask-bg.body-bottom {
+    top: 112px;
+    left: 0px;
+    right: 0;
+    height: 50px;
+}
+
+.mask-bg.langs-left {
+    top: 162px;
+    left: 0px;
+    height: 40px;
+    width: 32px;
+}
+
+.mask-bg.langs-right {
+    top: 162px;
+    left: 230px;
+    right: 0;
+    height: 40px;
+    width: auto;
+}
+
