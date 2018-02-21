@@ -65,7 +65,9 @@ def add_repo(repo_info, num_layers_to_crawl=0):
                          name=repo.name,
                          description=repo.description,
                          owner_id=owner.id,
-                         created_at=repo.created_at)
+                         created_at=repo.created_at,
+                         url=repo.url,
+                         stargazers_count=repo.stargazers_count)
         db.session.add(this_repo)
         db.session.commit()
 
@@ -136,6 +138,7 @@ def update_repo(repo, num_layers_to_crawl=0):
     this_repo.name = repo.name
     this_repo.description = repo.description
     this_repo.updated_at = datetime.datetime.utcnow()
+    this_repo.stargazers_count = repo.stargazers_count
 
     db.session.add(this_repo)
     db.session.commit()
@@ -575,9 +578,11 @@ def get_json_from_repos(repos):
             language_data.append(lang_data)
 
         repo_data = {"repo_id": repo.repo_id,
-                     "name": repo.name,
                      "description": repo.description,
+                     "name": repo.name,
                      "owner_login": repo.owner.login,
+                     "stargazers_count": repo.stargazers_count,
+                     "url": repo.url,
                      "langs": language_data}
         data.append(repo_data)
     return json.dumps(data)

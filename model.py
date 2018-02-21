@@ -21,6 +21,8 @@ class Repo(db.Model):
                            default=datetime.datetime.utcnow)
     last_crawled = db.Column(db.DateTime(), nullable=True)
     last_crawled_depth = db.Column(db.Integer, nullable=True)
+    url = db.Column(db.Text, nullable=True)
+    stargazers_count = db.Column(db.Integer, nullable=True)
 
     owner = db.relationship("User",
                             backref=db.backref("repos",
