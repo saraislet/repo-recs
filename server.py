@@ -15,6 +15,8 @@ oauth_scope = "user user:follow read:user"
 endpoint = "https://api.github.com"
 authenticated_user_path = "/user"
 
+default_count = 9
+
 app = Flask(__name__)
 app.secret_key = "temp"
 # Don't let undefined variables fail silently.
@@ -48,12 +50,19 @@ def get_repo_recs():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", 10))
+    limit = int(request.args.get("count", default_count))
     offset = limit * (-1 + int(request.args.get("page", 1)))
     login = request.args.get("login")
     user_id = request.args.get("user_id")
     if user_id:
         user_id = int(user_id)
+
+        # If user_id parameter is included but not in database, redirect.
+        if not utils.is_user_in_db(user_id):
+            flash("No user found with id {}.".format(user_id))
+            return redirect("/") 
+        print("Using user_id {} for recs.".format(user_id))
+        
 
     # Login parameter takes precedence.
     if login:
@@ -61,21 +70,89 @@ def get_repo_recs():
             flash("No user found with login {}.".format(login))
             return redirect("/")
         user_id = User.query.filter_by(login=login).first().user_id
-    # If user_id parameter is included but not in database, redirect.
-    elif user_id and not utils.is_user_in_db(user_id):
-        flash("No user found with id {}.".format(user_id))
-        return redirect("/") 
-    else:
+        print("Using login {} for user_id {} for recs.".format(login, user_id))
+    elif not user_id:
         user_id = session["user_id"]
+        print("Using logged in user {} for recs.".format(user_id))
 
-    suggestions = rec.get_repo_suggestions(user_id)
-    repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions))
-    repos_query = repos_query.limit(limit)
-    repos_query = repos_query.offset(offset)
+    suggestions = rec.get_repo_suggestions(user_id)[offset:limit]
+    repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions), Repo.owner_id != user_id)
     repos = repos_query.all()
 
     return render_template("repo_recs.html",
                            repos=repos)
+
+@app.route("/recs_react", methods=['GET'])
+def get_repo_recs_react():
+    if "user_id" not in session:
+        return redirect("/")
+
+    limit = int(request.args.get("count", default_count))
+    # offset = limit * (-1 + int(request.args.get("page", 1)))
+    page = int(request.args.get("page", 1))
+    login = request.args.get("login")
+    user_id = request.args.get("user_id")
+    if user_id:
+        user_id = int(user_id)
+
+        # If user_id parameter is included but not in database, redirect.
+        if not utils.is_user_in_db(user_id):
+            flash("No user found with id {}.".format(user_id))
+            return redirect("/") 
+        print("Using user_id {} for recs.".format(user_id))
+        
+
+    # Login parameter takes precedence.
+    if login:
+        if User.query.filter_by(login=login).count() == 0:
+            flash("No user found with login {}.".format(login))
+            return redirect("/")
+        user_id = User.query.filter_by(login=login).first().user_id
+        print("Using login {} for user_id {} for recs.".format(login, user_id))
+    elif not user_id:
+        user_id = session["user_id"]
+        print("Using logged in user {} for recs.".format(user_id))
+
+    return render_template("repo_recs_json.html",
+                           user_id=user_id,
+                           count=limit,
+                           page=page)
+
+@app.route("/get_repo_recs", methods=['GET'])
+def get_repo_recs_json():
+    if "user_id" not in session:
+        return redirect("/")
+
+    limit = int(request.args.get("count", default_count))
+    offset = limit * (-1 + int(request.args.get("page", 1)))
+    login = request.args.get("login")
+    user_id = request.args.get("user_id")
+    if user_id:
+        user_id = int(user_id)
+
+        # If user_id parameter is included but not in database, redirect.
+        if not utils.is_user_in_db(user_id):
+            flash("No user found with id {}.".format(user_id))
+            return redirect("/") 
+        print("Using user_id {} for recs.".format(user_id))
+        
+
+    # Login parameter takes precedence.
+    if login:
+        if User.query.filter_by(login=login).count() == 0:
+            flash("No user found with login {}.".format(login))
+            return redirect("/")
+        user_id = User.query.filter_by(login=login).first().user_id
+        print("Using login {} for user_id {} for recs.".format(login, user_id))
+    elif not user_id:
+        user_id = session["user_id"]
+        print("Using logged in user {} for recs.".format(user_id))
+
+    suggestions = rec.get_repo_suggestions(user_id)[offset:limit]
+    repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions), Repo.owner_id != user_id)
+    repos = repos_query.all()
+
+    return utils.get_json_from_repos(repos)
 
 
 @app.route("/logout")

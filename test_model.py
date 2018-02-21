@@ -1,4 +1,4 @@
-from model import (Repo, User, Follower,
+from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    # Topic, RepoTopic,
                    Language, RepoLanguage,
@@ -18,6 +18,7 @@ def example_data():
     RepoLanguage.query.delete()
     Language.query.delete()
     Repo.query.delete()
+    Account.query.delete()
     User.query.delete()
 
     jane = User(user_id="1",
@@ -30,6 +31,11 @@ def example_data():
                       login="kells",
                       name="Kelly")
     db.session.add_all([jane, alex, kelly])
+    db.session.commit()
+
+    jane_account = Account(user_id="1",
+                           access_token="abc123")
+    db.session.add(jane_account)
     db.session.commit()
 
     py_repo = Repo(repo_id="1",
