@@ -32,7 +32,7 @@ class Repo extends React.Component {
 
 class RepoList extends React.Component {
 
-    // getRepoRecs() {
+    /// getRepoRecs() {
     //     let user_id = document.getElementById("get-repo-recs").getAttribute("user-id");
     //     fetch("/get_repo_recs?user_id=" + user_id, showRepoRecs)
     //         .then( (response) => response.json() )
@@ -47,3 +47,24 @@ class RepoList extends React.Component {
         )
     }
 }
+
+function buildRepo(repo) {
+    return (
+        <div key={ repo.repo_id } className="w3-card-4 w3-margin repo">
+          <header className="w3-container w3-blue-grey">
+            <h3 className="w3-container w3-blue-grey">{ repo.name }</h3>
+          </header>
+          <div className="w3-container">
+            <p>{ repo.description }</p>
+            <ul>
+
+              <li>
+                lang.language.language_name : lang.language_bytes
+              </li>
+
+            </ul>
+          </div>
+        </div>
+    )
+}
+
