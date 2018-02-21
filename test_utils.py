@@ -2,7 +2,7 @@ import unittest, datetime
 from flask import Flask
 import github
 import utils, update_pkey_seqs
-from model import (Repo, User, Follower, Account
+from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db, db_uri)
@@ -33,20 +33,22 @@ class TestDB_add_update(unittest.TestCase):
         lang = "Haskell"
         utils.add_lang(lang)
 
-        self.assertEqual(1, Language.query.filter_by(language_name=lang.lower()).count())
+        self.assertEqual(1, Language.query.filter(Language.language_name.ilike(lang)).count())
 
     def test_add_lang_existing(self):
         lang = "c"
         utils.add_lang(lang)
 
-        self.assertEqual(1, Language.query.filter_by(language_name=lang).count())
+        self.assertEqual(1, Language.query.filter(Language.language_name.ilike(lang)).count())
 
     def test_add_lang_casing(self):
-        lang = "C"
-        utils.add_lang(lang)
+        lang1 = "C"
+        lang2 = lang1.lower()
+        utils.add_lang(lang1)
+        utils.add_lang(lang2)
 
-        self.assertEqual(0, Language.query.filter_by(language_name=lang).count())
-        self.assertEqual(1, Language.query.filter_by(language_name=lang.lower()).count())
+        self.assertEqual(1, Language.query.filter(Language.language_name.ilike(lang1)).count())
+        self.assertEqual(1, Language.query.filter(Language.language_name.ilike(lang2)).count())
 
     def test_add_repo_lang_new(self):
         repo_id = 1
@@ -55,7 +57,7 @@ class TestDB_add_update(unittest.TestCase):
         utils.add_lang(lang)
         utils.add_repo_lang(repo_id, lang, num)
 
-        this_lang = Language.query.filter_by(language_name=lang.lower()).one()
+        this_lang = Language.query.filter(Language.language_name.ilike(lang)).one()
         this_repo_lang = RepoLanguage.query.filter_by(repo_id=repo_id,
                                                       language_id=this_lang.language_id).one()
 
@@ -68,7 +70,7 @@ class TestDB_add_update(unittest.TestCase):
         utils.add_lang(lang)
         utils.add_repo_lang(repo_id, lang, num)
 
-        this_lang = Language.query.filter_by(language_name=lang.lower()).one()
+        this_lang = Language.query.filter(Language.language_name.ilike(lang)).one()
         this_repo_lang = RepoLanguage.query.filter_by(repo_id=repo_id,
                                                       language_id=this_lang.language_id).one()
 
@@ -77,16 +79,18 @@ class TestDB_add_update(unittest.TestCase):
     def test_set_last_crawled_in_repo(self):
         this_repo = Repo.query.get(1)
         now = datetime.datetime.now()
-        utils.set_last_crawled_in_repo(this_repo.repo_id, now) 
+        utils.set_last_crawled_in_repo(this_repo.repo_id, now, 1) 
 
         self.assertEqual(now, Repo.query.get(1).last_crawled)
+        self.assertEqual(1, Repo.query.get(1).last_crawled_depth)
 
     def test_set_last_crawled_in_user(self):
         this_user = User.query.get(1)
         now = datetime.datetime.now()
-        utils.set_last_crawled_in_user(this_user.user_id, now) 
+        utils.set_last_crawled_in_user(this_user.user_id, now, 2) 
 
         self.assertEqual(now, User.query.get(1).last_crawled)
+        self.assertEqual(2, User.query.get(1).last_crawled_depth)
 
 
 class TestRepoTypes(unittest.TestCase):
