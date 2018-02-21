@@ -48,7 +48,7 @@ def get_repo_recs():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", 20))
+    limit = int(request.args.get("count", 18))
     offset = limit * (-1 + int(request.args.get("page", 1)))
     login = request.args.get("login")
     user_id = request.args.get("user_id")
@@ -74,7 +74,7 @@ def get_repo_recs():
         print("Using logged in user {} for recs.".format(user_id))
 
     suggestions = rec.get_repo_suggestions(user_id)[offset:limit]
-    repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions))
+    repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions), Repo.owner_id != user_id)
     repos = repos_query.all()
 
     return render_template("repo_recs.html",
@@ -85,7 +85,7 @@ def get_repo_recs_react():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", 20))
+    limit = int(request.args.get("count", 18))
     # offset = limit * (-1 + int(request.args.get("page", 1)))
     page = int(request.args.get("page", 1))
     login = request.args.get("login")
@@ -121,7 +121,7 @@ def get_repo_recs_json():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", 20))
+    limit = int(request.args.get("count", 18))
     offset = limit * (-1 + int(request.args.get("page", 1)))
     login = request.args.get("login")
     user_id = request.args.get("user_id")
@@ -147,7 +147,7 @@ def get_repo_recs_json():
         print("Using logged in user {} for recs.".format(user_id))
 
     suggestions = rec.get_repo_suggestions(user_id)[offset:limit]
-    repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions))
+    repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions), Repo.owner_id != user_id)
     repos = repos_query.all()
 
     return utils.get_json_from_repos(repos)
