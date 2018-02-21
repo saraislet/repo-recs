@@ -15,6 +15,8 @@ oauth_scope = "user user:follow read:user"
 endpoint = "https://api.github.com"
 authenticated_user_path = "/user"
 
+default_count = 9
+
 app = Flask(__name__)
 app.secret_key = "temp"
 # Don't let undefined variables fail silently.
@@ -48,7 +50,7 @@ def get_repo_recs():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", 18))
+    limit = int(request.args.get("count", default_count))
     offset = limit * (-1 + int(request.args.get("page", 1)))
     login = request.args.get("login")
     user_id = request.args.get("user_id")
@@ -85,7 +87,7 @@ def get_repo_recs_react():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", 18))
+    limit = int(request.args.get("count", default_count))
     # offset = limit * (-1 + int(request.args.get("page", 1)))
     page = int(request.args.get("page", 1))
     login = request.args.get("login")
@@ -121,7 +123,7 @@ def get_repo_recs_json():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", 18))
+    limit = int(request.args.get("count", default_count))
     offset = limit * (-1 + int(request.args.get("page", 1)))
     login = request.args.get("login")
     user_id = request.args.get("user_id")
