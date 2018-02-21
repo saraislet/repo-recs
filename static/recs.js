@@ -6,7 +6,7 @@ let startLoad = new Date().getTime();
 
 function getRepoRecs() {
     console.log("Getting repository recommendations.");
-    let user_id = document.getElementById("get-repo-recs").getAttribute("user-id");
+    // let user_id = document.getElementById("get-repo-recs").getAttribute("user-id");
     $.get("/get_repo_recs", showRepoRecs);
 }
 
