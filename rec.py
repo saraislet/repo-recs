@@ -30,7 +30,7 @@ def build_repo_predictions_matrix():
     user_ratings_mean = np.mean(R, axis = 1)
     R_demeaned = R - user_ratings_mean.reshape(-1, 1)
 
-    U, sigma, Vt = svds(R_demeaned, k = 100)
+    U, sigma, Vt = svds(R_demeaned, k = 50)
     sigma = np.diag(sigma)
     predictions_matrix = np.dot(np.dot(U, sigma), Vt) + user_ratings_mean.reshape(-1, 1)
     
