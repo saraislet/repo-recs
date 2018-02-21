@@ -1,1 +1,10 @@
-language: python
+{
+  "language": "python",
+  "python": "3.6",
+  "install": [
+    "make build"
+  ],
+  "script": [
+    "echo \"TODO\""
+  ]
+}
