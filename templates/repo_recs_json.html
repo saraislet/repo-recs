@@ -21,7 +21,14 @@
     </div>
   </div> -->
 
-  <section id="repo-recs">Recommendations will show here.</div>
+  <section id="repo-recs">
+    Recommendations will show here.
+  </section>
+
+  {% if "access_token" in session %}
+    <details id="details" data-access-token="{{ session['access_token'] }}">
+    </details>
+  {% endif %}
 
   <script src="/static/repo.jsx" type="text/jsx"></script>
   <script src="/static/recs.jsx" type="text/jsx" ></script>

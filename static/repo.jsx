@@ -31,6 +31,7 @@ function buildRepo(repo) {
       <div className="w3-container">
         <p className="repo-description">{ repo.description }</p>
         { listLangs }
+        <Star isStarred="" repo_id={ repo.repo_id }/>
       </div>
     </div>
   )
@@ -90,3 +91,63 @@ function buildPlaceholder(num) {
     </div>
   )
 }
+
+class Star extends React.Component {
+  render() {
+    let isStarred = this.props.isStarred;
+    let repo_id = this.props.repo_id;
+
+    if (isStarred) {
+      return <FilledStar repo_id={ repo_id } />; 
+    }
+    return <OpenStar repo_id={ repo_id } />;
+  }
+}
+
+class OpenStar extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  add_star(e) {
+    console.log("Ran add_star() on " + this.props.repo_id + "!");
+    let access_token = document.getElementById("details").dataset.accessToken;
+    // console.log(access_token);
+    // $.get("/add_star", 
+    //       {"repo_id": this.props.repo_id}, 
+    //       (response) => JSON.parse(response));
+    let data = {"repo_id": this.props.repo_id,
+                "access_token": access_token};
+    let payload = {method: "POST",
+                   body: JSON.stringify(data),
+                   headers: new Headers({"Content-Type": "application/json"})};
+    fetch("/add_star", payload)
+          // .then( response => JSON.parse(response))
+          .then( response => response.json() )
+          // .then( data => console.log(data))
+          .then( (data) => this.update_star(data) )
+  }
+
+  update_star(data) {
+    if (data.Status == 204) {
+      console.log("Successfully added star for repo " + data.repo_id + ".");
+    }
+  }
+
+  render() {
+    let repo_id = this.props.repo_id;
+
+    return (
+      <span className="star" onClick={this.add_star.bind(this)} repo_id={ repo_id }>☆</span>
+    )
+  }
+}
+
+class FilledStar extends React.Component {
+  render() {
+    return (
+      <span className="star">★</span>
+    )
+  }
+}
+

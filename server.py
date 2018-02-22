@@ -1,8 +1,7 @@
 import json, requests, urllib
 from flask import Flask, flash, redirect, render_template, request, session
 from jinja2 import StrictUndefined
-import github
-import rec, secrets, utils
+import rec, secrets, utils, api_utils, db_utils
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
@@ -11,11 +10,11 @@ from model import (Repo, User, Follower, Account,
 github_auth_request_code_url = "https://github.com/login/oauth/authorize"
 github_auth_request_token_url = "https://github.com/login/oauth/access_token"
 auth_callback_url = "http://127.0.0.1:5000/auth"
-oauth_scope = "user user:follow read:user"
+oauth_scope = "user user:follow read:user public_repo"
 endpoint = "https://api.github.com"
 authenticated_user_path = "/user"
 
-default_count = 9
+default_count = 15
 
 app = Flask(__name__)
 app.secret_key = "temp"
@@ -102,13 +101,12 @@ def auth():
         return redirect("/")
     access_token = access_token[0]
 
-    g = github.Github(access_token,
-                      client_id=secrets.client_id,
-                      client_secret=secrets.client_secret)
+    g = api_utils.get_auth_api(access_token)
     user = g.get_user()
     utils.add_user(user)
     utils.account_login(user, access_token)
     session["user_id"] = user.id
+    session["access_token"] = access_token
 
     flash("Successfully authenticated {} with Github!".format(user.login))
     return redirect("/")
@@ -218,11 +216,88 @@ def get_repo_recs_json():
         user_id = session["user_id"]
         print("Using logged in user {} for recs.".format(user_id))
 
-    suggestions = rec.get_repo_suggestions(user_id)[offset:limit]
-    repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions), Repo.owner_id != user_id)
+    recs = rec.get_repo_suggestions(user_id)[offset:limit]
+    filtered_recs = db_utils.filter_stars_from_repo_ids(recs, user_id)
+
+    repos_query = Repo.query.filter(Repo.repo_id.in_(filtered_recs), Repo.owner_id != user_id)
     repos = repos_query.all()
 
     return utils.get_json_from_repos(repos)
+
+
+@app.route("/add_star", methods=['POST'])
+def add_star():
+    # if "user_id" not in session or "access_token" not in session:
+    #     flash("Please log in with your GitHub account.")
+    #     print("Please log in with your GitHub account.")
+    #     return redirect("/")
+    data = request.get_json()
+    print(data)
+    repo_id = data["repo_id"]
+    access_token = data["access_token"]
+    # repo_id = int(request.form.get("repo_id"))
+    # access_token = request.form.get("access_token")
+    g = api_utils.get_auth_api(access_token)
+    print(access_token)
+    repo = g.get_repo(repo_id)
+    user = g.get_user()
+    user.add_to_starred(repo)
+
+    if not user.has_in_starred(repo):
+        flash("Unable to star this repo ({}). Please try again later.".format(repo.name))
+        print("User {} was unable to add a star for repo {} ({})".format(user.login,
+                                                                         repo.name,
+                                                                         repo.id))
+        return json.dumps({"Status": 404,
+                           "repo_id": repo.id})
+
+    print("User {} sucessfully added a star for repo {} ({})".format(user.login,
+                                                                     repo.name,
+                                                                     repo.id))
+    return json.dumps({"Status": 204,
+                       "repo_id": repo.id})
+
+
+@app.route("/remove_star", methods=['GET'])
+def remove_star():
+    if "user_id" not in session or "access_token" not in session:
+        flash("Please log in with your GitHub account.")
+        return redirect("/")
+
+    repo_id = request.args.get("repo_id")
+    g = api_utils.get_auth_api(session["access_token"])
+    repo = g.get_repo(repo_id)
+    g.remove_from_starred(repo)
+    user = g.get_user()
+
+    if user.has_in_starred(repo):
+        flash("Unable to unstar this repo ({}). Please try again later.".format(repo.name))
+        return json.dumps({"Status": 404,
+                           "repo_id": repo.id})
+
+    return json.dumps({"Status": 204,
+                       "repo_id": repo.id})
+
+@app.route("/check_star", methods=['GET'])
+def check_star():
+    if "user_id" not in session or "access_token" not in session:
+        flash("Please log in with your GitHub account.")
+        return redirect("/")
+
+    repo_id = int(request.args.get("repo_id"))
+
+    g = api_utils.get_auth_api(session["access_token"])
+    user = g.get_user()
+    print(user, user.login, user.name)
+    repo = utils.get_repo_object_from_input(repo_id)
+    print(repo, repo_id, repo.name)
+    print(user.has_in_starred(repo))
+    if user.has_in_starred(repo):
+        return json.dumps({"Status": 204,
+                           "repo_id": repo.id})
+
+    return json.dumps({"Status": 404,
+                       "repo_id": repo.id})
 
 
 if __name__ == "__main__":
@@ -238,6 +313,4 @@ if __name__ == "__main__":
 
     connect_to_db(app)
 
-
-    # app.run(port=5000, host='0.0.0.0')
     app.run(port=5000)
