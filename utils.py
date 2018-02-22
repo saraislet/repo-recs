@@ -222,6 +222,7 @@ def account_login(user, access_token):
     this_account = Account.query.filter_by(user_id=user.id).first()
     if this_account:
         this_account.last_login = datetime.datetime.now()
+        this_account.access_token = access_token
         db.session.add(this_account)
         db.session.commit()
         return
