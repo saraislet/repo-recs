@@ -14,7 +14,7 @@ oauth_scope = "user user:follow read:user public_repo"
 endpoint = "https://api.github.com"
 authenticated_user_path = "/user"
 
-default_count = 15
+default_count = 12
 
 app = Flask(__name__)
 app.secret_key = "temp"
@@ -216,13 +216,13 @@ def get_repo_recs_json():
         user_id = session["user_id"]
         print("Using logged in user {} for recs.".format(user_id))
 
-    recs = rec.get_repo_suggestions(user_id)[offset:limit]
+    recs = rec.get_repo_suggestions(user_id)[offset:2*limit]
     filtered_recs = db_utils.filter_stars_from_repo_ids(recs, user_id)
 
     repos_query = Repo.query.filter(Repo.repo_id.in_(filtered_recs), Repo.owner_id != user_id)
     repos = repos_query.all()
 
-    return utils.get_json_from_repos(repos)
+    return utils.get_json_from_repos(repos[0:limit])
 
 
 @app.route("/add_star", methods=['POST'])
