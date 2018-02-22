@@ -29,6 +29,10 @@ p {
     font-weight: 100;
 }
 
+.star {
+    cursor: pointer;
+}
+
 #body {
     margin-left: 10px;
     margin-right: 10px;
