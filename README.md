@@ -54,13 +54,13 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
 ## TODO:
 * Plan additional features for 1.0:
   * Refine UI & CSS
-  * Add AJAX to star/follow
+  * Add AJAX to follow users
   * Add AJAX to request additional suggestions
   * Build modals to display information about users and languages?
   * Improve recommendation algorithm
-* Move config variables to config.py
 * Write API requests instead of using PyGithub?
 * Build queue table and handlers instead of crawling recursively
+* Build async calls to update and crawl users
 
 ## Resources used:.
 * [SciPy Sparse Single Value Decomposition](http://scipy.github.io/devdocs/generated/scipy.sparse.linalg.svds.html#scipy.sparse.linalg.svds)
