@@ -3,6 +3,7 @@ import github
 from github import GithubException
 from progress.bar import ShadyBar
 from progress.spinner import Spinner
+import config
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
@@ -129,7 +130,7 @@ def update_repo(repo, num_layers_to_crawl=0):
 
     delta = (datetime.datetime.now().timestamp()
              - this_repo.updated_at.timestamp())
-    if delta/60/60/24/7 < config.config.REFRESH_UPDATE_REPO_DAYS:
+    if delta/60/60/24/7 < config.REFRESH_UPDATE_REPO_DAYS:
         return
 
     this_repo.name = repo.name
