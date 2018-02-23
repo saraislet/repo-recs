@@ -25,7 +25,9 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
 ## File structure
 
     .
-    ├── db_utils                 # Helper functions interfacing with the database
+    ├── api_utils.py             # Helper functions interfacing with api
+    ├── config.py                # Configuration variables
+    ├── db_utils.py              # Helper functions interfacing with the database
     ├── experiments.ipynb        # Jupyter NB including SVD tests
     ├── model.py                 # Flask-SQLAlchemy classes for the data model
     ├── requirements.txt         # Defines requirements
@@ -41,7 +43,6 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
     │   ├── recs.jsx             # AJAX requests and functions to render React components
     │   ├── repo.jsx             # React components for displaying repositories
     │   └── style.css            # CSS
-    │       
     │
     └── templates
         ├── base.html            # Template (includes navbar, header, & footer)
