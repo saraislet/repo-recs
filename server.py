@@ -2,7 +2,7 @@ import json, requests, urllib
 from flask import (Flask, flash, redirect, render_template,
                    request, session)
 from jinja2 import StrictUndefined
-import rec, utils, api_utils, db_utils
+import config, rec, utils, api_utils, db_utils
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
@@ -31,7 +31,29 @@ def get_my_profile():
     if "user_id" not in session:
         return redirect("/")
 
-    user = User.query.get(session["user_id"])
+    return get_user_profile(session["user_id"])
+
+
+@app.route("/user", methods=["GET"])
+def get_user():
+    user_id = request.args.get("user_id")
+    login = request.args.get("login")
+
+    return get_user_profile(user_id=user_id, login=login)
+
+
+def get_user_profile(user_id="", login=""):
+    if user_id:
+        user = User.query.get(user_id)
+    elif login:
+        user = User.query.filter_by(login=login).first()
+        if not user:
+            user = User.query.filter(User.login.ilike(login)).first()
+
+    if not user:
+        flash("Unable to find user (id:{}, login:{}).".format(user_id, login))
+        return redirect("/")
+
     return render_template("user_info.html",
                            user=user,
                            repos=user.repos)
@@ -65,7 +87,7 @@ def login():
     return redirect(p.url)
 
 
-@app.route("/auth")
+@app.route("/auth", methods=["GET"])
 def auth():
     if "user_id" in session:
         return redirect("/")
