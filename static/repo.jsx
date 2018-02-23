@@ -93,14 +93,86 @@ function buildPlaceholder(num) {
 }
 
 class Star extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {star: "☆",
+                  isStarred: false}
+  }
+
+  test(e) {
+    console.log("Ran test() on " + this.props.repo_id + "!");
+  }
+
+  add_star(e) {
+    console.log("Ran add_star() on " + this.props.repo_id + "!");
+    let data = {"repo_id": this.props.repo_id};
+    let payload = {method: "POST",
+                   body: JSON.stringify(data),
+                   credentials: "same-origin",
+                   headers: new Headers({"Content-Type": "application/json"})};
+    fetch("/add_star", payload)
+          .then( response => response.json() )
+          // .then( data => console.log(data))
+          .then( (data) => this.update_star(data) )
+  }
+
+  remove_star(e) {
+    console.log("Ran remove_star() on " + this.props.repo_id + "!");
+    let data = {"repo_id": this.props.repo_id};
+    let payload = {method: "POST",
+                   body: JSON.stringify(data),
+                   credentials: "same-origin",
+                   headers: new Headers({"Content-Type": "application/json"})};
+    fetch("/remove_star", payload)
+          .then( response => response.json() )
+          // .then( data => console.log(data))
+          .then( (data) => this.update_star(data) )
+  }
+
+  update_star(data) {
+    if (data.Status == 204) {
+      if (data.action == "add_star") {
+        console.log("Successfully starred repo " + data.repo_id + ".");
+        this.setState({star: "★",
+                       isStarred: true});
+      } else if (data.action == "remove_star") {
+        console.log("Successfully unstarred repo " + data.repo_id + "."); 
+        this.setState({star: "☆",
+                       isStarred: false});
+      }
+    } else {
+      if (data.action == "add_star") {
+        console.log("Unable to star repo " + data.repo_id + ".");
+      } else if (data.action == "remove_star") {
+        console.log("Unable to unstar repo " + data.repo_id + "."); 
+      }
+    }
+  }
+
   render() {
     let isStarred = this.props.isStarred;
     let repo_id = this.props.repo_id;
 
-    if (isStarred) {
-      return <FilledStar repo_id={ repo_id } />; 
+    if (this.state.isStarred) {
+      return (
+        <span className="star" 
+            onClick={this.remove_star.bind(this)} 
+            repo_id={ repo_id }>
+            {this.state.star}
+        </span>
+      );
+      // return <FilledStar repo_id={ repo_id } 
+                         // onClick={this.test.bind(this)} />; 
     }
-    return <OpenStar repo_id={ repo_id } />;
+    return (
+      <span className="star" 
+          onClick={this.add_star.bind(this)} 
+          repo_id={ repo_id }>
+          {this.state.star}
+      </span>
+    );
+    // return <OpenStar repo_id={ repo_id } 
+    //                  onClick={this.test.bind(this)} />;
   }
 }
 
@@ -111,15 +183,10 @@ class OpenStar extends React.Component {
 
   add_star(e) {
     console.log("Ran add_star() on " + this.props.repo_id + "!");
-    let access_token = document.getElementById("details").dataset.accessToken;
-    // console.log(access_token);
-    // $.get("/add_star", 
-    //       {"repo_id": this.props.repo_id}, 
-    //       (response) => JSON.parse(response));
-    let data = {"repo_id": this.props.repo_id,
-                "access_token": access_token};
+    let data = {"repo_id": this.props.repo_id};
     let payload = {method: "POST",
                    body: JSON.stringify(data),
+                   credentials: "same-origin",
                    headers: new Headers({"Content-Type": "application/json"})};
     fetch("/add_star", payload)
           // .then( response => JSON.parse(response))
@@ -131,6 +198,8 @@ class OpenStar extends React.Component {
   update_star(data) {
     if (data.Status == 204) {
       console.log("Successfully added star for repo " + data.repo_id + ".");
+    } else {
+      console.log("Unable to add star for repo " + data.repo_id + ".");
     }
   }
 
@@ -138,7 +207,11 @@ class OpenStar extends React.Component {
     let repo_id = this.props.repo_id;
 
     return (
-      <span className="star" onClick={this.add_star.bind(this)} repo_id={ repo_id }>☆</span>
+      <span className="star" 
+            onClick={this.add_star.bind(this)} 
+            repo_id={ repo_id }>
+            ☆
+      </span>
     )
   }
 }

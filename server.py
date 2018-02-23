@@ -227,58 +227,67 @@ def get_repo_recs_json():
 
 @app.route("/add_star", methods=['POST'])
 def add_star():
-    # if "user_id" not in session or "access_token" not in session:
-    #     flash("Please log in with your GitHub account.")
-    #     print("Please log in with your GitHub account.")
-    #     return redirect("/")
+    if "user_id" not in session or "access_token" not in session:
+        flash("Please log in with your GitHub account.")
+        print("Please log in with your GitHub account.")
+        return redirect("/")
+
     data = request.get_json()
-    print(data)
     repo_id = data["repo_id"]
-    access_token = data["access_token"]
-    # repo_id = int(request.form.get("repo_id"))
-    # access_token = request.form.get("access_token")
+    access_token = session["access_token"]
     g = api_utils.get_auth_api(access_token)
-    print(access_token)
     repo = g.get_repo(repo_id)
     user = g.get_user()
     user.add_to_starred(repo)
 
     if not user.has_in_starred(repo):
         flash("Unable to star this repo ({}). Please try again later.".format(repo.name))
-        print("User {} was unable to add a star for repo {} ({})".format(user.login,
+        print("User {} was unable to star repo {} ({})".format(user.login,
                                                                          repo.name,
                                                                          repo.id))
         return json.dumps({"Status": 404,
+                           "action": "add_star",
                            "repo_id": repo.id})
 
     print("User {} sucessfully added a star for repo {} ({})".format(user.login,
                                                                      repo.name,
                                                                      repo.id))
     return json.dumps({"Status": 204,
+                       "action": "add_star",
                        "repo_id": repo.id})
 
 
-@app.route("/remove_star", methods=['GET'])
+@app.route("/remove_star", methods=['POST'])
 def remove_star():
     if "user_id" not in session or "access_token" not in session:
         flash("Please log in with your GitHub account.")
         return redirect("/")
 
-    repo_id = request.args.get("repo_id")
-    g = api_utils.get_auth_api(session["access_token"])
+    data = request.get_json()
+    repo_id = data["repo_id"]
+    access_token = session["access_token"]
+    g = api_utils.get_auth_api(access_token)
     repo = g.get_repo(repo_id)
-    g.remove_from_starred(repo)
     user = g.get_user()
+    user.remove_from_starred(repo)
 
     if user.has_in_starred(repo):
         flash("Unable to unstar this repo ({}). Please try again later.".format(repo.name))
+        print("User {} was unable to unstar repo {} ({})".format(user.login,
+                                                                         repo.name,
+                                                                         repo.id))
         return json.dumps({"Status": 404,
+                           "action": "remove_star",
                            "repo_id": repo.id})
 
+    print("User {} sucessfully added a star for repo {} ({})".format(user.login,
+                                                                     repo.name,
+                                                                     repo.id))
     return json.dumps({"Status": 204,
+                       "action": "remove_star",
                        "repo_id": repo.id})
 
-@app.route("/check_star", methods=['GET'])
+@app.route("/check_star", methods=['POST'])
 def check_star():
     if "user_id" not in session or "access_token" not in session:
         flash("Please log in with your GitHub account.")
@@ -294,9 +303,11 @@ def check_star():
     print(user.has_in_starred(repo))
     if user.has_in_starred(repo):
         return json.dumps({"Status": 204,
+                           "action": "check_star",
                            "repo_id": repo.id})
 
     return json.dumps({"Status": 404,
+                       "action": "check_star",
                        "repo_id": repo.id})
 
 

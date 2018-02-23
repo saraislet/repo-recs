@@ -26,8 +26,8 @@
   </section>
 
   {% if "access_token" in session %}
-    <details id="details" data-access-token="{{ session['access_token'] }}">
-    </details>
+    <div id="details" data-access-token="{{ session['access_token'] }}">
+    </div>
   {% endif %}
 
   <script src="/static/repo.jsx" type="text/jsx"></script>
