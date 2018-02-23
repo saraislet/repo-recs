@@ -249,6 +249,7 @@ def add_star():
                            "action": "add_star",
                            "repo_id": repo.id})
 
+    #TODO: add star to database
     print("User {} sucessfully added a star for repo {} ({})".format(user.login,
                                                                      repo.name,
                                                                      repo.id))
@@ -280,7 +281,8 @@ def remove_star():
                            "action": "remove_star",
                            "repo_id": repo.id})
 
-    print("User {} sucessfully added a star for repo {} ({})".format(user.login,
+    #TODO: remove star from database or flag?
+    print("User {} sucessfully unstarred repo {} ({})".format(user.login,
                                                                      repo.name,
                                                                      repo.id))
     return json.dumps({"Status": 204,
