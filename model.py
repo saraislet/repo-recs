@@ -4,8 +4,6 @@ import datetime
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-db_uri = "postgres:///git_data"
-
 
 class Repo(db.Model):
     """Repository model."""
@@ -45,11 +43,6 @@ class Repo(db.Model):
                                    order_by="User.user_id",
                                    backref=db.backref("contributions",
                                                       order_by="desc(Repo.repo_id)"))
-
-    # topics = db.relationship("Topic",
-    #                            secondary='repo_topics',
-    #                            order_by="Topic.topic_name",
-    #                            backref=db.backref("repos", order_by=desc(Repo.repo_id)))
 
     languages = db.relationship("Language",
                                secondary='repo_languages',
@@ -193,40 +186,6 @@ class Contributor(db.Model):
                         self.user_id))
 
 
-# class Topic(db.Model):
-#     """Topics model."""
-
-#     __tablename__ = "topics"
-
-#     topic_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-#     topic_name = db.Column(db.String(100), nullable=False, unique=True)
-
-#     def __repr__(self):
-#         """Provide helpful representation when printed."""
-
-#         return ("<Topic {} name={}>"
-#                 .format(self.topic_id,
-#                         self.topic_name))
-
-
-# class RepoTopic(db.Model):
-#     """Association table between Repository and Topic."""
-
-#     __tablename__ = "repo_topics"
-
-#     repo_topic_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-#     repo_id = db.Column(db.Integer, db.ForeignKey("repos.repo_id"), nullable=False)
-#     topic_id = db.Column(db.Integer, db.ForeignKey("topics.topic_id"), nullable=False)
-
-#     def __repr__(self):
-#         """Provide helpful representation when printed."""
-
-#         return ("<RepoTopic {} repo_id={} topic_id={}>"
-#                 .format(self.repo_topic_id,
-#                         self.repo_id,
-#                         self.topic_id))
-
-
 class Language(db.Model):
     """Languages model."""
 
@@ -269,16 +228,7 @@ class RepoLanguage(db.Model):
                         self.language_bytes))
 
 
-# def init_app():
-#     # So that we can use Flask-SQLAlchemy, we'll make a Flask app.
-#     from flask import Flask
-#     app = Flask(__name__)
-
-#     connect_to_db(app)
-#     print("Connected to DB.")
-
-
-def connect_to_db(app, uri=db_uri):
+def connect_to_db(app, uri=config.DB_URI):
     """Connect the database to our Flask app."""
 
     # Configure to use our database.
@@ -300,4 +250,4 @@ if __name__ == "__main__": # pragma: no cover
     app = Flask(__name__)
 
     connect_to_db(app)
-    print("Connected to DB {}.".format(db_uri))
+    print("Connected to DB {}.".format(config.DB_URI))

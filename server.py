@@ -1,26 +1,18 @@
 import json, requests, urllib
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import (Flask, flash, redirect, render_template,
+                   request, session)
 from jinja2 import StrictUndefined
-import rec, secrets, utils, api_utils, db_utils
+import rec, utils, api_utils, db_utils
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
-                   db, connect_to_db, db_uri)
-
-github_auth_request_code_url = "https://github.com/login/oauth/authorize"
-github_auth_request_token_url = "https://github.com/login/oauth/access_token"
-auth_callback_url = "http://127.0.0.1:5000/auth"
-oauth_scope = "user user:follow read:user public_repo"
-endpoint = "https://api.github.com"
-authenticated_user_path = "/user"
-
-default_count = 12
+                   db, connect_to_db)
 
 app = Flask(__name__)
 app.secret_key = "temp"
 # Don't let undefined variables fail silently.
 app.jinja_env.undefined = StrictUndefined
-# With old Flask versions, this may be necessary to auto-reload after changes.
+# With old Flask versions, this may be necessary to auto-reload changes.
 #app.jinja_env.auto_reload = True
 
 @app.route("/")
@@ -61,14 +53,14 @@ def login():
 
     session["state"] = "foo"
     #TODO: set this to random string when OAuth is working.
-    payload = {"client_id": secrets.client_id,
+    payload = {"client_id": os.environ.get("client_id"),
                "state": session["state"],
-               "redirect_uri": auth_callback_url,
-               "scope": oauth_scope}
+               "redirect_uri": config.AUTH_CALLBACK_URL,
+               "scope": config.OAUTH_SCOPE}
 
     print("Preparing OAuth get code request.")
     p = requests.Request("GET", 
-                         github_auth_request_code_url,
+                         config.GITHUB_AUTH_REQUEST_CODE_URL,
                          params=payload).prepare()
     return redirect(p.url)
 
@@ -82,22 +74,24 @@ def auth():
     state = request.args.get("state")
 
     if not code or state != session.get("state"):
-        flash("Oops. We couldn't authorize your Github account; please try again.")
+        flash("""Oops. We couldn't authorize your Github account; 
+                 please try again.""")
         return redirect("/")
 
     print("Preparing OAuth post request for access token.")
-    payload = {"client_id": secrets.client_id,
-               "client_secret": secrets.client_secret,
+    payload = {"client_id": os.environ.get("client_id"),
+               "client_secret": os.environ.get("client_secret"),
                "code": code,
                "state": session["state"],
-               "redirect_uri": auth_callback_url,
-               "scope": oauth_scope}
+               "redirect_uri": config.AUTH_CALLBACK_URL,
+               "scope": config.OAUTH_SCOPE}
 
-    r = requests.post(github_auth_request_token_url, params=payload)
+    r = requests.post(config.GITHUB_AUTH_REQUEST_TOKEN_URL, params=payload)
     print(r.text)
     access_token =  urllib.parse.parse_qs(r.text).get("access_token")
     if not access_token:
-        flash("Oops. We couldn't authorize your Github account; please try again.")
+        flash("""Oops. We couldn't authorize your Github account; 
+                 please try again.""")
         return redirect("/")
     access_token = access_token[0]
 
@@ -117,7 +111,7 @@ def get_repo_recs():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", default_count))
+    limit = int(request.args.get("count", config.DEFAULT_COUNT))
     offset = limit * (-1 + int(request.args.get("page", 1)))
     login = request.args.get("login")
     user_id = request.args.get("user_id")
@@ -137,13 +131,15 @@ def get_repo_recs():
             flash("No user found with login {}.".format(login))
             return redirect("/")
         user_id = User.query.filter_by(login=login).first().user_id
-        print("Using login {} for user_id {} for recs.".format(login, user_id))
+        print("Using login {} for user_id {} for recs."
+              .format(login, user_id))
     elif not user_id:
         user_id = session["user_id"]
         print("Using logged in user {} for recs.".format(user_id))
 
     suggestions = rec.get_repo_suggestions(user_id)[offset:limit]
-    repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions), Repo.owner_id != user_id)
+    repos_query = Repo.query.filter(Repo.repo_id.in_(suggestions),
+                                    Repo.owner_id != user_id)
     repos = repos_query.all()
 
     return render_template("repo_recs.html",
@@ -155,7 +151,7 @@ def get_repo_recs_react():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", default_count))
+    limit = int(request.args.get("count", config.DEFAULT_COUNT))
     # offset = limit * (-1 + int(request.args.get("page", 1)))
     page = int(request.args.get("page", 1))
     login = request.args.get("login")
@@ -176,7 +172,8 @@ def get_repo_recs_react():
             flash("No user found with login {}.".format(login))
             return redirect("/")
         user_id = User.query.filter_by(login=login).first().user_id
-        print("Using login {} for user_id {} for recs.".format(login, user_id))
+        print("Using login {} for user_id {} for recs."
+              .format(login, user_id))
     elif not user_id:
         user_id = session["user_id"]
         print("Using logged in user {} for recs.".format(user_id))
@@ -192,7 +189,7 @@ def get_repo_recs_json():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", default_count))
+    limit = int(request.args.get("count", config.DEFAULT_COUNT))
     offset = limit * (-1 + int(request.args.get("page", 1)))
     login = request.args.get("login")
     user_id = request.args.get("user_id")
@@ -211,7 +208,8 @@ def get_repo_recs_json():
             flash("No user found with login {}.".format(login))
             return redirect("/")
         user_id = User.query.filter_by(login=login).first().user_id
-        print("Using login {} for user_id {} for recs.".format(login, user_id))
+        print("Using login {} for user_id {} for recs."
+              .format(login, user_id))
     elif not user_id:
         user_id = session["user_id"]
         print("Using logged in user {} for recs.".format(user_id))
@@ -219,7 +217,8 @@ def get_repo_recs_json():
     recs = rec.get_repo_suggestions(user_id)[offset:2*limit]
     filtered_recs = db_utils.filter_stars_from_repo_ids(recs, user_id)
 
-    repos_query = Repo.query.filter(Repo.repo_id.in_(filtered_recs), Repo.owner_id != user_id)
+    repos_query = Repo.query.filter(Repo.repo_id.in_(filtered_recs),
+                                    Repo.owner_id != user_id)
     repos = repos_query.all()
 
     return utils.get_json_from_repos(repos[0:limit])
@@ -241,18 +240,21 @@ def add_star():
     user.add_to_starred(repo)
 
     if not user.has_in_starred(repo):
-        flash("Unable to star this repo ({}). Please try again later.".format(repo.name))
-        print("User {} was unable to star repo {} ({})".format(user.login,
-                                                                         repo.name,
-                                                                         repo.id))
+        flash("Unable to star this repo ({}). Please try again later."
+              .format(repo.name))
+        print("User {} was unable to star repo {} ({})"
+              .format(user.login,
+                      repo.name,
+                      repo.id))
         return json.dumps({"Status": 404,
                            "action": "add_star",
                            "repo_id": repo.id})
 
     #TODO: add star to database
-    print("User {} sucessfully added a star for repo {} ({})".format(user.login,
-                                                                     repo.name,
-                                                                     repo.id))
+    print("User {} sucessfully added a star for repo {} ({})"
+          .format(user.login,
+                  repo.name,
+                  repo.id))
     return json.dumps({"Status": 204,
                        "action": "add_star",
                        "repo_id": repo.id})
@@ -273,18 +275,21 @@ def remove_star():
     user.remove_from_starred(repo)
 
     if user.has_in_starred(repo):
-        flash("Unable to unstar this repo ({}). Please try again later.".format(repo.name))
-        print("User {} was unable to unstar repo {} ({})".format(user.login,
-                                                                         repo.name,
-                                                                         repo.id))
+        flash("Unable to unstar this repo ({}). Please try again later."
+              .format(repo.name))
+        print("User {} was unable to unstar repo {} ({})"
+              .format(user.login,
+                      repo.name,
+                      repo.id))
         return json.dumps({"Status": 404,
                            "action": "remove_star",
                            "repo_id": repo.id})
 
     #TODO: remove star from database or flag?
-    print("User {} sucessfully unstarred repo {} ({})".format(user.login,
-                                                                     repo.name,
-                                                                     repo.id))
+    print("User {} sucessfully unstarred repo {} ({})"
+          .format(user.login,
+                  repo.name,
+                  repo.id))
     return json.dumps({"Status": 204,
                        "action": "remove_star",
                        "repo_id": repo.id})

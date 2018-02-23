@@ -2,7 +2,7 @@ from flask import Flask
 from model import (Repo, User, Follower,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
-                   db, connect_to_db, db_uri)
+                   db, connect_to_db)
 import utils
 
 

@@ -3,24 +3,15 @@ import github
 from github import GithubException
 from progress.bar import ShadyBar
 from progress.spinner import Spinner
-import secrets
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
-                   db, connect_to_db, db_uri)
+                   db, connect_to_db)
 # TODO: try Tenacity library
 
-token = secrets.personal_access_token
-client_id = secrets.client_id
-client_secret = secrets.client_secret
-
-max_crawl_count_total = 50
-max_crawl_count_new = 50
-refresh_update_repo_days = 7
-refresh_update_user_days = 7
-refresh_crawl_days = 30
-
-g = github.Github(token, client_id=client_id, client_secret=client_secret)
+g = github.Github(os.environ.get("PERSONAL_ACCESS_TOKEN"),
+                  client_id=os.environ.get("CLIENT_ID"),
+                  client_secret=os.environ.get("CLIENT_SECRET"))
 progress_bar_suffix = "%(index)d/%(max)d, estimated %(eta)d seconds remaining."
 spinner_suffix = "%(index)d added, avg %(avg)ds each, %(elapsed)d time elapsed."
 
@@ -95,10 +86,10 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
     Adds stargazers, watchers, and contributors."""
     num_layers_to_crawl = max(0, num_layers_to_crawl - 1)
 
-    # Note the start time to estimate time to complete process.
+    # Note start time to estimate time to complete process.
     start_time = datetime.datetime.now()
 
-    # If the argument is not a PyGithub repo object, get the PyGithub repo object:
+    # If argument is not PyGithub repo object, get PyGithub repo object:
     repo = get_repo_object_from_input(repo_info)
 
     # First, verify that repo is added to db.
@@ -107,10 +98,12 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
 
     # Check last crawled time and depth.
     # Verify repo is in db, and get repo object first.
-    if is_last_crawled_in_repo_good(repo.id, start_time, 1+num_layers_to_crawl):
+    if is_last_crawled_in_repo_good(repo.id, start_time,
+                                    1+num_layers_to_crawl):
         return
 
-    print("Crawling {} layers from repo {} ({}).".format(1+num_layers_to_crawl, repo.id, repo.name))
+    print("Crawling {} layers from repo {} ({})."
+          .format(1+num_layers_to_crawl, repo.id, repo.name))
 
     # Then crawl the graph out to connected users and add to db.
     num_users += add_stars(repo, num_layers_to_crawl)
@@ -122,17 +115,21 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
     end_time = datetime.datetime.now()
     time_delta = (end_time - start_time).total_seconds()
     time_delta = round(time_delta, 3)
-    print("\r\x1b[K\n" + str(num_users) + " users loaded in " + str(time_delta) + " seconds.")
+    print("\r\x1b[K\n {} users loaded in {} seconds."
+          .format(num_users, time_delta))
 
-    set_last_crawled_in_repo(repo.id, datetime.datetime.now(), 1+num_layers_to_crawl)
+    set_last_crawled_in_repo(repo.id,
+                             datetime.datetime.now(),
+                             1+num_layers_to_crawl)
 
 
 def update_repo(repo, num_layers_to_crawl=0):
     """Update repo if it hasn't been updated in more than 7 days."""
     this_repo = Repo.query.get(repo.id)
 
-    delta = datetime.datetime.now().timestamp() - this_repo.updated_at.timestamp()
-    if delta/60/60/24/7 < refresh_update_repo_days:
+    delta = (datetime.datetime.now().timestamp()
+             - this_repo.updated_at.timestamp())
+    if delta/60/60/24/7 < config.config.REFRESH_UPDATE_REPO_DAYS:
         return
 
     this_repo.name = repo.name
@@ -182,7 +179,7 @@ def is_last_crawled_in_repo_good(repo_id, crawl_time, crawl_depth):
         return False
 
     delta = crawl_time.timestamp() - this_repo.last_crawled.timestamp()
-    if delta/60/60/24/7 > refresh_update_repo_days:
+    if delta/60/60/24/7 > config.REFRESH_UPDATE_REPO_DAYS:
         return False
 
     return True
@@ -195,7 +192,7 @@ def get_user_object_from_input(user_info):
 
     # If argument is an integer, assume it's the user_id:
     if isinstance(user_info, int):
-        #TODO: This assumes that the user is in the db. Check how this is handled.
+        #TODO: This assumes that the user is in db. Check how this is handled.
         this_user = User.query.get(user_info)
 
         # If no user is in the database with this id, raise IOError.
@@ -206,9 +203,11 @@ def get_user_object_from_input(user_info):
     # If argument is a string, assume it's the login:
     elif isinstance(user_info, str):
         login = user_info
+
     # If argument is a model.User object, get the login:
     elif isinstance(user_info, User):
         login = user_info.login
+
     else:
         raise TypeError("""expected id, string, or PyGithub user object, 
                            {} found""".format(type(user_info)))
@@ -291,7 +290,8 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
     if is_last_crawled_in_user_good(user.id, start_time, 1+num_layers_to_crawl):
         return
 
-    print("Crawling {} layers from user {} ({}).".format(1+num_layers_to_crawl, user.id, user.login))
+    print("Crawling {} layers from user {} ({})."
+          .format(1+num_layers_to_crawl, user.id, user.login))
 
     # Then crawl the graph out to starred repos and add to db.
     num_repos = add_starred_repos(user, num_layers_to_crawl)
@@ -302,19 +302,23 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
     end_time = datetime.datetime.now()
     time_delta = (end_time - start_time).total_seconds()
     time_delta = round(time_delta, 3)
-    print("\r\x1b[K" + "\n{} repos loaded for {} in {} seconds.".format(num_repos,
-                                                                        user.login,
-                                                                        time_delta))
+    print("\r\x1b[K" + "\n{} repos loaded for {} in {} seconds."
+          .format(num_repos,
+                  user.login,
+                  time_delta))
 
-    set_last_crawled_in_user(user.id, datetime.datetime.now(), 1+num_layers_to_crawl)
+    set_last_crawled_in_user(user.id,
+                             datetime.datetime.now(),
+                             1+num_layers_to_crawl)
 
 
 def update_user(user, num_layers_to_crawl=0):
     """Update user if it hasn't been updated in more than 7 days."""
     this_user = User.query.get(user.id)
 
-    delta = datetime.datetime.now().timestamp() - this_user.updated_at.timestamp()
-    if delta/60/60/24/7 > refresh_update_user_days:
+    delta = (datetime.datetime.now().timestamp()
+             - this_user.updated_at.timestamp())
+    if delta/60/60/24/7 > config.REFRESH_UPDATE_USER_DAYS:
         this_user.name = user.name
         this_user.login = user.login
         this_user.updated_at = datetime.datetime.utcnow()
@@ -354,13 +358,13 @@ def is_last_crawled_in_user_good(user_id, crawl_time, crawl_depth):
     # but a deeper crawl will need to crawl from here further.
 
     this_user = User.query.get(user_id)
-    if (not this_user.last_crawled_depth or 
-        not this_user.last_crawled or
-        this_user.last_crawled_depth < crawl_depth):
+    if (not this_user.last_crawled_depth
+        or not this_user.last_crawled
+        or this_user.last_crawled_depth < crawl_depth):
         return False
 
     delta = crawl_time.timestamp() - this_user.last_crawled.timestamp()
-    if delta/60/60/24/7 > refresh_update_user_days:
+    if delta/60/60/24/7 > config.REFRESH_UPDATE_USER_DAYS:
         return False
 
     return True
@@ -383,7 +387,8 @@ def add_stars(repo, num_layers_to_crawl=0):
     for star in stars:
         bar.next()
         count += 1
-        if num_users > max_crawl_count_new or count > max_crawl_count_total:
+        if (num_users > config.MAX_CRAWL_COUNT_NEW
+            or count > config.MAX_CRAWL_COUNT_TOTAL):
             break
 
         num_users += add_user(star, num_layers_to_crawl)
@@ -420,7 +425,8 @@ def add_watchers(repo, num_layers_to_crawl=0):
     for watcher in watchers:
         bar.next()
         count += 1
-        if num_users > max_crawl_count_new or count > max_crawl_count_total:
+        if (num_users > config.MAX_CRAWL_COUNT_NEW
+            or count > config.MAX_CRAWL_COUNT_TOTAL):
             break
 
         # If watcher is in db, skip and continue.
@@ -457,7 +463,8 @@ def add_contributors(repo, num_layers_to_crawl=0):
     for contributor in contributors:
         bar.next()
         count += 1
-        if num_users > max_crawl_count_new or count > max_crawl_count_total:
+        if (num_users > config.MAX_CRAWL_COUNT_NEW
+            or count > config.MAX_CRAWL_COUNT_TOTAL):
             break
 
         # If contributor is in db, skip and continue.
@@ -472,7 +479,8 @@ def add_contributors(repo, num_layers_to_crawl=0):
 
         num_users += add_user(contributor, num_layers_to_crawl)
 
-        this_contributor = Contributor(repo_id=repo.id, user_id=contributor.id)
+        this_contributor = Contributor(repo_id=repo.id,
+                                       user_id=contributor.id)
         db.session.add(this_contributor)
         db.session.commit()
 
@@ -542,7 +550,8 @@ def add_starred_repos(user, num_layers_to_crawl=0):
     for star in stars:
         bar.next()
         count += 1
-        if num_repos > max_crawl_count_new or count > max_crawl_count_total:
+        if (num_repos > config.MAX_CRAWL_COUNT_NEW
+            or count > config.MAX_CRAWL_COUNT_TOTAL):
             break
 
         num_repos += add_repo(star, num_layers_to_crawl)
@@ -599,4 +608,4 @@ if __name__ == "__main__":  # pragma: no cover
     app = Flask(__name__)
 
     connect_to_db(app)
-    print("Connected to DB {}.".format(db_uri))
+    print("Connected to DB {}.".format(config.DB_URI))

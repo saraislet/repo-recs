@@ -5,7 +5,7 @@ from flask import Flask
 from model import (Repo, User, Follower,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
-                   db, connect_to_db, db_uri)
+                   db, connect_to_db)
 import utils, db_utils
 
 
@@ -13,8 +13,12 @@ def build_ratings_dataframe():
     """Build and return pandas DataFrame of all ratings by users of repos."""
 
     ratings = db_utils.get_ratings_from_db()
-    ratings_df = pd.DataFrame(ratings, columns = ["user_id", "repo_id", "Rating"], dtype = int)
-    R_df = ratings_df.pivot(index="user_id", columns = "repo_id", values = "Rating").fillna(0)
+    ratings_df = pd.DataFrame(ratings,
+                              columns = ["user_id", "repo_id", "Rating"],
+                              dtype = int)
+    R_df = ratings_df.pivot(index="user_id",
+                            columns = "repo_id",
+                            values = "Rating").fillna(0)
 
     return R_df
 
@@ -32,9 +36,12 @@ def build_repo_predictions_matrix():
 
     U, sigma, Vt = svds(R_demeaned, k = 50)
     sigma = np.diag(sigma)
-    predictions_matrix = np.dot(np.dot(U, sigma), Vt) + user_ratings_mean.reshape(-1, 1)
+    predictions_matrix = (np.dot(np.dot(U, sigma), Vt)
+                          + user_ratings_mean.reshape(-1, 1))
     
-    return pd.DataFrame(predictions_matrix, columns = R_df.columns, index = R_df.index)
+    return pd.DataFrame(predictions_matrix,
+                        columns = R_df.columns,
+                        index = R_df.index)
 
 
 def get_repo_suggestions(user_id):
@@ -47,7 +54,7 @@ def get_repo_suggestions(user_id):
                                  .loc[user_id]
                                  .sort_values(ascending=False)
                                  .index.tolist())
-    #TODO: Can we have Pandas interpret index items as a Python int instead of a numpy object?
+    #TODO: Can Pandas interpret index items as int instead of numpy object?
     return [ int(n) for n in suggestions ]
 
 
@@ -70,7 +77,6 @@ def get_comparisons(user_id, num_users=20, num_recs=20):
                           preds=preds1) for user in users ]
 
 
-
 if __name__ == "__main__":
     # As a convenience, if we run this module interactively, it will leave
     # you in a state of being able to work with the database directly.
@@ -81,4 +87,4 @@ if __name__ == "__main__":
     app = Flask(__name__)
 
     connect_to_db(app)
-    print("Connected to DB {}.".format(db_uri))
+    print("Connected to DB {}.".format(config.DB_URI))
