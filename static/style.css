@@ -31,6 +31,8 @@ p {
 
 .star {
     cursor: pointer;
+    font-size: 300%;
+    font-weight: 600;
 }
 
 #body {

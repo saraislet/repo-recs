@@ -272,7 +272,7 @@ def add_star():
                            "action": "add_star",
                            "repo_id": repo.id})
 
-    #TODO: add star to database
+    db_utils.add_stargazer(repo_id, session["user_id"])
     print("User {} sucessfully added a star for repo {} ({})"
           .format(user.login,
                   repo.name,
@@ -307,7 +307,7 @@ def remove_star():
                            "action": "remove_star",
                            "repo_id": repo.id})
 
-    #TODO: remove star from database or flag?
+    db_utils.remove_stargazer(repo_id, session["user_id"])
     print("User {} sucessfully unstarred repo {} ({})"
           .format(user.login,
                   repo.name,
