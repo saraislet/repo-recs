@@ -30,9 +30,35 @@ p {
 }
 
 .star {
+    display: inline-block;
     cursor: pointer;
     font-size: 300%;
     font-weight: 600;
+}
+
+.star:hover {
+    text-shadow: 0 0 5px #9ECFE4;
+    color: #5e6788;
+}
+
+.star-error {
+    color: #aa3333;
+}
+
+.star-spin {
+    animation-name: starSpin;
+    animation-duration: 5000ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+@keyframes starSpin {
+    from {
+        transform:rotate(0deg);
+    }
+    to {
+        transform:rotate(360deg);
+    }
 }
 
 #body {

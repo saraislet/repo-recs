@@ -96,11 +96,13 @@ class Star extends React.Component {
   constructor(props) {
     super(props);
     this.state = {star: "☆",
-                  isStarred: false}
+                  isStarred: false,
+                  pending: false};
   }
 
-  test(e) {
-    console.log("Ran test() on " + this.props.repo_id + "!");
+  handle_error(e) {
+    console.error(e);
+    this.setState({error: true})
   }
 
   add_star(e) {
@@ -112,8 +114,9 @@ class Star extends React.Component {
                    headers: new Headers({"Content-Type": "application/json"})};
     fetch("/add_star", payload)
           .then( response => response.json() )
-          // .then( data => console.log(data))
           .then( (data) => this.update_star(data) )
+          .catch( error => this.handle_error(error) )
+    this.setState({pending: true});
   }
 
   remove_star(e) {
@@ -125,8 +128,9 @@ class Star extends React.Component {
                    headers: new Headers({"Content-Type": "application/json"})};
     fetch("/remove_star", payload)
           .then( response => response.json() )
-          // .then( data => console.log(data))
           .then( (data) => this.update_star(data) )
+          .catch( error => this.handle_error(error) )
+    this.setState({pending: true});
   }
 
   update_star(data) {
@@ -134,13 +138,18 @@ class Star extends React.Component {
       if (data.action == "add_star") {
         console.log("Successfully starred repo " + data.repo_id + ".");
         this.setState({star: "★",
-                       isStarred: true});
+                       isStarred: true,
+                       pending: false,
+                       error: false});
       } else if (data.action == "remove_star") {
         console.log("Successfully unstarred repo " + data.repo_id + "."); 
         this.setState({star: "☆",
-                       isStarred: false});
+                       isStarred: false,
+                       pending: false,
+                       error: false});
       }
     } else {
+      this.setState({error: true});
       if (data.action == "add_star") {
         console.log("Unable to star repo " + data.repo_id + ".");
       } else if (data.action == "remove_star") {
@@ -153,26 +162,34 @@ class Star extends React.Component {
     let isStarred = this.props.isStarred;
     let repo_id = this.props.repo_id;
 
+    let className = "star";
+
+    if (this.state.error) {
+      className += " star-error";
+      console.log("State includes error.");
+    }
+
+    if (this.state.pending) {
+      className += " star-spin";
+      console.log("State includes pending.");
+    }
+
     if (this.state.isStarred) {
       return (
-        <span className="star" 
+        <span className={className} 
             onClick={this.remove_star.bind(this)} 
             repo_id={ repo_id }>
             {this.state.star}
         </span>
       );
-      // return <FilledStar repo_id={ repo_id } 
-                         // onClick={this.test.bind(this)} />; 
     }
     return (
-      <span className="star" 
+      <span className={className} 
           onClick={this.add_star.bind(this)} 
           repo_id={ repo_id }>
           {this.state.star}
       </span>
     );
-    // return <OpenStar repo_id={ repo_id } 
-    //                  onClick={this.test.bind(this)} />;
   }
 }
 
