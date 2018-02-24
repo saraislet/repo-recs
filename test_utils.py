@@ -5,7 +5,7 @@ import utils, update_pkey_seqs
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
-                   db, connect_to_db, db_uri)
+                   db, connect_to_db)
 from test_model import test_db_uri, example_data
 
 app = Flask(__name__)

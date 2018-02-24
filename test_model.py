@@ -1,6 +1,5 @@
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
-                   # Topic, RepoTopic,
                    Language, RepoLanguage,
                    db, connect_to_db)
 from flask import Flask
