@@ -120,7 +120,7 @@ def auth():
     g = api_utils.get_auth_api(access_token)
     user = g.get_user()
     utils.add_user(user)
-    utils.account_login(user, access_token)
+    db_utils.account_login(user, access_token)
     session["user_id"] = user.id
     session["access_token"] = access_token
 
@@ -243,7 +243,7 @@ def get_repo_recs_json():
                                     Repo.owner_id != user_id)
     repos = repos_query.all()
 
-    return utils.get_json_from_repos(repos[0:limit])
+    return db_utils.get_json_from_repos(repos[0:limit])
 
 
 @app.route("/add_star", methods=['POST'])

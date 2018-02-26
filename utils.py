@@ -3,20 +3,15 @@ import github
 from github import GithubException
 from progress.bar import ShadyBar
 from progress.spinner import Spinner
-import config
+import config, api_utils, db_utils
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db)
 # TODO: try Tenacity library
 
-g = github.Github(os.environ.get("PERSONAL_ACCESS_TOKEN"),
-                  client_id=os.environ.get("CLIENT_ID"),
-                  client_secret=os.environ.get("CLIENT_SECRET"))
 progress_bar_suffix = "%(index)d/%(max)d, estimated %(eta)d seconds remaining."
 spinner_suffix = "%(index)d added, avg %(avg)ds each, %(elapsed)d time elapsed."
-
-me = g.get_user()
 
 def get_repo_object_from_input(repo_info):
     # If the argument is not a PyGithub repo object, get the PyGithub repo object:
@@ -34,7 +29,7 @@ def get_repo_object_from_input(repo_info):
                            {} found.""".format(type(repo_info)))
     
     # Return PyGithub repository object.
-    return g.get_repo(repo_id)
+    return api_utils.get_repo_from_api(repo_id)
 
 
 def add_repo(repo_info, num_layers_to_crawl=0):
@@ -49,7 +44,7 @@ def add_repo(repo_info, num_layers_to_crawl=0):
         # Must create User for owner before committing Repo to db.
         add_user(owner, num_layers_to_crawl)
 
-        if is_repo_in_db(repo.id):
+        if db_utils.is_repo_in_db(repo.id):
             update_repo(repo, num_layers_to_crawl)
             return 0
         
@@ -63,7 +58,7 @@ def add_repo(repo_info, num_layers_to_crawl=0):
         db.session.add(this_repo)
         db.session.commit()
 
-        add_languages(repo)
+        db_utils.add_languages(repo)
 
         #TODO: A queue might be more robust than a recursive process.
         if num_layers_to_crawl:
@@ -99,8 +94,8 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
 
     # Check last crawled time and depth.
     # Verify repo is in db, and get repo object first.
-    if is_last_crawled_in_repo_good(repo.id, start_time,
-                                    1+num_layers_to_crawl):
+    if db_utils.is_last_crawled_in_repo_good(repo.id, start_time,
+                                             1+num_layers_to_crawl):
         return
 
     print("Crawling {} layers from repo {} ({})."
@@ -119,9 +114,9 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
     print("\r\x1b[K\n {} users loaded in {} seconds."
           .format(num_users, time_delta))
 
-    set_last_crawled_in_repo(repo.id,
-                             datetime.datetime.now(),
-                             1+num_layers_to_crawl)
+    db_utils.set_last_crawled_in_repo(repo.id,
+                                      datetime.datetime.now(),
+                                      1+num_layers_to_crawl)
 
 
 def update_repo(repo, num_layers_to_crawl=0):
@@ -144,46 +139,6 @@ def update_repo(repo, num_layers_to_crawl=0):
     #TODO: A queue might be more robust than a recursive process.
     if num_layers_to_crawl:
         crawl_from_repo_to_users(repo, num_layers_to_crawl)
-
-
-def is_repo_in_db(repo_id):
-    """Check db for repo, return true or false."""
-
-    this_repo = Repo.query.get(repo_id)
-    if this_repo:
-        return True
-    return False
-
-
-def set_last_crawled_in_repo(repo_id, last_crawled_time, last_crawled_depth):
-    """Set last_crawled to now() in repo."""
-    # If a crawl soon after has a lower depth, we don't need to crawl,
-    # but a deeper crawl will need to crawl from here further.
-
-    this_repo = Repo.query.get(repo_id)
-    this_repo.last_crawled = last_crawled_time
-    this_repo.last_crawled_depth = last_crawled_depth
-
-    db.session.add(this_repo)
-    db.session.commit()
-
-
-def is_last_crawled_in_repo_good(repo_id, crawl_time, crawl_depth):
-    """Return boolean identifying if repo must be crawled further now."""
-    # If a crawl soon after has a lower depth, we don't need to crawl,
-    # but a deeper crawl will need to crawl from here further.
-
-    this_repo = Repo.query.get(repo_id)
-    if (not this_repo.last_crawled_depth or 
-        not this_repo.last_crawled or
-        this_repo.last_crawled_depth < crawl_depth):
-        return False
-
-    delta = crawl_time.timestamp() - this_repo.last_crawled.timestamp()
-    if delta/60/60/24/7 > config.REFRESH_UPDATE_REPO_DAYS:
-        return False
-
-    return True
 
 
 def get_user_object_from_input(user_info):
@@ -214,25 +169,7 @@ def get_user_object_from_input(user_info):
                            {} found""".format(type(user_info)))
     
     # Get the PyGithub user object.
-    return g.get_user(login=login)
-
-
-def account_login(user, access_token):
-    """Add account to db."""
-    this_account = Account.query.filter_by(user_id=user.id).first()
-    if this_account:
-        this_account.last_login = datetime.datetime.now()
-        this_account.access_token = access_token
-        db.session.add(this_account)
-        db.session.commit()
-        return
-
-    this_account = Account(user_id=user.id,
-                           access_token=access_token,
-                           last_login=datetime.datetime.now())
-    db.session.add(this_account)
-    db.session.commit()
-    return
+    return api_utils.get_user_from_api(login)
 
 
 def add_user(user_info, num_layers_to_crawl=0):
@@ -240,7 +177,7 @@ def add_user(user_info, num_layers_to_crawl=0):
     try:    
         user = get_user_object_from_input(user_info)
 
-        if is_user_in_db(user.id):
+        if db_utils.is_user_in_db(user.id):
             update_user(user, num_layers_to_crawl)
             return 0
 
@@ -288,7 +225,9 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
 
     # Check last crawled time and depth.
     # Verify repo is in db, and get repo object first.
-    if is_last_crawled_in_user_good(user.id, start_time, 1+num_layers_to_crawl):
+    if db_utils.is_last_crawled_in_user_good(user.id,
+                                             start_time,
+                                             1+num_layers_to_crawl):
         return
 
     print("Crawling {} layers from user {} ({})."
@@ -308,9 +247,9 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
                   user.login,
                   time_delta))
 
-    set_last_crawled_in_user(user.id,
-                             datetime.datetime.now(),
-                             1+num_layers_to_crawl)
+    db_utils.set_last_crawled_in_user(user.id,
+                                      datetime.datetime.now(),
+                                      1+num_layers_to_crawl)
 
 
 def update_user(user, num_layers_to_crawl=0):
@@ -334,50 +273,9 @@ def update_user(user, num_layers_to_crawl=0):
     return
 
 
-def is_user_in_db(user_id):
-    """Check db for user, and update xor return false."""
-
-    this_user = User.query.get(user_id)
-    if this_user:
-        return True
-    return False
-
-
-def set_last_crawled_in_user(user_id, last_crawled_time, last_crawled_depth):
-    """Set last_crawled to now() in user."""
-    this_user = User.query.get(user_id)
-    this_user.last_crawled = last_crawled_time
-    this_user.last_crawled_depth = last_crawled_depth
-
-    db.session.add(this_user)
-    db.session.commit()
-
-
-def is_last_crawled_in_user_good(user_id, crawl_time, crawl_depth):
-    """Return boolean identifying if user must be crawled further now."""
-    # If a crawl soon after has a lower depth, we don't need to crawl,
-    # but a deeper crawl will need to crawl from here further.
-
-    this_user = User.query.get(user_id)
-    if (not this_user.last_crawled_depth
-        or not this_user.last_crawled
-        or this_user.last_crawled_depth < crawl_depth):
-        return False
-
-    delta = crawl_time.timestamp() - this_user.last_crawled.timestamp()
-    if delta/60/60/24/7 > config.REFRESH_UPDATE_USER_DAYS:
-        return False
-
-    return True
-
-
-def get_stars_from_repo(repo):
-    return repo.get_stargazers()
-
-
 def add_stars(repo, num_layers_to_crawl=0):
     """Add all stargazers of repo to db."""
-    stars = get_stars_from_repo(repo)
+    stars = api_utils.get_stargazers_from_api(repo)
     num_stars = repo.stargazers_count
     num_users = 0
     count = 0
@@ -490,58 +388,9 @@ def add_contributors(repo, num_layers_to_crawl=0):
     return num_users
 
 
-def add_lang(lang):
-    """Add lang string to db."""
-    # lang = lang.lower()
-    this_lang = Language.query.filter(Language.language_name.ilike(lang)).first()
-
-    if this_lang:
-        return
-
-    # print("Adding lang {}.".format(lang))
-    this_lang = Language(language_name=lang)
-    db.session.add(this_lang)
-    db.session.commit()
-
-
-def add_repo_lang(repo_id, lang, num):
-    """Add repo-lang association and number of bytes to db."""
-    # print("Adding repo-lang {}.".format(lang))
-    lang = lang.lower()
-    this_lang = Language.query.filter(Language.language_name.ilike(lang)).first()
-    this_repo_lang = RepoLanguage.query.filter_by(language_id=this_lang.language_id,
-                                                  repo_id=repo_id).first()
-
-    if this_repo_lang:
-        this_repo_lang.language_bytes = num
-        db.session.add(this_repo_lang)
-        db.session.commit()
-        return
-
-    this_repo_lang = RepoLanguage(repo_id=repo_id,
-                                  language_id=this_lang.language_id,
-                                  language_bytes=num)
-    db.session.add(this_repo_lang)
-    db.session.commit()
-
-
-def add_languages(repo):
-    """Add all languages of repo to db."""
-    langs = repo.get_languages()
-
-    for lang in langs.keys():
-        add_lang(lang)
-        add_repo_lang(repo.id, lang, langs[lang])
-
-
-def get_starred_repos(user):
-    """Get all repos starred by user from api."""
-    return user.get_starred()
-
-
 def add_starred_repos(user, num_layers_to_crawl=0):
     """Add all repos starred by user to db."""
-    stars = get_starred_repos(user)
+    stars = api_utils.get_starred_repos_from_api(user)
     num_repos = 0
     count = 0
 
@@ -574,29 +423,6 @@ def add_starred_repos(user, num_layers_to_crawl=0):
 
     bar.finish()
     return num_repos
-
-
-def get_json_from_repos(repos):
-    """Given list of Repo objects, return json."""
-    data = []
-
-    for repo in repos:
-        language_data = []
-        for lang in repo.repo_langs:
-            lang_data = {"language_id": lang.language_id,
-                         "language_name": lang.language.language_name,
-                         "language_bytes": lang.language_bytes}
-            language_data.append(lang_data)
-
-        repo_data = {"repo_id": repo.repo_id,
-                     "description": repo.description,
-                     "name": repo.name,
-                     "owner_login": repo.owner.login,
-                     "stargazers_count": repo.stargazers_count,
-                     "url": repo.url,
-                     "langs": language_data}
-        data.append(repo_data)
-    return json.dumps(data)
 
 
 if __name__ == "__main__":  # pragma: no cover
