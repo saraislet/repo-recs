@@ -1,0 +1,37 @@
+# .coveragerc to control coverage.py
+[run]
+branch = True
+
+omit = 
+    # omit anything in env/venv/myvenv
+    *env/*
+
+    # omit local files and secrets
+    *local.*
+    local*
+    secrets*
+
+    # omit config files
+    config*
+
+[report]
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+
+    # Don't complain about missing debug-only code:
+    def __repr__
+
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't complain if non-runnable code isn't run:
+    if 0:
+    if __name__ == .__main__.:
+
+ignore_errors = True
+
+[html]
+directory = htmlcov
