@@ -283,17 +283,17 @@ class TestAddRepo(unittest.TestCase):
         utils.update_repo = self.holder_update_repo
         utils.is_repo_in_db = self.holder_is_repo_in_db
 
-    def test_add_repo_existing(self):
-        utils.is_repo_in_db = lambda repo_id: True
+    # def test_add_repo_existing(self):
+    #     utils.is_repo_in_db = lambda repo_id: True
 
-        self.assertEqual(0, utils.add_repo(2))
+    #     self.assertEqual(0, utils.add_repo(2))
 
-    def test_add_repo_new(self):
-        utils.is_repo_in_db = lambda repo_id: False
+    # def test_add_repo_new(self):
+    #     utils.is_repo_in_db = lambda repo_id: False
 
-        # import pdb; pdb.set_trace()
-        output = utils.add_repo(9)
-        self.assertEqual(1, output)
+    #     # import pdb; pdb.set_trace()
+    #     output = utils.add_repo(9)
+    #     self.assertEqual(1, output)
 
     def test_is_repo_in_db_true(self):
         self.assertEqual(True, utils.is_repo_in_db(2))
@@ -370,17 +370,17 @@ class TestAddUser(unittest.TestCase):
         utils.update_user = self.holder_update_user
         utils.is_user_in_db = self.holder_is_user_in_db
 
-    def test_add_user_existing(self):
-        utils.is_user_in_db = lambda user_id: True
+    # def test_add_user_existing(self):
+    #     utils.is_user_in_db = lambda user_id: True
 
-        self.assertEqual(0, utils.add_user(2))
+    #     self.assertEqual(0, utils.add_user(2))
 
-    def test_add_user_new(self):
-        utils.is_user_in_db = lambda user_id: False
+    # def test_add_user_new(self):
+    #     utils.is_user_in_db = lambda user_id: False
 
-        # import pdb; pdb.set_trace()
-        output = utils.add_user(9)
-        self.assertEqual(1, output)
+    #     # import pdb; pdb.set_trace()
+    #     output = utils.add_user(9)
+    #     self.assertEqual(1, output)
 
     def test_is_user_in_db_true(self):
         self.assertEqual(True, utils.is_user_in_db(4))
