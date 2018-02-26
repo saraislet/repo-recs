@@ -2,8 +2,8 @@
   "language": "python",
   "python": "3.6",
   "script": [
-    "pytest"
+    "coverage run --source=. -m pytest --doctest-modules"
   ],
   "before_script": "psql -c 'create database git_test;' -U postgres",
-  "after_success": "coveralls",
+  "after_success": "coveralls"
 }
