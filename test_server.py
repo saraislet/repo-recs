@@ -32,11 +32,11 @@ from test_model import test_db_uri, example_data
 class ServerTests(unittest.TestCase):
     """Test server functions that do not use the DB."""
 
-    def create_app(self):
-        """Create app for flask testing."""
-        app = Flask(__name__)
-        app.config['TESTING'] = True
-        return app
+    # def create_app(self):
+    #     """Create app for flask testing."""
+    #     app = Flask(__name__)
+    #     app.config['TESTING'] = True
+    #     return app
 
     def setUp(self):
         """Connect to database, create tables, generate test data."""
@@ -120,11 +120,11 @@ class ServerTests(unittest.TestCase):
 class LoginLogoutTests(unittest.TestCase):
     """Test server session when logged in and logging out."""
 
-    def create_app(self):
-        """Create app for flask testing."""
-        app = Flask(__name__)
-        app.config['TESTING'] = True
-        return app
+    # def create_app(self):
+    #     """Create app for flask testing."""
+    #     app = Flask(__name__)
+    #     app.config['TESTING'] = True
+    #     return app
 
     def setUp(self):
         """Connect to database, create tables, generate test data."""
@@ -200,11 +200,11 @@ class LoginLogoutTests(unittest.TestCase):
 class TestRoutesWithDB(unittest.TestCase):
     """Test server session when logged in and logging out."""
 
-    def create_app(self):
-        """Create app for flask testing."""
-        app = Flask(__name__)
-        app.config['TESTING'] = True
-        return app
+    # def create_app(self):
+    #     """Create app for flask testing."""
+    #     app = Flask(__name__)
+    #     app.config['TESTING'] = True
+    #     return app
 
     def setUp(self):
         """Connect to database, create tables, generate test data."""
