@@ -10,6 +10,7 @@ from model import (Repo, User, Follower, Account,
 
 def example_data():
     """Create example data for the test database."""
+    Dislike.query.delete()
     Stargazer.query.delete()
     Watcher.query.delete()
     Follower.query.delete()

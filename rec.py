@@ -34,7 +34,8 @@ def build_repo_predictions_matrix():
     user_ratings_mean = np.mean(R, axis = 1)
     R_demeaned = R - user_ratings_mean.reshape(-1, 1)
 
-    U, sigma, Vt = svds(R_demeaned, k = 50)
+    k = min(50, min(R_demeaned.shape)-1)
+    U, sigma, Vt = svds(R_demeaned, k = k)
     sigma = np.diag(sigma)
     predictions_matrix = (np.dot(np.dot(U, sigma), Vt)
                           + user_ratings_mean.reshape(-1, 1))
@@ -65,7 +66,7 @@ def compare_recs(user_id1, user_id2, num_recs=20, preds=[]):
 
     overlap = preds.intersection(preds2)
 
-    return len(overlap)/num_recs
+    return len(overlap)/min(num_recs, len(preds))
 
 
 def get_comparisons(user_id, num_users=20, num_recs=20):
