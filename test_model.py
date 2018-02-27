@@ -46,16 +46,25 @@ def example_data():
                    last_crawled_depth=2,
                    url="https://github.com/jhacks/python-repo",
                    stargazers_count=2)
-    db.session.add(py_repo)
+    js_repo = Repo(repo_id="2",
+                   name="js-repo",
+                   description="A Javascript repository",
+                   owner_id="1",
+                   last_crawled=datetime.datetime.now(),
+                   last_crawled_depth=1,
+                   url="https://github.com/jhacks/js-repo",
+                   stargazers_count=1)
+    db.session.add_all([py_repo, js_repo])
     db.session.commit()
 
     astar = Stargazer(repo_id="1", user_id="2")
     kstar = Stargazer(repo_id="1", user_id="3")
+    kstar_js = Stargazer(repo_id="2", user_id="3")
     kwatch = Watcher(repo_id="1", user_id="3")
     a_j_follow = Follower(user_id="1", follower_id="2")
     k_j_follow = Follower(user_id="1", follower_id="3")
     j_a_follow = Follower(user_id="2", follower_id="1")
-    db.session.add_all([astar, kstar, kwatch, a_j_follow, k_j_follow, j_a_follow])
+    db.session.add_all([astar, kstar, kstar_js, kwatch, a_j_follow, k_j_follow, j_a_follow])
     db.session.commit()
 
     jcon = Contributor(repo_id="1", user_id="1")

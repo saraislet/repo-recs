@@ -119,7 +119,7 @@ def is_last_crawled_in_repo_good(repo_id, crawl_depth, crawled_since=None):
         return False
 
     if (crawled_since
-        and crawled_since.timestamp() > this_user.last_crawled.timestamp()):
+        and crawled_since.timestamp() > this_repo.last_crawled.timestamp()):
         return False
 
 
@@ -161,6 +161,12 @@ def remove_stargazer(repo_id, user_id):
     """Remove stargazer from database."""
     this_star = Stargazer.query.filter_by(repo_id=repo_id,
                                           user_id=user_id).first()
+    
+    if not this_star:
+        print("No star in database to remove: repo {}, user {}."
+              .format(repo_id, user_id))
+        return
+
     db.session.delete(this_star)
     db.session.commit()
     print("Removed star from database: repo {}, user {}."

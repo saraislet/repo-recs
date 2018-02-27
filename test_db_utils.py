@@ -32,7 +32,8 @@ class TestDB(unittest.TestCase):
     def test_get_ratings(self):
 
         ratings = [[2, 1, 1],
-                   [3, 1, 1]]
+                   [3, 1, 1],
+                   [3, 2, 1]]
         self.assertEqual(ratings, db_utils.get_ratings_from_db())
 
     def test_get_json_from_repos(self):
@@ -70,24 +71,56 @@ class TestDB(unittest.TestCase):
         self.assertEqual([], filtered_ids)
 
     def test_is_last_crawled_in_user_good_true(self):
-        self.assertTrue(db_utils.is_last_crawled_in_user_good(1, datetime.datetime.now(), 2))
+        self.assertTrue(db_utils.is_last_crawled_in_user_good(1, 2))
 
     def test_is_last_crawled_in_user_good_false_depth(self):
-        self.assertFalse(db_utils.is_last_crawled_in_user_good(1, datetime.datetime.now(), 3))
+        self.assertFalse(db_utils.is_last_crawled_in_user_good(1, 3))
 
     def test_is_last_crawled_in_user_good_false_time(self):
         old_date = datetime.datetime.now() + datetime.timedelta(weeks = 2)
-        self.assertFalse(db_utils.is_last_crawled_in_user_good(1, old_date, 2))
+        self.assertFalse(db_utils.is_last_crawled_in_user_good(1, 2, old_date))
 
     def test_is_last_crawled_in_repo_good_true(self):
-        self.assertTrue(db_utils.is_last_crawled_in_repo_good(1, datetime.datetime.now(), 2))
+        self.assertTrue(db_utils.is_last_crawled_in_repo_good(1, 2))
 
     def test_is_last_crawled_in_repo_good_false_depth(self):
-        self.assertFalse(db_utils.is_last_crawled_in_repo_good(1, datetime.datetime.now(), 3))
+        self.assertFalse(db_utils.is_last_crawled_in_repo_good(1, 3))
 
     def test_is_last_crawled_in_repo_good_false_time(self):
         old_date = datetime.datetime.now() + datetime.timedelta(weeks = 2)
-        self.assertFalse(db_utils.is_last_crawled_in_repo_good(1, old_date, 2))
+        self.assertFalse(db_utils.is_last_crawled_in_repo_good(1, 2, old_date))
+
+
+class TestDB_AddRemove(unittest.TestCase):
+    """Test utils functions that use the DB."""
+
+    def setUp(self):
+        """Connect to database, create tables, generate test data."""
+
+        self.client = app.test_client()
+        app.config["TESTING"] = True
+        connect_to_db(app, test_db_uri)
+        db.drop_all()
+        db.create_all()
+        example_data()
+        update_pkey_seqs.update_pkey_seqs()
+
+    def tearDown(self):
+        """Close session, drop db."""
+        db.session.close()
+        db.drop_all()
+
+    def test_add_stargazer(self):
+
+        self.assertEqual(0, Stargazer.query.filter_by(repo_id=2, user_id=2).count())
+        db_utils.add_stargazer(2, 2)
+        self.assertEqual(1, Stargazer.query.filter_by(repo_id=2, user_id=2).count())
+
+    def test_remove_stargazer(self):
+
+        self.assertEqual(1, Stargazer.query.filter_by(repo_id=2, user_id=3).count())
+        db_utils.remove_stargazer(2, 3)
+        self.assertEqual(0, Stargazer.query.filter_by(repo_id=2, user_id=3).count())
 
 
 if __name__ == "__main__":
