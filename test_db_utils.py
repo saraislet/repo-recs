@@ -78,9 +78,12 @@ class TestDB(unittest.TestCase):
     def test_is_last_crawled_in_user_good_false_depth(self):
         self.assertFalse(db_utils.is_last_crawled_in_user_good(1, 3))
 
-    def test_is_last_crawled_in_user_good_false_time(self):
+    def test_is_last_crawled_in_user_good_false_crawled_since(self):
         old_date = datetime.datetime.now() + datetime.timedelta(weeks = 2)
         self.assertFalse(db_utils.is_last_crawled_in_user_good(1, 2, old_date))
+
+    def test_is_last_crawled_in_user_good_false_old_crawl(self):
+        self.assertFalse(db_utils.is_last_crawled_in_user_good(2, 2))
 
     def test_is_last_crawled_in_repo_good_true(self):
         self.assertTrue(db_utils.is_last_crawled_in_repo_good(1, 2))
@@ -88,9 +91,12 @@ class TestDB(unittest.TestCase):
     def test_is_last_crawled_in_repo_good_false_depth(self):
         self.assertFalse(db_utils.is_last_crawled_in_repo_good(1, 3))
 
-    def test_is_last_crawled_in_repo_good_false_time(self):
+    def test_is_last_crawled_in_repo_good_false_crawled_since(self):
         old_date = datetime.datetime.now() + datetime.timedelta(weeks = 2)
         self.assertFalse(db_utils.is_last_crawled_in_repo_good(1, 2, old_date))
+
+    def test_is_last_crawled_in_repo_good_false_old_crawl(self):
+        self.assertFalse(db_utils.is_last_crawled_in_repo_good(2, 2))
 
 
 class TestDB_AddRemove(unittest.TestCase):
@@ -130,6 +136,11 @@ class TestDB_AddRemove(unittest.TestCase):
         db_utils.remove_stargazer(2, 3)
         self.assertEqual(0, Stargazer.query.filter_by(repo_id=2, user_id=3).count())
 
+    def test_remove_stargazer_unknown(self):
+
+        db_utils.remove_stargazer(5, 3)
+        self.assertEqual(0, Stargazer.query.filter_by(repo_id=5, user_id=3).count())
+
     def test_add_dislike(self):
 
         self.assertEqual(0, Dislike.query.filter_by(repo_id=2, user_id=2).count())
@@ -147,6 +158,11 @@ class TestDB_AddRemove(unittest.TestCase):
         self.assertEqual(1, Dislike.query.filter_by(repo_id=2, user_id=3).count())
         db_utils.remove_dislike(2, 3)
         self.assertEqual(0, Dislike.query.filter_by(repo_id=2, user_id=3).count())
+
+    def test_remove_dislike_unknown(self):
+
+        db_utils.remove_dislike(5, 3)
+        self.assertEqual(0, Dislike.query.filter_by(repo_id=5, user_id=3).count())
 
 
 if __name__ == "__main__":
