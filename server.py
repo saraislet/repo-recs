@@ -1,8 +1,8 @@
-import datetime, json, requests, urllib
+import datetime, json, os, requests, urllib
 from flask import (Flask, flash, redirect, render_template,
                    request, session)
 from jinja2 import StrictUndefined
-import config, rec, utils, api_utils, db_utils, secrets
+import config, rec, utils, api_utils, db_utils, secrets2
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
@@ -80,7 +80,7 @@ def login():
 
     session["state"] = "foo"
     #TODO: set this to random string when OAuth is working.
-    payload = {"client_id": secrets.CLIENT_ID,
+    payload = {"client_id": os.environ.get("CLIENT_ID"),
                "state": session["state"],
                "redirect_uri": config.AUTH_CALLBACK_URL,
                "scope": config.OAUTH_SCOPE}
@@ -106,8 +106,8 @@ def auth():
         return redirect("/")
 
     print("Preparing OAuth post request for access token.")
-    payload = {"client_id": secrets.CLIENT_ID,
-               "client_secret": secrets.CLIENT_SECRET,
+    payload = {"client_id": os.environ.get("CLIENT_ID"),
+               "client_secret": os.environ.get("CLIENT_SECRET"),
                "code": code,
                "state": session["state"],
                "redirect_uri": config.AUTH_CALLBACK_URL,

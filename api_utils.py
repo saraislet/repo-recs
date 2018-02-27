@@ -1,16 +1,16 @@
 import os
 import github
-import config, secrets
+import config, secrets2
 
 def get_auth_api(access_token):
     print(f"Access token: {access_token}")
     return github.Github(access_token,
                          client_id=config.CLIENT_ID,
-                         client_secret=secrets.CLIENT_SECRET)
+                         client_secret=os.environ.get("CLIENT_SECRET"))
 
 
 def get_api():
-    access_token = secrets.PERSONAL_ACCESS_TOKEN
+    access_token = os.environ.get("PERSONAL_ACCESS_TOKEN")
     return get_auth_api(access_token)
 
 
