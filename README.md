@@ -1,5 +1,7 @@
 # Repository Recommendations
 
+[![Coverage Status](https://coveralls.io/repos/github/Saraislet/repo-recs/badge.svg?branch=master)](https://coveralls.io/github/Saraislet/repo-recs?branch=master)
+
 See [Product Requirements Document](https://docs.google.com/document/d/1Y0B8MoOj3lp8YS9QbsYC92vsY3Bjg_gF1gXMOUPOnRw) on Google Docs.
 
 The Repository Recommendation engine uses a Github-authenticated user's stars as features to recommend other repositories or users to follow, using low-rank matrix approximation (may later add kNN or collaborative filtering with additional features).
@@ -33,6 +35,7 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
     ├── requirements.txt         # Defines requirements
     ├── rec.py                   # Recommender system functions
     ├── server.py                # Flask routes
+    ├── test_db_utils.py         # Tests for db_utils.py
     ├── test_model.py            # Tests for model.py
     ├── test_server.py           # Tests for server.py and front-end
     ├── test_utils.py            # Tests for utils.py
