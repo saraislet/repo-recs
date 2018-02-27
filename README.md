@@ -61,9 +61,10 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
   * Add AJAX to request additional suggestions
   * Build modals to display information about users and languages?
   * Improve recommendation algorithm
+  * Add dislike feature and test ranking with dislikes
 * Write API requests instead of using PyGithub?
 * Build queue table and handlers instead of crawling recursively
-* Build async calls to update and crawl users
+* Expand async calls to dynamically increase crawl breadth on login
 
 ## Resources used:.
 * [SciPy Sparse Single Value Decomposition](http://scipy.github.io/devdocs/generated/scipy.sparse.linalg.svds.html#scipy.sparse.linalg.svds)
