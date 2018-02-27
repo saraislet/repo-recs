@@ -175,13 +175,11 @@ def remove_stargazer(repo_id, user_id):
 
 def add_lang(lang):
     """Add lang string to db."""
-    # lang = lang.lower()
     this_lang = Language.query.filter(Language.language_name.ilike(lang)).first()
 
     if this_lang:
         return
 
-    # print("Adding lang {}.".format(lang))
     this_lang = Language(language_name=lang)
     db.session.add(this_lang)
     db.session.commit()
@@ -189,8 +187,6 @@ def add_lang(lang):
 
 def add_repo_lang(repo_id, lang, num):
     """Add repo-lang association and number of bytes to db."""
-    # print("Adding repo-lang {}.".format(lang))
-    lang = lang.lower()
     this_lang = Language.query.filter(Language.language_name.ilike(lang)).first()
     this_repo_lang = RepoLanguage.query.filter_by(language_id=this_lang.language_id,
                                                   repo_id=repo_id).first()
