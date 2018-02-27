@@ -1,3 +1,4 @@
+import datetime
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
@@ -12,8 +13,6 @@ def example_data():
     Watcher.query.delete()
     Follower.query.delete()
     Contributor.query.delete()
-    # RepoTopic.query.delete()
-    # Topic.query.delete()
     RepoLanguage.query.delete()
     Language.query.delete()
     Repo.query.delete()
@@ -22,7 +21,9 @@ def example_data():
 
     jane = User(user_id="1",
                       login="jhacks",
-                      name="Jane")
+                      name="Jane",
+                      last_crawled=datetime.datetime.now(),
+                      last_crawled_depth=2)
     alex = User(user_id="2",
                       login="ajax",
                       name="Alex")
@@ -40,7 +41,11 @@ def example_data():
     py_repo = Repo(repo_id="1",
                    name="python-repo",
                    description="A Python repository",
-                   owner_id="1")
+                   owner_id="1",
+                   last_crawled=datetime.datetime.now(),
+                   last_crawled_depth=2,
+                   url="https://github.com/jhacks/python-repo",
+                   stargazers_count=2)
     db.session.add(py_repo)
     db.session.commit()
 
