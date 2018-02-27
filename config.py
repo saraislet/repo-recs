@@ -10,7 +10,8 @@ REFRESH_CRAWL_DAYS = 30
 DEFAULT_COUNT = 12
 
 # URLs, hostnames, and endpoints
-DB_URI = "postgres:///git_data"
+DB_URI = "postgresql:///git_data"
+TEST_DB_URI = "postgresql:///git_test"
 AUTH_CALLBACK_URL = "http://127.0.0.1:5000/auth"
 OAUTH_SCOPE = "user user:follow read:user public_repo"
 ENDPOINT = "https://api.github.com"
