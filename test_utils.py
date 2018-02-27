@@ -1,12 +1,12 @@
 import unittest, datetime
 from flask import Flask
 import github
-import utils, api_utils, db_utils, update_pkey_seqs
+import config, utils, api_utils, db_utils, update_pkey_seqs
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db)
-from test_model import test_db_uri, example_data
+from test_model import example_data
 
 app = Flask(__name__)
 
@@ -18,7 +18,7 @@ class TestDB_add_update(unittest.TestCase):
 
         self.client = app.test_client()
         app.config["TESTING"] = True
-        connect_to_db(app, test_db_uri)
+        connect_to_db(app, config.TEST_DB_URI)
         db.drop_all()
         db.create_all()
         example_data()
@@ -100,7 +100,7 @@ class TestRepoTypes(unittest.TestCase):
 
         self.client = app.test_client()
         app.config["TESTING"] = True
-        connect_to_db(app, test_db_uri)
+        connect_to_db(app, config.TEST_DB_URI)
         db.drop_all()
         db.create_all()
         # example_data()
@@ -159,7 +159,7 @@ class TestUserTypes(unittest.TestCase):
 
         self.client = app.test_client()
         app.config["TESTING"] = True
-        connect_to_db(app, test_db_uri)
+        connect_to_db(app, config.TEST_DB_URI)
         db.drop_all()
         db.create_all()
         # example_data()
@@ -222,7 +222,7 @@ class TestAddRepo(unittest.TestCase):
 
         self.client = app.test_client()
         app.config["TESTING"] = True
-        connect_to_db(app, test_db_uri)
+        connect_to_db(app, config.TEST_DB_URI)
         db.drop_all()
         db.create_all()
         # example_data()
@@ -309,7 +309,7 @@ class TestAddUser(unittest.TestCase):
 
         self.client = app.test_client()
         app.config["TESTING"] = True
-        connect_to_db(app, test_db_uri)
+        connect_to_db(app, config.TEST_DB_URI)
         db.drop_all()
         db.create_all()
         # example_data()
