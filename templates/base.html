@@ -1,57 +1,56 @@
 <html>
-<head>
-    <title>Repo Recommender</title>
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
-    <link rel=stylesheet type=text/css href="/static/style.css">
-</head>
-<body>
-  <nav class="w3-bar w3-light-grey w3-card">
-    <span class="w3-bar-item w3-mobile w3-blue-grey nav-brand">Repo Recommender</span>
-    <a href="/" class="w3-bar-item w3-button w3-mobile">Home</a>
-    <a href="/about" class="w3-bar-item hover-subtle w3-button w3-mobile">About</a>
-    {% if "user_id" in session %}
-      <a href="/recs" class="w3-bar-item hover-subtle w3-button w3-mobile">Recommendations</a>
-      <a href="/logout" class="w3-bar-item w3-right hover-subtle w3-button w3-pale-red w3-mobile">
-        Logout
-      </a>
-      <a href="/me" class="w3-bar-item w3-right hover-subtle w3-button w3-mobile">
-        Profile
-      </a>
-    {% endif %}
-    {% if "user_id" not in session %}
-      <a href="/login" class="w3-bar-item w3-right hover-subtle w3-button w3-pale-red w3-mobile">
-        Login
-      </a>
-    {% endif %}
-  </nav>
-  
-  <section id="body">
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="flash w3-panel w3-pale-yellow w3-display-container w3-round-large">
-           <span onclick="this.parentElement.style.display='none'"
-                 class="w3-button w3-display-topright w3-round-large">&times;</span> 
-          <ul>
-          {% for message in messages %}
-            <li>{{ message }}</li>
-          {% endfor %}
-          </ul>
-        </div>
+  <head>
+      <title>Repo Recommender</title>
+      <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
+      <link rel=stylesheet type=text/css href="/static/style.css">
+  </head>
+  <body>
+    <nav class="w3-bar w3-light-grey w3-card">
+      <span class="w3-bar-item w3-mobile w3-blue-grey nav-brand">Repo Recommender</span>
+      <a href="/" class="w3-bar-item w3-button w3-mobile">Home</a>
+      <a href="/about" class="w3-bar-item hover-subtle w3-button w3-mobile">About</a>
+      {% if "user_id" in session %}
+        <a href="/recs" class="w3-bar-item hover-subtle w3-button w3-mobile">Recommendations</a>
+        <a href="/logout" class="w3-bar-item w3-right hover-subtle w3-button w3-pale-red w3-mobile">
+          Logout
+        </a>
+        <a href="/me" class="w3-bar-item w3-right hover-subtle w3-button w3-mobile">
+          Profile
+        </a>
       {% endif %}
-    {% endwith %}
-
-    <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
-    <script src="http://unpkg.com/babel-standalone"></script>
-  <script
-        src="http://code.jquery.com/jquery-3.3.1.min.js"
-        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-        crossorigin="anonymous"></script>
+      {% if "user_id" not in session %}
+        <a href="/login" class="w3-bar-item w3-right hover-subtle w3-button w3-pale-red w3-mobile">
+          Login
+        </a>
+      {% endif %}
+    </nav>
     
-    <div class="w3-container">
-      {% block content %}{% endblock %}
-    </div>
-  </section>
+    <section id="body">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="flash w3-panel w3-pale-yellow w3-display-container w3-round-large">
+            <span onclick="this.parentElement.style.display='none'"
+                  class="w3-button w3-display-topright w3-round-large">&times;</span> 
+            <ul>
+              {% for message in messages %}
+                <li>{{ message }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      {% endwith %}
 
-</body>
+      <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+      <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+      <script src="http://unpkg.com/babel-standalone"></script>
+      <script src="http://code.jquery.com/jquery-3.3.1.min.js"
+              integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+              crossorigin="anonymous"></script>
+      
+      <div class="w3-container">
+        {% block content %}{% endblock %}
+      </div>
+    </section>
+
+  </body>
 </html>
