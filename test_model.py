@@ -27,7 +27,10 @@ def example_data():
                       last_crawled_depth=2)
     alex = User(user_id="2",
                       login="ajax",
-                      name="Alex")
+                      name="Alex",
+                      last_crawled=(datetime.datetime.now()
+                                    - datetime.timedelta(weeks = 6)),
+                      last_crawled_depth=2)
     kelly = User(user_id="3",
                       login="kells",
                       name="Kelly")
@@ -51,7 +54,8 @@ def example_data():
                    name="js-repo",
                    description="A Javascript repository",
                    owner_id="1",
-                   last_crawled=datetime.datetime.now(),
+                   last_crawled=(datetime.datetime.now()
+                                 - datetime.timedelta(weeks = 6)),
                    last_crawled_depth=1,
                    url="https://github.com/jhacks/js-repo",
                    stargazers_count=1)
@@ -97,8 +101,6 @@ def example_data():
     db.session.add_all([py_lang_rep1, c_lang_rep1])
     db.session.commit()
 
-    # print("Created test data.")
-
 
 if __name__ == "__main__":  # pragma: no cover
     # As a convenience, if we run this module interactively, it will leave
@@ -111,3 +113,6 @@ if __name__ == "__main__":  # pragma: no cover
 
     connect_to_db(app, uri=config.TEST_DB_URI)
     print("Connected to DB {}.".format(config.TEST_DB_URI))
+
+    example_data()
+    print("Created test data.")
