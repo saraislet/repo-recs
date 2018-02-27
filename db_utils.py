@@ -1,4 +1,4 @@
-import json
+import datetime, json
 from model import (Repo, User, Follower,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
@@ -72,7 +72,7 @@ def set_last_crawled_in_user(user_id, last_crawled_time, last_crawled_depth):
     db.session.commit()
 
 
-def is_last_crawled_in_user_good(user_id, crawl_time, crawl_depth):
+def is_last_crawled_in_user_good(user_id, crawl_depth, crawled_since=None):
     """Return boolean identifying if user must be crawled further now."""
     # If a crawl soon after has a lower depth, we don't need to crawl,
     # but a deeper crawl will need to crawl from here further.
@@ -83,7 +83,11 @@ def is_last_crawled_in_user_good(user_id, crawl_time, crawl_depth):
         or this_user.last_crawled_depth < crawl_depth):
         return False
 
-    delta = crawl_time.timestamp() - this_user.last_crawled.timestamp()
+    if (crawled_since
+        and crawled_since.timestamp() > this_user.last_crawled.timestamp()):
+        return False
+
+    delta = datetime.datetime.now().timestamp() - this_user.last_crawled.timestamp()
     if delta/60/60/24 > config.REFRESH_UPDATE_USER_DAYS:
         return False
 
@@ -103,7 +107,7 @@ def set_last_crawled_in_repo(repo_id, last_crawled_time, last_crawled_depth):
     db.session.commit()
 
 
-def is_last_crawled_in_repo_good(repo_id, crawl_time, crawl_depth):
+def is_last_crawled_in_repo_good(repo_id, crawl_depth, crawled_since=None):
     """Return boolean identifying if repo must be crawled further now."""
     # If a crawl soon after has a lower depth, we don't need to crawl,
     # but a deeper crawl will need to crawl from here further.
@@ -114,7 +118,12 @@ def is_last_crawled_in_repo_good(repo_id, crawl_time, crawl_depth):
         this_repo.last_crawled_depth < crawl_depth):
         return False
 
-    delta = crawl_time.timestamp() - this_repo.last_crawled.timestamp()
+    if (crawled_since
+        and crawled_since.timestamp() > this_user.last_crawled.timestamp()):
+        return False
+
+
+    delta = datetime.datetime.now().timestamp() - this_repo.last_crawled.timestamp()
     if delta/60/60/24 > config.REFRESH_UPDATE_REPO_DAYS:
         return False
 
@@ -184,6 +193,7 @@ def add_repo_lang(repo_id, lang, num):
         this_repo_lang.language_bytes = num
         db.session.add(this_repo_lang)
         db.session.commit()
+        print(f"RepoLanguage updated: {this_repo_lang}")
         return
 
     this_repo_lang = RepoLanguage(repo_id=repo_id,
@@ -200,4 +210,3 @@ def add_languages(repo):
     for lang in langs.keys():
         add_lang(lang)
         add_repo_lang(repo.id, lang, langs[lang])
-

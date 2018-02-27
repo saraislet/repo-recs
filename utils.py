@@ -1,4 +1,4 @@
-import datetime, os
+import datetime
 import github
 from github import GithubException
 from progress.bar import ShadyBar
@@ -32,7 +32,7 @@ def get_repo_object_from_input(repo_info):
     return api_utils.get_repo_from_api(repo_id)
 
 
-def add_repo(repo_info, num_layers_to_crawl=0):
+def add_repo(repo_info, num_layers_to_crawl=0, force_refresh=False):
     """Query API, and update repo details in db."""
 
     # If the argument is not a PyGithub repo object, get the PyGithub repo object:
@@ -45,7 +45,7 @@ def add_repo(repo_info, num_layers_to_crawl=0):
         add_user(owner, num_layers_to_crawl)
 
         if db_utils.is_repo_in_db(repo.id):
-            update_repo(repo, num_layers_to_crawl)
+            update_repo(repo, num_layers_to_crawl, force_refresh)
             return 0
         
         this_repo = Repo(repo_id=repo.id,
@@ -62,7 +62,7 @@ def add_repo(repo_info, num_layers_to_crawl=0):
 
         #TODO: A queue might be more robust than a recursive process.
         if num_layers_to_crawl:
-            crawl_from_repo_to_users(repo, num_layers_to_crawl)
+            crawl_from_repo_to_users(repo, num_layers_to_crawl, force_refresh)
 
         return 1
 
@@ -96,7 +96,6 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0, force_refresh=Fal
     # Verify repo is in db, and get repo object first.
     if (not force_refresh
         and db_utils.is_last_crawled_in_repo_good(repo.id,
-                                                  start_time,
                                                   1+num_layers_to_crawl)):
         return
 
@@ -104,7 +103,7 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0, force_refresh=Fal
           .format(1+num_layers_to_crawl, repo.id, repo.name))
 
     # Then crawl the graph out to connected users and add to db.
-    num_users += add_stars(repo, num_layers_to_crawl)
+    num_users += add_stars(repo, num_layers_to_crawl, force_refresh=True)
     # We may not need more details about a repo to make good suggestions, 
     # and most watchers are duplicates of stars.
     # num_users += add_watchers(repo, num_layers_to_crawl)
@@ -121,26 +120,36 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0, force_refresh=Fal
                                       1+num_layers_to_crawl)
 
 
-def update_repo(repo, num_layers_to_crawl=0):
+def update_repo(repo, num_layers_to_crawl=0, force_refresh=False):
     """Update repo if it hasn't been updated in more than 7 days."""
     this_repo = Repo.query.get(repo.id)
 
-    delta = (datetime.datetime.now().timestamp()
-             - this_repo.updated_at.timestamp())
-    if delta/60/60/24/7 < config.REFRESH_UPDATE_REPO_DAYS:
+    if not this_repo:
+        print("Repo not found!")
+        add_repo(repo)
         return
 
-    this_repo.name = repo.name
-    this_repo.description = repo.description
-    this_repo.updated_at = datetime.datetime.utcnow()
-    this_repo.stargazers_count = repo.stargazers_count
+    delta = (datetime.datetime.now().timestamp()
+             - this_repo.last_updated.timestamp())
+    if (force_refresh
+        or delta/60/60/24 > config.REFRESH_UPDATE_REPO_DAYS):
 
-    db.session.add(this_repo)
-    db.session.commit()
+        this_repo.name = repo.name
+        this_repo.description = repo.description
+        this_repo.updated_at = repo.updated_at
+        this_repo.last_updated = datetime.datetime.now()
+        this_repo.stargazers_count = repo.stargazers_count
+
+        db_utils.add_languages(repo)
+
+        db.session.add(this_repo)
+        db.session.commit()
 
     #TODO: A queue might be more robust than a recursive process.
     if num_layers_to_crawl:
-        crawl_from_repo_to_users(repo, num_layers_to_crawl)
+        crawl_from_repo_to_users(repo, num_layers_to_crawl, force_refresh)
+
+    return
 
 
 def get_user_object_from_input(user_info):
@@ -229,7 +238,6 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0, force_refresh=False):
     # Verify repo is in db, and get repo object first.
     if (not force_refresh
         and db_utils.is_last_crawled_in_user_good(user.id,
-                                                  start_time,
                                                   1+num_layers_to_crawl)):
         return
 
@@ -237,7 +245,7 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0, force_refresh=False):
           .format(1+num_layers_to_crawl, user.id, user.login))
 
     # Then crawl the graph out to starred repos and add to db.
-    num_repos = add_starred_repos(user, num_layers_to_crawl)
+    num_repos = add_starred_repos(user, num_layers_to_crawl, force_refresh)
     #TODO: crawl follows and followers
     # num_users = add_followers(user, num_layers_to_crawl)
     # num_users = add_follows(user, num_layers_to_crawl)
@@ -255,13 +263,15 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0, force_refresh=False):
                                       1+num_layers_to_crawl)
 
 
-def update_user(user, num_layers_to_crawl=0):
+def update_user(user, num_layers_to_crawl=0, force_refresh=False):
     """Update user if it hasn't been updated in more than 7 days."""
     this_user = User.query.get(user.id)
 
     delta = (datetime.datetime.now().timestamp()
              - this_user.updated_at.timestamp())
-    if delta/60/60/24/7 > config.REFRESH_UPDATE_USER_DAYS:
+    if (force_refresh
+        or delta/60/60/24 > config.REFRESH_UPDATE_USER_DAYS):
+        
         this_user.name = user.name
         this_user.login = user.login
         this_user.updated_at = datetime.datetime.utcnow()
@@ -276,7 +286,33 @@ def update_user(user, num_layers_to_crawl=0):
     return
 
 
-def add_stars(repo, num_layers_to_crawl=0):
+def update_user_repos(user, num_layers_to_crawl=0, force_refresh=False):
+    """Update user's repositories if they haven't been updated in more than 7 days."""
+
+    # If argument is not a PyGithub user object, get PyGithub user object.
+    user = get_user_object_from_input(user)
+
+    this_user = User.query.get(user.id)
+
+    delta = (datetime.datetime.now().timestamp()
+             - this_user.updated_at.timestamp())
+    if (force_refresh
+        or delta/60/60/24 > config.REFRESH_UPDATE_USER_REPOS_DAYS):
+        
+        repos = api_utils.get_user_repos_from_api(user)
+
+        for repo in repos:
+            print(f"Updating repo: {repo.name}")
+            update_repo(repo, force_refresh)
+
+    #TODO: A queue might be more robust than a recursive process.
+    if num_layers_to_crawl:
+        crawl_from_user_to_repos(user, num_layers_to_crawl)
+
+    return
+
+
+def add_stars(repo, num_layers_to_crawl=0, force_refresh=False):
     """Add all stargazers of repo to db."""
     stars = api_utils.get_stargazers_from_api(repo)
     num_stars = repo.stargazers_count
@@ -391,7 +427,7 @@ def add_contributors(repo, num_layers_to_crawl=0):
     return num_users
 
 
-def add_starred_repos(user, num_layers_to_crawl=0):
+def add_starred_repos(user, num_layers_to_crawl=0, force_refresh=False):
     """Add all repos starred by user to db."""
     stars = api_utils.get_starred_repos_from_api(user)
     num_repos = 0
@@ -407,7 +443,7 @@ def add_starred_repos(user, num_layers_to_crawl=0):
             or count > config.MAX_CRAWL_COUNT_TOTAL):
             break
 
-        num_repos += add_repo(star, num_layers_to_crawl)
+        num_repos += add_repo(star, num_layers_to_crawl, force_refresh)
 
         # If star is in db, skip and continue.
         # TODO: Consider checking last_crawled of star.repo/star.user.
@@ -417,7 +453,9 @@ def add_starred_repos(user, num_layers_to_crawl=0):
         if this_star:
             #TODO: A queue might be more robust than a recursive process.
             if num_layers_to_crawl:
-                crawl_from_repo_to_users(this_star.repo_id, num_layers_to_crawl)
+                crawl_from_repo_to_users(this_star.repo_id,
+                                         num_layers_to_crawl,
+                                         force_refresh)
             continue
 
         this_star = Stargazer(repo_id=star.id, user_id=user.id)

@@ -16,8 +16,9 @@ class Repo(db.Model):
     name = db.Column(db.Text, nullable=False)
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime(), nullable=True)
-    updated_at = db.Column(db.DateTime(), nullable=True,
-                           default=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime(), nullable=True)
+    last_updated = db.Column(db.DateTime(), nullable=True,
+                             default=datetime.datetime.utcnow)
     last_crawled = db.Column(db.DateTime(), nullable=True)
     last_crawled_depth = db.Column(db.Integer, nullable=True)
     url = db.Column(db.Text, nullable=True)
@@ -25,7 +26,7 @@ class Repo(db.Model):
 
     owner = db.relationship("User",
                             backref=db.backref("repos",
-                                               order_by="desc(Repo.repo_id)"))
+                                               order_by="desc(Repo.updated_at)"))
 
     stargazers = db.relationship("User",
                                  secondary='stargazers',
@@ -52,6 +53,7 @@ class Repo(db.Model):
                                                   order_by="desc(Repo.repo_id)"))
 
     repo_langs = db.relationship("RepoLanguage",
+                                 order_by="desc(RepoLanguage.language_bytes)",
                                  backref=db.backref("repos",
                                                     order_by="desc(Repo.repo_id)"))
 

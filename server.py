@@ -1,4 +1,4 @@
-import json, requests, urllib, os
+import datetime, json, requests, urllib
 from flask import (Flask, flash, redirect, render_template,
                    request, session)
 from jinja2 import StrictUndefined
@@ -47,7 +47,7 @@ def get_user():
 
 def get_user_profile(user_id="", login=""):
     user = None
-    
+
     if user_id:
         user = User.query.get(user_id)
     elif login:
@@ -80,7 +80,7 @@ def login():
 
     session["state"] = "foo"
     #TODO: set this to random string when OAuth is working.
-    payload = {"client_id": os.environ.get("client_id"),
+    payload = {"client_id": secrets.CLIENT_ID,
                "state": session["state"],
                "redirect_uri": config.AUTH_CALLBACK_URL,
                "scope": config.OAUTH_SCOPE}
@@ -106,8 +106,8 @@ def auth():
         return redirect("/")
 
     print("Preparing OAuth post request for access token.")
-    payload = {"client_id": os.environ.get("client_id"),
-               "client_secret": os.environ.get("client_secret"),
+    payload = {"client_id": secrets.CLIENT_ID,
+               "client_secret": secrets.CLIENT_SECRET,
                "code": code,
                "state": session["state"],
                "redirect_uri": config.AUTH_CALLBACK_URL,
@@ -133,7 +133,7 @@ def auth():
     return redirect("/")
 
 
-@app.route("/recs", methods=['GET'])
+@app.route("/recs", methods=["GET"])
 def get_repo_recs_react():
     if "user_id" not in session:
         return redirect("/")
@@ -171,7 +171,7 @@ def get_repo_recs_react():
                            page=page)
 
 
-@app.route("/get_repo_recs", methods=['GET'])
+@app.route("/get_repo_recs", methods=["GET"])
 def get_repo_recs_json():
     if "user_id" not in session:
         return redirect("/")
@@ -211,7 +211,7 @@ def get_repo_recs_json():
     return db_utils.get_json_from_repos(repos[0:limit])
 
 
-@app.route("/add_star", methods=['POST'])
+@app.route("/add_star", methods=["POST"])
 def add_star():
     if "user_id" not in session or "access_token" not in session:
         flash("Please log in with your GitHub account.")
@@ -246,7 +246,7 @@ def add_star():
                        "repo_id": repo.id})
 
 
-@app.route("/remove_star", methods=['POST'])
+@app.route("/remove_star", methods=["POST"])
 def remove_star():
     if "user_id" not in session or "access_token" not in session:
         flash("Please log in with your GitHub account.")
@@ -280,7 +280,7 @@ def remove_star():
                        "action": "remove_star",
                        "repo_id": repo.id})
 
-@app.route("/check_star", methods=['POST'])
+@app.route("/check_star", methods=["POST"])
 def check_star():
     if "user_id" not in session or "access_token" not in session:
         flash("Please log in with your GitHub account.")
@@ -302,6 +302,36 @@ def check_star():
     return json.dumps({"Status": 404,
                        "action": "check_star",
                        "repo_id": repo.id})
+
+
+@app.route("/update_user", methods=["POST"])
+def update_user():
+    user_id = session.get("user_id")
+
+    if user_id:
+      user_id = int(user_id)
+
+      crawled_since = (datetime.datetime.now()
+                       - datetime.timedelta(days = config.REFRESH_UPDATE_USER_REPOS_DAYS))
+      
+      if not db_utils.is_last_crawled_in_user_good(user_id, 1, crawled_since):
+          print(f"Updating user {user_id}.")
+          utils.update_user_repos(user_id, force_refresh=True)
+          utils.crawl_from_user_to_repos(user_id, force_refresh=True)
+          print(f"User {user_id} updated.")
+
+          return json.dumps({"Status": 200,
+                             "action": "update_user",
+                             "message": "User updated."})
+
+      print(f"User {user_id} is up-to-date.")
+      return json.dumps({"Status": 200,
+                         "action": "update_user",
+                         "message": "User up-to-date."})
+
+    return json.dumps({"Status": 400,
+                       "action": "update_user",
+                       "message": "No user_id."})
 
 
 if __name__ == "__main__":
