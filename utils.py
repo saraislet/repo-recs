@@ -1,4 +1,4 @@
-import datetime, json, os
+import datetime, os
 import github
 from github import GithubException
 from progress.bar import ShadyBar

@@ -1,9 +1,9 @@
-from flask import Flask
+import json
 from model import (Repo, User, Follower,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db)
-import utils, api_utils
+import api_utils, config
 
 
 def get_ratings_from_db():
@@ -84,7 +84,7 @@ def is_last_crawled_in_user_good(user_id, crawl_time, crawl_depth):
         return False
 
     delta = crawl_time.timestamp() - this_user.last_crawled.timestamp()
-    if delta/60/60/24/7 > config.REFRESH_UPDATE_USER_DAYS:
+    if delta/60/60/24 > config.REFRESH_UPDATE_USER_DAYS:
         return False
 
     return True
@@ -115,7 +115,7 @@ def is_last_crawled_in_repo_good(repo_id, crawl_time, crawl_depth):
         return False
 
     delta = crawl_time.timestamp() - this_repo.last_crawled.timestamp()
-    if delta/60/60/24/7 > config.REFRESH_UPDATE_REPO_DAYS:
+    if delta/60/60/24 > config.REFRESH_UPDATE_REPO_DAYS:
         return False
 
     return True

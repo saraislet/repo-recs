@@ -46,6 +46,8 @@ def get_user():
 
 
 def get_user_profile(user_id="", login=""):
+    user = None
+    
     if user_id:
         user = User.query.get(user_id)
     elif login:
@@ -131,7 +133,7 @@ def auth():
     return redirect("/")
 
 
-@app.route("/recs_react", methods=['GET'])
+@app.route("/recs", methods=['GET'])
 def get_repo_recs_react():
     if "user_id" not in session:
         return redirect("/")
@@ -213,7 +215,6 @@ def get_repo_recs_json():
 def add_star():
     if "user_id" not in session or "access_token" not in session:
         flash("Please log in with your GitHub account.")
-        print("Please log in with your GitHub account.")
         return redirect("/")
 
     data = request.get_json()
