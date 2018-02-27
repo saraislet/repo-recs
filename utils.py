@@ -76,7 +76,7 @@ def add_repo(repo_info, num_layers_to_crawl=0):
         # print("Error in add_repo({}): ".format(repo_info), e)
 
 
-def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
+def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0, force_refresh=False):
     """Add repo, and add all users connected to that repo.
 
     Adds stargazers, watchers, and contributors."""
@@ -94,8 +94,10 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0):
 
     # Check last crawled time and depth.
     # Verify repo is in db, and get repo object first.
-    if db_utils.is_last_crawled_in_repo_good(repo.id, start_time,
-                                             1+num_layers_to_crawl):
+    if (not force_refresh
+        and db_utils.is_last_crawled_in_repo_good(repo.id,
+                                                  start_time,
+                                                  1+num_layers_to_crawl)):
         return
 
     print("Crawling {} layers from repo {} ({})."
@@ -204,7 +206,7 @@ def add_user(user_info, num_layers_to_crawl=0):
     #     print("Error in add_user({}): ".format(user_info), e)        
 
 
-def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
+def crawl_from_user_to_repos(user, num_layers_to_crawl=0, force_refresh=False):
     """Add user, and add all repos connected to that user.
     Adds repos that are starred.
 
@@ -225,9 +227,10 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0):
 
     # Check last crawled time and depth.
     # Verify repo is in db, and get repo object first.
-    if db_utils.is_last_crawled_in_user_good(user.id,
-                                             start_time,
-                                             1+num_layers_to_crawl):
+    if (not force_refresh
+        and db_utils.is_last_crawled_in_user_good(user.id,
+                                                  start_time,
+                                                  1+num_layers_to_crawl)):
         return
 
     print("Crawling {} layers from user {} ({})."
