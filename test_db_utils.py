@@ -1,14 +1,16 @@
 import unittest
 import datetime, json
 from flask import Flask
-import db_utils, update_pkey_seqs
+import config, db_utils, update_pkey_seqs
 from model import (Repo, User, Follower, Account,
-                   Stargazer, Watcher, Contributor,
+                   Stargazer, Dislike,
+                   Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db)
-from test_model import test_db_uri, example_data
+from test_model import example_data
 
 app = Flask(__name__)
+
 
 class TestDB(unittest.TestCase):
     """Test utils functions that use the DB."""
@@ -18,7 +20,7 @@ class TestDB(unittest.TestCase):
 
         self.client = app.test_client()
         app.config["TESTING"] = True
-        connect_to_db(app, test_db_uri)
+        connect_to_db(app, config.TEST_DB_URI)
         db.drop_all()
         db.create_all()
         example_data()
@@ -99,7 +101,7 @@ class TestDB_AddRemove(unittest.TestCase):
 
         self.client = app.test_client()
         app.config["TESTING"] = True
-        connect_to_db(app, test_db_uri)
+        connect_to_db(app, config.TEST_DB_URI)
         db.drop_all()
         db.create_all()
         example_data()
@@ -116,11 +118,35 @@ class TestDB_AddRemove(unittest.TestCase):
         db_utils.add_stargazer(2, 2)
         self.assertEqual(1, Stargazer.query.filter_by(repo_id=2, user_id=2).count())
 
+    def test_add_stargazer_duplicate(self):
+
+        db_utils.add_stargazer(2, 2)
+        db_utils.add_stargazer(2, 2)
+        self.assertEqual(1, Stargazer.query.filter_by(repo_id=2, user_id=2).count())
+
     def test_remove_stargazer(self):
 
         self.assertEqual(1, Stargazer.query.filter_by(repo_id=2, user_id=3).count())
         db_utils.remove_stargazer(2, 3)
         self.assertEqual(0, Stargazer.query.filter_by(repo_id=2, user_id=3).count())
+
+    def test_add_dislike(self):
+
+        self.assertEqual(0, Dislike.query.filter_by(repo_id=2, user_id=2).count())
+        db_utils.add_dislike(2, 2)
+        self.assertEqual(1, Dislike.query.filter_by(repo_id=2, user_id=2).count())
+
+    def test_add_dislike_duplicate(self):
+
+        db_utils.add_dislike(2, 2)
+        db_utils.add_dislike(2, 2)
+        self.assertEqual(1, Dislike.query.filter_by(repo_id=2, user_id=2).count())
+
+    def test_remove_dislike(self):
+
+        self.assertEqual(1, Dislike.query.filter_by(repo_id=2, user_id=3).count())
+        db_utils.remove_dislike(2, 3)
+        self.assertEqual(0, Dislike.query.filter_by(repo_id=2, user_id=3).count())
 
 
 if __name__ == "__main__":

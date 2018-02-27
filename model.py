@@ -29,25 +29,31 @@ class Repo(db.Model):
                                                order_by="desc(Repo.updated_at)"))
 
     stargazers = db.relationship("User",
-                                 secondary='stargazers',
+                                 secondary="stargazers",
                                  order_by="User.user_id",
                                  backref=db.backref("stars",
                                                     order_by="desc(Repo.repo_id)"))
 
+    dislikes = db.relationship("User",
+                               secondary="dislikes",
+                               order_by="User.user_id",
+                               backref=db.backref("dislikes",
+                                                  order_by="desc(Repo.repo_id)"))
+
     watchers = db.relationship("User",
-                               secondary='watchers',
+                               secondary="watchers",
                                order_by="User.user_id",
                                backref=db.backref("watches",
                                                   order_by="desc(Repo.repo_id)"))
 
     contributors = db.relationship("User",
-                                   secondary='contributors',
+                                   secondary="contributors",
                                    order_by="User.user_id",
                                    backref=db.backref("contributions",
                                                       order_by="desc(Repo.repo_id)"))
 
     languages = db.relationship("Language",
-                               secondary='repo_languages',
+                               secondary="repo_languages",
                                order_by="Language.language_name",
                                backref=db.backref("repos",
                                                   order_by="desc(Repo.repo_id)"))
@@ -144,6 +150,10 @@ class Stargazer(db.Model):
     repo_id = db.Column(db.ForeignKey("repos.repo_id"), nullable=False)
     user_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
 
+    __table_args__ = ( db.UniqueConstraint("user_id",
+                                           "repo_id",
+                                           name="uniq_star_user_repo_id"), )
+
     def __repr__(self): # pragma: no cover
         """Provide helpful representation when printed."""
 
@@ -185,6 +195,28 @@ class Contributor(db.Model):
 
         return ("<Contributor {} repo_id={} user_id={}>"
                 .format(self.contributor_id,
+                        self.repo_id,
+                        self.user_id))
+
+
+class Dislike(db.Model):
+    """Dislike model."""
+
+    __tablename__ = "dislikes"
+
+    dislike_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    repo_id = db.Column(db.ForeignKey("repos.repo_id"), nullable=False)
+    user_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
+
+    __table_args__ = ( db.UniqueConstraint("user_id",
+                                           "repo_id",
+                                           name="uniq_dislike_user_repo_id"), )
+
+    def __repr__(self): # pragma: no cover
+        """Provide helpful representation when printed."""
+
+        return ("<Dislike {} repo_id={} user_id={}>"
+                .format(self.dislike_id,
                         self.repo_id,
                         self.user_id))
 
@@ -235,9 +267,9 @@ def connect_to_db(app, uri=config.DB_URI):
     """Connect the database to our Flask app."""
 
     # Configure to use our database.
-    app.config['SQLALCHEMY_DATABASE_URI'] = uri
-    app.config['SQLALCHEMY_ECHO'] = False
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config["SQLALCHEMY_DATABASE_URI"] = uri
+    app.config["SQLALCHEMY_ECHO"] = False
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
     db.init_app(app)
     db.create_all()

@@ -3,11 +3,13 @@ import unittest
 from flask import Flask, session
 # import flask_testing
 from server import app
+import config
 from model import (Repo, User, Follower, Account,
-                   Stargazer, Watcher, Contributor,
+                   Stargazer, Dislike,
+                   Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db)
-from test_model import test_db_uri, example_data
+from test_model import example_data
 
 
 # class LiveServerTests(flask_testing.LiveServerTestCase):
@@ -130,7 +132,7 @@ class LoginLogoutTests(unittest.TestCase):
         """Connect to database, create tables, generate test data."""
         self.client = app.test_client()
         app.config["TESTING"] = True
-        connect_to_db(app, test_db_uri)
+        connect_to_db(app, config.TEST_DB_URI)
         db.drop_all()
         db.create_all()
         example_data()
@@ -210,7 +212,7 @@ class TestRoutesWithDB(unittest.TestCase):
         """Connect to database, create tables, generate test data."""
         self.client = app.test_client()
         app.config["TESTING"] = True
-        connect_to_db(app, test_db_uri)
+        connect_to_db(app, config.TEST_DB_URI)
         db.drop_all()
         db.create_all()
         example_data()

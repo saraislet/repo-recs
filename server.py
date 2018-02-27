@@ -2,11 +2,16 @@ import datetime, json, os, requests, urllib
 from flask import (Flask, flash, redirect, render_template,
                    request, session)
 from jinja2 import StrictUndefined
-import config, rec, utils, api_utils, db_utils, secrets2
+import config, rec, utils, api_utils, db_utils
 from model import (Repo, User, Follower, Account,
-                   Stargazer, Watcher, Contributor,
+                   Stargazer, Dislike,
+                   Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db)
+
+if not os.environ.get("CLIENT_ID"):
+    import secrets2
+    print(os.environ.get("CLIENT_ID"))
 
 app = Flask(__name__)
 app.secret_key = "temp"
@@ -302,6 +307,42 @@ def check_star():
     return json.dumps({"Status": 404,
                        "action": "check_star",
                        "repo_id": repo.id})
+
+
+@app.route("/add_dislike", methods=["POST"])
+def add_dislike():
+    if "user_id" not in session or "access_token" not in session:
+        flash("Please log in with your GitHub account.")
+        return redirect("/")
+
+    data = request.get_json()
+    repo_id = data["repo_id"]
+    user_id = session["user_id"]
+    
+    db_utils.add_dislike(repo_id, user_id)
+
+    print(f"User {user_id} sucessfully added a star for repo {repo_id}.")
+    return json.dumps({"Status": 204,
+                       "action": "add_dislike",
+                       "repo_id": repo_id})
+
+
+@app.route("/remove_dislike", methods=["POST"])
+def remove_dislike():
+    if "user_id" not in session or "access_token" not in session:
+        flash("Please log in with your GitHub account.")
+        return redirect("/")
+
+    data = request.get_json()
+    repo_id = data["repo_id"]
+    user_id = session["user_id"]
+
+    db_utils.remove_dislike(repo_id, user_id)
+
+    print(f"User {user_id} sucessfully removed a star for repo {repo_id}.")
+    return json.dumps({"Status": 204,
+                       "action": "remove_dislike",
+                       "repo_id": repo_id})
 
 
 @app.route("/update_user", methods=["POST"])

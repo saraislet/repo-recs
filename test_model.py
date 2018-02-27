@@ -1,11 +1,12 @@
 import datetime
+from flask import Flask
+import config
 from model import (Repo, User, Follower, Account,
-                   Stargazer, Watcher, Contributor,
+                   Stargazer, Dislike,
+                   Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db)
-from flask import Flask
 
-test_db_uri = "postgres:///git_test"
 
 def example_data():
     """Create example data for the test database."""
@@ -60,11 +61,15 @@ def example_data():
     astar = Stargazer(repo_id="1", user_id="2")
     kstar = Stargazer(repo_id="1", user_id="3")
     kstar_js = Stargazer(repo_id="2", user_id="3")
+    a_dislike_js = Dislike(repo_id="2", user_id="3")
+    db.session.add_all([astar, kstar, kstar_js, a_dislike_js])
+    db.session.commit()
+
     kwatch = Watcher(repo_id="1", user_id="3")
     a_j_follow = Follower(user_id="1", follower_id="2")
     k_j_follow = Follower(user_id="1", follower_id="3")
     j_a_follow = Follower(user_id="2", follower_id="1")
-    db.session.add_all([astar, kstar, kstar_js, kwatch, a_j_follow, k_j_follow, j_a_follow])
+    db.session.add_all([kwatch, a_j_follow, k_j_follow, j_a_follow])
     db.session.commit()
 
     jcon = Contributor(repo_id="1", user_id="1")
@@ -104,5 +109,5 @@ if __name__ == "__main__":  # pragma: no cover
 
     app = Flask(__name__)
 
-    connect_to_db(app, uri=test_db_uri)
-    print("Connected to DB {}.".format(test_db_uri))
+    connect_to_db(app, uri=config.TEST_DB_URI)
+    print("Connected to DB {}.".format(config.TEST_DB_URI))

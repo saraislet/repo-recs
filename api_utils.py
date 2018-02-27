@@ -1,9 +1,13 @@
 import os
 import github
-import config, secrets2
+import config
+
+if not os.environ.get("CLIENT_ID"):
+    import secrets2
+    print(os.environ.get("CLIENT_ID"))
 
 def get_auth_api(access_token):
-    print(f"Access token: {access_token}")
+    print(f"Access token: {access_token[:5]}...")
     return github.Github(access_token,
                          client_id=config.CLIENT_ID,
                          client_secret=os.environ.get("CLIENT_SECRET"))

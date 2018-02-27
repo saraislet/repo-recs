@@ -5,7 +5,8 @@ from progress.bar import ShadyBar
 from progress.spinner import Spinner
 import config, api_utils, db_utils
 from model import (Repo, User, Follower, Account,
-                   Stargazer, Watcher, Contributor,
+                   Stargazer, Dislike,
+                   Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db)
 # TODO: try Tenacity library

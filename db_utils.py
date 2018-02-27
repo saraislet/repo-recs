@@ -1,6 +1,8 @@
 import datetime, json
-from model import (Repo, User, Follower,
-                   Stargazer, Watcher, Contributor,
+from sqlalchemy.exc import IntegrityError
+from model import (Repo, User, Follower, Account,
+                   Stargazer, Dislike,
+                   Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db)
 import api_utils, config
@@ -150,11 +152,14 @@ def account_login(user, access_token):
 
 def add_stargazer(repo_id, user_id):
     """Add stargazer to database."""
-    this_star = Stargazer(repo_id=repo_id, user_id=user_id)
-    db.session.add(this_star)
-    db.session.commit()
-    print("Added star to database: repo {}, user {}."
-          .format(repo_id, user_id))
+    try:
+        this_star = Stargazer(repo_id=repo_id, user_id=user_id)
+        db.session.add(this_star)
+        db.session.commit()
+        print(f"Added star to database: repo {repo_id}, user {user_id}.")
+    except IntegrityError as e:
+        print(f"Star exists for repo {repo_id}, user {user_id}.")
+        db.session.rollback()
 
 
 def remove_stargazer(repo_id, user_id):
@@ -163,14 +168,38 @@ def remove_stargazer(repo_id, user_id):
                                           user_id=user_id).first()
     
     if not this_star:
-        print("No star in database to remove: repo {}, user {}."
-              .format(repo_id, user_id))
+        print(f"No star in database to remove: repo {repo_id}, user {user_id}.")
         return
 
     db.session.delete(this_star)
     db.session.commit()
-    print("Removed star from database: repo {}, user {}."
-          .format(repo_id, user_id))
+    print(f"Removed star from database: repo {repo_id}, user {user_id}.")
+
+
+def add_dislike(repo_id, user_id):
+    """Add dislike to database."""
+    try:
+        this_dislike = Dislike(repo_id=repo_id, user_id=user_id)
+        db.session.add(this_dislike)
+        db.session.commit()
+        print(f"Added dislike to database: repo {repo_id}, user {user_id}.")
+    except IntegrityError as e:
+        print(f"Dislike exists for repo {repo_id}, user {user_id}.")
+        db.session.rollback()
+
+
+def remove_dislike(repo_id, user_id):
+    """Remove dislike from database."""
+    this_dislike = Dislike.query.filter_by(repo_id=repo_id,
+                                          user_id=user_id).first()
+    
+    if not this_dislike:
+        print(f"No dislike in database to remove: repo {repo_id}, user {user_id}.")
+        return
+
+    db.session.delete(this_dislike)
+    db.session.commit()
+    print(f"Removed dislike from database: repo {repo_id}, user {user_id}.")
 
 
 def add_lang(lang):
