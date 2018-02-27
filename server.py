@@ -2,7 +2,7 @@ import datetime, json, requests, urllib
 from flask import (Flask, flash, redirect, render_template,
                    request, session)
 from jinja2 import StrictUndefined
-import config, rec, utils, api_utils, db_utils
+import config, rec, utils, api_utils, db_utils, secrets
 from model import (Repo, User, Follower, Account,
                    Stargazer, Watcher, Contributor,
                    Language, RepoLanguage,
@@ -313,7 +313,7 @@ def update_user():
 
       crawled_since = (datetime.datetime.now()
                        - datetime.timedelta(days = config.REFRESH_UPDATE_USER_REPOS_DAYS))
-      
+
       if not db_utils.is_last_crawled_in_user_good(user_id, 1, crawled_since):
           print(f"Updating user {user_id}.")
           utils.update_user_repos(user_id, force_refresh=True)
