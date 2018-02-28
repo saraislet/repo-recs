@@ -66,7 +66,7 @@ def example_data():
     astar = Stargazer(repo_id="1", user_id="2")
     kstar = Stargazer(repo_id="1", user_id="3")
     kstar_js = Stargazer(repo_id="2", user_id="3")
-    a_dislike_js = Dislike(repo_id="2", user_id="3")
+    a_dislike_js = Dislike(repo_id="2", user_id="2")
     db.session.add_all([astar, kstar, kstar_js, a_dislike_js])
     db.session.commit()
 

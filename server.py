@@ -90,7 +90,7 @@ def login():
                "redirect_uri": config.AUTH_CALLBACK_URL,
                "scope": config.OAUTH_SCOPE}
 
-    print("Preparing OAuth get code request.")
+    # print("Preparing OAuth get code request.")
     p = requests.Request("GET", 
                          config.GITHUB_AUTH_REQUEST_CODE_URL,
                          params=payload).prepare()
@@ -178,6 +178,7 @@ def get_repo_recs_react():
 
 @app.route("/get_repo_recs", methods=["GET"])
 def get_repo_recs_json():
+    """Return JSON of repo recommendations for a user_id or login."""
     if "user_id" not in session:
         return redirect("/")
 
@@ -316,7 +317,7 @@ def add_dislike():
         return redirect("/")
 
     data = request.get_json()
-    repo_id = data["repo_id"]
+    repo_id = data.get("repo_id")
     user_id = session["user_id"]
     
     db_utils.add_dislike(repo_id, user_id)

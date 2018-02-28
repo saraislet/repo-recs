@@ -47,5 +47,4 @@ def get_languages_from_api(repo):
     """Given a repository, get list of languages for that repo."""
     return repo.get_languages()
 
-
 g = get_api()

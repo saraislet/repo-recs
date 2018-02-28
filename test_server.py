@@ -1,4 +1,5 @@
 from urllib.request import urlopen
+import json, requests
 import unittest
 from flask import Flask, session
 # import flask_testing
@@ -288,9 +289,37 @@ class TestRoutesWithDB(unittest.TestCase):
 
     # def test_get_json_from_repos(self):
     #     """Test getting json of repos."""
-    #     result = self.client.get("/get_repo_recs").data.decode("utf-8")
-    #     self.assertEquals(result.json, dict(success=True))
+    #     result = self.client.get("/get_repo_recs")
+    #     self.assertEqual(result.status_code, 302)
 
+    def test_add_dislike(self):
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess["user_id"] = 3
+                sess["access_token"] = "foo"
+
+            data = {"repo_id": "2"}
+
+            result = self.client.post("/add_dislike",
+                                      data=json.dumps(data),
+                                      content_type="application/json")
+            self.assertEqual(result.status_code, 200)
+            self.assertEqual(1, Dislike.query.filter_by(repo_id=2, user_id=3).count())
+
+    def test_remove_dislike(self):
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess["user_id"] = 2
+                sess["access_token"] = "foo"
+
+            data = {"repo_id": "2"}
+
+            self.assertEqual(1, Dislike.query.filter_by(repo_id=2, user_id=2).count())
+            result = self.client.post("/remove_dislike",
+                                      data=json.dumps(data),
+                                      content_type="application/json")
+            self.assertEqual(result.status_code, 200)
+            self.assertEqual(0, Dislike.query.filter_by(repo_id=2, user_id=2).count())
 
 if __name__ == "__main__":
     unittest.main()

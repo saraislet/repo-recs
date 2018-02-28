@@ -20,10 +20,12 @@ function updateUser() {
                    credentials: "same-origin",
                    headers: new Headers({"Content-Type": "application/json"})};
     fetch("/update_user", payload)
-          .then( response => console.log(response) );
-    let endUserUpdate = new Date().getTime();
-    var delta = (endUserUpdate - startLoad)/1000;
-    console.log("User updated in " + delta + "seconds.");
+        .then( response => console.log("response: " + response) )
+        .then( () => {
+            let endUserUpdate = new Date().getTime();
+            var delta = (endUserUpdate - startLoad)/1000;
+            console.log("User updated in " + delta + "seconds.");
+            });
 }
 
 function getRepoRecs() {

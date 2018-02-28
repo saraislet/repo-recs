@@ -143,21 +143,21 @@ class TestDB_AddRemove(unittest.TestCase):
 
     def test_add_dislike(self):
 
-        self.assertEqual(0, Dislike.query.filter_by(repo_id=2, user_id=2).count())
-        db_utils.add_dislike(2, 2)
-        self.assertEqual(1, Dislike.query.filter_by(repo_id=2, user_id=2).count())
+        self.assertEqual(0, Dislike.query.filter_by(repo_id=2, user_id=3).count())
+        db_utils.add_dislike(2, 3)
+        self.assertEqual(1, Dislike.query.filter_by(repo_id=2, user_id=3).count())
 
     def test_add_dislike_duplicate(self):
 
-        db_utils.add_dislike(2, 2)
-        db_utils.add_dislike(2, 2)
-        self.assertEqual(1, Dislike.query.filter_by(repo_id=2, user_id=2).count())
+        db_utils.add_dislike(2, 3)
+        db_utils.add_dislike(2, 3)
+        self.assertEqual(1, Dislike.query.filter_by(repo_id=2, user_id=3).count())
 
     def test_remove_dislike(self):
 
-        self.assertEqual(1, Dislike.query.filter_by(repo_id=2, user_id=3).count())
-        db_utils.remove_dislike(2, 3)
-        self.assertEqual(0, Dislike.query.filter_by(repo_id=2, user_id=3).count())
+        self.assertEqual(1, Dislike.query.filter_by(repo_id=2, user_id=2).count())
+        db_utils.remove_dislike(2, 2)
+        self.assertEqual(0, Dislike.query.filter_by(repo_id=2, user_id=2).count())
 
     def test_remove_dislike_unknown(self):
 
