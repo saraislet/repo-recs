@@ -32,13 +32,13 @@ class TestRec(unittest.TestCase):
 
     def test_build_ratings_dataframe(self):
 
-        M = [[1, 0], [1, 1]]
+        M = [[1, -1], [1, 1]]
         R = rec.build_ratings_dataframe().as_matrix().tolist()
         self.assertEqual(R, M)
 
     def test_build_repo_predictions_matrix(self):
       
-        M = [[1, 0], [1, 1]]
+        M = [[1, -1], [1, 1]]
         preds = rec.build_repo_predictions_matrix().as_matrix().tolist()
         self.assertEqual(preds, M)
 

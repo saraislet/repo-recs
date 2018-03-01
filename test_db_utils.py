@@ -33,10 +33,11 @@ class TestDB(unittest.TestCase):
 
     def test_get_ratings(self):
 
-        ratings = [[2, 1, 1],
-                   [3, 1, 1],
-                   [3, 2, 1]]
-        self.assertEqual(ratings, db_utils.get_ratings_from_db())
+        ratings = [(2, 2, -1),
+                   (2, 1, 1),
+                   (3, 1, 1),
+                   (3, 2, 1)]
+        self.assertEqual(ratings, db_utils.get_ratings_from_db(debug=True))
 
     def test_get_json_from_repos(self):
 

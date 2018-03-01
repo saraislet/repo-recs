@@ -9,22 +9,32 @@ from model import (Repo, User, Follower, Account,
 import api_utils, config
 
 
-def get_ratings_from_db():
+def get_ratings_from_db(debug=False):
     """Return list of ratings of repos by users."""
-    stars = Stargazer.query.all()
-    ratings = [ [star.user_id, star.repo_id, 1] for star in stars ]
+    # stars = Stargazer.query.all()
+    # ratings = [ [star.user_id, star.repo_id, 1] for star in stars ]
 
     # dislikes = Dislike.query.all()
     # ratings.extend( [ [dislike.user_id, dislike.repo_id, -1] for dislike in dislikes ] )
 
-    # query =  "SELECT s.stargazer_id, s.repo_id, s.user_id, d.dislike_id"
-    # query += " FROM stargazers AS s"
-    # query += " FULL OUTER JOIN dislikes AS d"
-    # query += " ON s.repo_id = d.repo_id AND s.user_id = d.user_id"
-    # db.session.execute( text(query) ).fetchall()
+    # query =  "SELECT s.stargazer_id, d.dislike_id,"
+    query = "SELECT "
+    query += " CASE WHEN s.stargazer_id IS NULL THEN d.user_id ELSE s.user_id END AS user_id,"
+    query += " CASE WHEN s.stargazer_id IS NULL THEN d.repo_id ELSE s.repo_id END AS repo_id,"
+    query += " CASE WHEN s.stargazer_id IS NULL AND d.dislike_id IS NOT NULL THEN -1"
+    query += " WHEN s.stargazer_id IS NOT NULL and d.dislike_id IS NOT NULL THEN 0"
+    query += " WHEN s.stargazer_id IS NOT NULL and d.dislike_id IS NULL THEN 1"
+    query += " ELSE -5 END AS rating"
+    query += " FROM stargazers AS s FULL OUTER JOIN dislikes as d"
+    query += " ON s.repo_id = d.repo_id AND s.user_id = d.user_id"
+    
+    if debug:
+        query += " ORDER BY rating, user_id, repo_id"
+        query += " LIMIT 10"
+
+    ratings = db.session.execute( text(query) ).fetchall()
 
     return ratings
-
 
 
 def get_json_from_repos(repos):
