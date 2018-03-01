@@ -166,12 +166,10 @@ class Star extends React.Component {
 
     if (this.state.error) {
       className += " star-error";
-      console.log("State includes error.");
     }
 
     if (this.state.pending) {
       className += " star-spin";
-      console.log("State includes pending.");
     }
 
     if (this.state.isStarred) {
@@ -192,52 +190,3 @@ class Star extends React.Component {
     );
   }
 }
-
-class OpenStar extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  add_star(e) {
-    console.log("Ran add_star() on " + this.props.repo_id + "!");
-    let data = {"repo_id": this.props.repo_id};
-    let payload = {method: "POST",
-                   body: JSON.stringify(data),
-                   credentials: "same-origin",
-                   headers: new Headers({"Content-Type": "application/json"})};
-    fetch("/add_star", payload)
-          // .then( response => JSON.parse(response))
-          .then( response => response.json() )
-          // .then( data => console.log(data))
-          .then( (data) => this.update_star(data) )
-  }
-
-  update_star(data) {
-    if (data.Status == 204) {
-      console.log("Successfully added star for repo " + data.repo_id + ".");
-    } else {
-      console.log("Unable to add star for repo " + data.repo_id + ".");
-    }
-  }
-
-  render() {
-    let repo_id = this.props.repo_id;
-
-    return (
-      <span className="star" 
-            onClick={this.add_star.bind(this)} 
-            repo_id={ repo_id }>
-            ☆
-      </span>
-    )
-  }
-}
-
-class FilledStar extends React.Component {
-  render() {
-    return (
-      <span className="star">★</span>
-    )
-  }
-}
-
