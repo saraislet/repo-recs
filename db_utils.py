@@ -1,5 +1,6 @@
 import datetime, json
-from sqlalchemy.exc import IntegrityError, text
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import text
 from model import (Repo, User, Follower, Account,
                    Stargazer, Dislike,
                    Watcher, Contributor,
