@@ -1,4 +1,4 @@
-import datetime, json, os, requests, urllib
+import datetime, json, logging, os, requests, urllib
 from flask import (Flask, flash, redirect, render_template,
                    request, session)
 from jinja2 import StrictUndefined
@@ -13,12 +13,14 @@ if not os.environ.get("CLIENT_ID"):
     import secrets2
     print(os.environ.get("CLIENT_ID"))
 
+logging.basicConfig(filename='server.log',level=logging.DEBUG,format="%(asctime)s | %(message)s")
+
 app = Flask(__name__)
+#TODO: Generate random string for secret_key before deploying.
 app.secret_key = "temp"
 # Don't let undefined variables fail silently.
 app.jinja_env.undefined = StrictUndefined
-# With old Flask versions, this may be necessary to auto-reload changes.
-#app.jinja_env.auto_reload = True
+
 
 @app.route("/")
 def main():
@@ -193,7 +195,7 @@ def get_repo_recs_json():
         if not utils.is_user_in_db(user_id):
             flash("No user found with id {}.".format(user_id))
             return redirect("/") 
-        print("Using user_id {} for recs.".format(user_id))
+        logging.info(f"{session['user_id']}: Using user_id for recs.")
         
     # Login parameter takes precedence.
     if login:
@@ -201,20 +203,36 @@ def get_repo_recs_json():
             flash("No user found with login {}.".format(login))
             return redirect("/")
         user_id = User.query.filter_by(login=login).first().user_id
-        print("Using login {} for user_id {} for recs."
-              .format(login, user_id))
+        logging.info(f"{session['user_id']}: Using login {login} for recs.")
     elif not user_id:
-        user_id = session["user_id"]
-        print("Using logged in user {} for recs.".format(user_id))
+        user_id = session['user_id']
+        logging.info(f"{session['user_id']}: Using logged in user for recs.")
+
+    # Note start time to estimate time to complete process.
+    times = [datetime.datetime.now()]
 
     recs = rec.get_repo_suggestions(user_id)[offset:2*limit]
+    times.append(datetime.datetime.now())
+    rec_delta = (times[1] - times[0]).total_seconds()
+    logging.info(f"{user_id}: get_repo_suggestions: {rec_delta} seconds.")
+    
     filtered_recs = db_utils.filter_stars_from_repo_ids(recs, user_id)
+    times.append(datetime.datetime.now())
+    filter_delta = (times[2] - times[1]).total_seconds()
+    logging.info(f"{user_id}: filter_stars_from_repo_ids: {filter_delta} seconds.")
 
     repos_query = Repo.query.filter(Repo.repo_id.in_(filtered_recs),
                                     Repo.owner_id != user_id)
     repos = repos_query.all()
+    times.append(datetime.datetime.now())
+    query_delta = (times[3] - times[2]).total_seconds()
+    logging.info(f"{user_id}: Repo query: {query_delta} seconds.")
 
-    return db_utils.get_json_from_repos(repos[0:limit])
+    repos_json = db_utils.get_json_from_repos(repos[0:limit])
+    times.append(datetime.datetime.now())
+    json_delta = (times[4] - times[3]).total_seconds()
+    logging.info(f"{user_id}: get_json_from_repos: {json_delta} seconds.")
+    return repos_json
 
 
 @app.route("/add_star", methods=["POST"])
@@ -379,7 +397,7 @@ def update_user():
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
     # point that we invoke the DebugToolbarExtension
-    app.debug = True
+    # app.debug = True
 
     # make sure templates, etc. are not cached in debug mode
     app.jinja_env.auto_reload = app.debug
