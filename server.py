@@ -340,7 +340,7 @@ def add_dislike():
     
     db_utils.add_dislike(repo_id, user_id)
 
-    print(f"User {user_id} sucessfully added a star for repo {repo_id}.")
+    print(f"User {user_id} sucessfully added a dislike for repo {repo_id}.")
     return json.dumps({"Status": 204,
                        "action": "add_dislike",
                        "repo_id": repo_id})
@@ -358,7 +358,7 @@ def remove_dislike():
 
     db_utils.remove_dislike(repo_id, user_id)
 
-    print(f"User {user_id} sucessfully removed a star for repo {repo_id}.")
+    print(f"User {user_id} sucessfully removed a dislike for repo {repo_id}.")
     return json.dumps({"Status": 204,
                        "action": "remove_dislike",
                        "repo_id": repo_id})

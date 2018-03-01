@@ -29,6 +29,41 @@ p {
     font-weight: 100;
 }
 
+.dislike {
+    display: inline-block;
+    float: right;
+    cursor: pointer;
+    color: transparent;
+}
+
+.repo:hover .dislike {
+    color: #aa3333;
+}
+
+.dislike-true {
+    color: #33aa33;
+}
+
+.dislike-error {
+    color: #aa3333;
+}
+
+.dislike-text {
+    font-size: 80%;
+    font-weight: 200;
+    position: relative;
+    bottom: 10px;
+}
+
+.dislike-icon {
+    font-size: 300%;
+    font-weight: 600;
+}
+
+.dislike:hover {
+    text-shadow: 0 0 8px #9ECFE4;
+}
+
 .star {
     display: inline-block;
     cursor: pointer;
@@ -37,8 +72,8 @@ p {
 }
 
 .star:hover {
-    text-shadow: 0 0 5px #9ECFE4;
-    color: #5e6788;
+    text-shadow: 0 0 8px #9ECFE4;
+    /*color: #5e6788;*/
 }
 
 .star-error {

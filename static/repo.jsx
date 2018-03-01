@@ -31,7 +31,10 @@ function buildRepo(repo) {
       <div className="w3-container">
         <p className="repo-description">{ repo.description }</p>
         { listLangs }
-        <Star isStarred="" repo_id={ repo.repo_id }/>
+        <div className="repo-footer">
+          <Star isStarred="" repo_id={ repo.repo_id }/>
+          <Dislike isDisliked="" repo_id={ repo.repo_id }/>
+        </div>
       </div>
     </div>
   )
@@ -186,6 +189,111 @@ class Star extends React.Component {
           onClick={this.add_star.bind(this)} 
           repo_id={ repo_id }>
           {this.state.star}
+      </span>
+    );
+  }
+}
+
+
+class Dislike extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {dislike: "&#10006;",
+                  isDisliked: false,
+                  pending: false};
+  }
+
+  handle_error(e) {
+    console.error(e);
+    this.setState({error: true})
+  }
+
+  add_dislike(e) {
+    console.log("Ran add_dislike() on " + this.props.repo_id + "!");
+    let data = {"repo_id": this.props.repo_id};
+    let payload = {method: "POST",
+                   body: JSON.stringify(data),
+                   credentials: "same-origin",
+                   headers: new Headers({"Content-Type": "application/json"})};
+    fetch("/add_dislike", payload)
+          .then( response => response.json() )
+          .then( (data) => this.update_dislike(data) )
+          .catch( error => this.handle_error(error) )
+    this.setState({pending: true});
+  }
+
+  remove_dislike(e) {
+    console.log("Ran remove_dislike() on " + this.props.repo_id + "!");
+    let data = {"repo_id": this.props.repo_id};
+    let payload = {method: "POST",
+                   body: JSON.stringify(data),
+                   credentials: "same-origin",
+                   headers: new Headers({"Content-Type": "application/json"})};
+    fetch("/remove_dislike", payload)
+          .then( response => response.json() )
+          .then( (data) => this.update_dislike(data) )
+          .catch( error => this.handle_error(error) )
+    this.setState({pending: true});
+  }
+
+  update_dislike(data) {
+    if (data.Status == 204) {
+      if (data.action == "add_dislike") {
+        console.log("Successfully disliked repo " + data.repo_id + ".");
+        this.setState({star: "X!&#10006;&#9747;!",
+                       isDisliked: true,
+                       pending: false,
+                       error: false});
+      } else if (data.action == "remove_dislike") {
+        console.log("Successfully undisliked repo " + data.repo_id + "."); 
+        this.setState({star: "X&#9747;&#10006;",
+                       isDisliked: false,
+                       pending: false,
+                       error: false});
+      }
+    } else {
+      this.setState({error: true});
+      if (data.action == "add_dislike") {
+        console.log("Unable to dislike repo " + data.repo_id + ".");
+      } else if (data.action == "remove_dislike") {
+        console.log("Unable to undislike repo " + data.repo_id + "."); 
+      }
+    }
+  }
+
+  render() {
+    let isDisliked = this.props.isDisliked;
+    let repo_id = this.props.repo_id;
+
+    let className = "dislike";
+
+    if (this.state.error) {
+      className += " dislike-error";
+    }
+
+    if (this.state.pending) {
+      className += " star-spin";
+    }
+
+    if (this.state.isDisliked) {
+      className += " dislike-true"
+      return (
+        <span className={className} 
+            onClick={this.remove_dislike.bind(this)} 
+            repo_id={ repo_id }>
+            <span className="dislike-text">I dislike this repo</span>
+            &nbsp;<span className="dislike-icon">&#10006;</span>
+        </span>
+      );
+    }
+
+    className += " dislike-false"
+    return (
+      <span className={className} 
+          onClick={this.add_dislike.bind(this)} 
+          repo_id={ repo_id }>
+          <span className="dislike-text">I dislike this repo</span>
+          &nbsp;<span className="dislike-icon">&#10006;</span>
       </span>
     );
   }
