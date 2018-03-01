@@ -8,14 +8,12 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
 
 ## Built With
 * Languages: Python, SQL (PostGRES), JavaScript, HTML, CSS
-* Frameworks: Flask, Jinja, [React](https://reactjs.org/)
-* [W3 CSS](https://www.w3schools.com/w3css/)
+* Frameworks: Flask, Jinja, [React](https://reactjs.org/), [Flask-SQLAlchemy](http://flask-sqlalchemy.pocoo.org/)
+* [w3.CSS](https://www.w3schools.com/w3css/)
 * Libraries:
-  * [Flask-SQLAlchemy](http://flask-sqlalchemy.pocoo.org/)
   * [PyGithub](http://pygithub.readthedocs.io)
   * [Progress](https://github.com/verigak/progress/) by @verigak
-  * [SciPy SVDS](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.svds.html)
-  * [pandas](https://pandas.pydata.org/), [numpy](http://www.numpy.org/)
+  * [SciPy SVDS](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.svds.html), [pandas](https://pandas.pydata.org/), [numpy](http://www.numpy.org/)
 
 ### Key algorithms/methods
 * [Low-rank matrix approximation](https://en.wikipedia.org/wiki/Low-rank_matrix_approximations)
@@ -52,16 +50,15 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
         └── user_info.html       # Details about a user and their repositories
 
 ## TODO:
-* Plan additional features for 1.0:
+* Todo for 1.0:
   * Refine UI & CSS
+  * Add AJAX to request additional suggestions & infinite scroll
+  * Build modal to display information about languages?
+* Plan features for 2.0:
   * Add AJAX to follow users
-  * Add AJAX to request additional suggestions
-  * Build modals to display information about users and languages?
-  * Improve recommendation algorithm
-  * Add dislike feature and test ranking with dislikes
-* Write API requests instead of using PyGithub?
-* Build queue table and handlers instead of crawling recursively
-* Expand async calls to dynamically increase crawl breadth on login
+  * Write API requests instead of using PyGithub?
+  * Build queue table and handlers instead of crawling recursively
+  * Expand async calls to dynamically increase crawl breadth on login
 
 ## Resources used:.
 * [SciPy Sparse Single Value Decomposition](http://scipy.github.io/devdocs/generated/scipy.sparse.linalg.svds.html#scipy.sparse.linalg.svds)
