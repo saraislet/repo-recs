@@ -1,5 +1,5 @@
 import datetime, json
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, text
 from model import (Repo, User, Follower, Account,
                    Stargazer, Dislike,
                    Watcher, Contributor,
@@ -10,8 +10,20 @@ import api_utils, config
 
 def get_ratings_from_db():
     """Return list of ratings of repos by users."""
-    ratings = Stargazer.query.all()
-    return [ [rating.user_id, rating.repo_id, 1] for rating in ratings ]
+    stars = Stargazer.query.all()
+    ratings = [ [star.user_id, star.repo_id, 1] for star in stars ]
+
+    # dislikes = Dislike.query.all()
+    # ratings.extend( [ [dislike.user_id, dislike.repo_id, -1] for dislike in dislikes ] )
+
+    # query =  "SELECT s.stargazer_id, s.repo_id, s.user_id, d.dislike_id"
+    # query += " FROM stargazers AS s"
+    # query += " FULL OUTER JOIN dislikes AS d"
+    # query += " ON s.repo_id = d.repo_id AND s.user_id = d.user_id"
+    # db.session.execute( text(query) ).fetchall()
+
+    return ratings
+
 
 
 def get_json_from_repos(repos):
