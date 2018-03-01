@@ -18,15 +18,15 @@ def get_ratings_from_db(debug=False):
     # ratings.extend( [ [dislike.user_id, dislike.repo_id, -1] for dislike in dislikes ] )
 
     # query =  "SELECT s.stargazer_id, d.dislike_id,"
-    query = "SELECT "
-    query += " CASE WHEN s.stargazer_id IS NULL THEN d.user_id ELSE s.user_id END AS user_id,"
-    query += " CASE WHEN s.stargazer_id IS NULL THEN d.repo_id ELSE s.repo_id END AS repo_id,"
-    query += " CASE WHEN s.stargazer_id IS NULL AND d.dislike_id IS NOT NULL THEN -1"
-    query += " WHEN s.stargazer_id IS NOT NULL and d.dislike_id IS NOT NULL THEN 0"
-    query += " WHEN s.stargazer_id IS NOT NULL and d.dislike_id IS NULL THEN 1"
-    query += " ELSE -5 END AS rating"
-    query += " FROM stargazers AS s FULL OUTER JOIN dislikes as d"
-    query += " ON s.repo_id = d.repo_id AND s.user_id = d.user_id"
+    query = """SELECT 
+               CASE WHEN s.stargazer_id IS NULL THEN d.user_id ELSE s.user_id END AS user_id,
+               CASE WHEN s.stargazer_id IS NULL THEN d.repo_id ELSE s.repo_id END AS repo_id,
+               CASE WHEN s.stargazer_id IS NULL AND d.dislike_id IS NOT NULL THEN -1
+               WHEN s.stargazer_id IS NOT NULL and d.dislike_id IS NOT NULL THEN 0
+               WHEN s.stargazer_id IS NOT NULL and d.dislike_id IS NULL THEN 1
+               ELSE -5 END AS rating
+               FROM stargazers AS s FULL OUTER JOIN dislikes as d
+               ON s.repo_id = d.repo_id AND s.user_id = d.user_id"""
     
     if debug:
         query += " ORDER BY rating, user_id, repo_id"
