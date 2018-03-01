@@ -8,17 +8,14 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
 
 ## Built With
 * Languages: Python, SQL (PostGRES), JavaScript, HTML, CSS
-* Frameworks: Flask, Jinja, React
+* Frameworks: Flask, Jinja, [React](https://reactjs.org/)
 * [W3 CSS](https://www.w3schools.com/w3css/)
 * Libraries:
   * [Flask-SQLAlchemy](http://flask-sqlalchemy.pocoo.org/)
-  * [jQuery](https://jquery.com/)
   * [PyGithub](http://pygithub.readthedocs.io)
   * [Progress](https://github.com/verigak/progress/) by @verigak
   * [SciPy SVDS](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.svds.html)
-  * [pandas](https://pandas.pydata.org/)
-  * [numpy](http://www.numpy.org/)
-  * [React](https://reactjs.org/)
+  * [pandas](https://pandas.pydata.org/), [numpy](http://www.numpy.org/)
 
 ### Key algorithms/methods
 * [Low-rank matrix approximation](https://en.wikipedia.org/wiki/Low-rank_matrix_approximations)
