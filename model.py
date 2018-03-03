@@ -27,7 +27,7 @@ class Repo(db.Model):
 
     owner = db.relationship("User",
                             backref=db.backref("repos",
-                                               order_by="desc(Repo.updated_at)"))
+                                               order_by="desc(Repo.pushed_at)"))
 
     stargazers = db.relationship("User",
                                  secondary="stargazers",
