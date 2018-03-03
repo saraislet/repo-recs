@@ -1,6 +1,8 @@
 window.onload = makeCalls;
 
 let myData;
+let numItems = 0;
+let pageNumber = 1;
 let startLoad = new Date().getTime();
 
 ReactDOM.render(
@@ -9,7 +11,7 @@ ReactDOM.render(
 );
 
 function makeCalls() {
-    getRepoRecs();
+    getRepoRecs(pageNumber);
     updateUser();
 }
 
@@ -28,13 +30,21 @@ function updateUser() {
         });
 }
 
-function getRepoRecs() {
-    $.get("/get_repo_recs", showRepoRecs);
+function getRepoRecs(pageNumber) {
+    let data = {"page": pageNumber};
+    let payload = {method: "GET",
+                   credentials: "same-origin",
+                   headers: new Headers({"Content-Type": "application/json"})};
+    fetch(`/get_repo_recs?page=${pageNumber}`, payload)
+        .then( response => response.json() )
+        .then( (data) => showRepoRecs(data) );
 }
 
 function showRepoRecs(data) {
-    myData = JSON.parse(data);
-    renderRepoComponents(myData);
+    myData = data;
+    numItems += data.length;
+    pageNumber += 1;
+    renderRepoComponents(data);
     let endLoad = new Date().getTime();
     var delta = (endLoad - startLoad)/1000;
     console.log("Recs loaded in " + delta + "seconds.");
