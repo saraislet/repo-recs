@@ -17,6 +17,7 @@ class Repo(db.Model):
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime(), nullable=True)
     updated_at = db.Column(db.DateTime(), nullable=True)
+    pushed_at = db.Column(db.DateTime(), nullable=True)
     last_updated = db.Column(db.DateTime(), nullable=True,
                              default=datetime.datetime.utcnow)
     last_crawled = db.Column(db.DateTime(), nullable=True)

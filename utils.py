@@ -54,6 +54,9 @@ def add_repo(repo_info, num_layers_to_crawl=0, force_refresh=False):
                          description=repo.description,
                          owner_id=owner.id,
                          created_at=repo.created_at,
+                         updated_at=repo.updated_at,
+                         last_updated=datetime.datetime.now(),
+                         pushed_at=repo.pushed_at,
                          url=repo.url,
                          stargazers_count=repo.stargazers_count)
         db.session.add(this_repo)
@@ -126,7 +129,7 @@ def update_repo(repo, num_layers_to_crawl=0, force_refresh=False):
     this_repo = Repo.query.get(repo.id)
 
     if not this_repo:
-        print("Repo not found!")
+        print(f"Repo not found! Adding repo {repo.name}")
         add_repo(repo)
         return
 
@@ -138,6 +141,7 @@ def update_repo(repo, num_layers_to_crawl=0, force_refresh=False):
         this_repo.name = repo.name
         this_repo.description = repo.description
         this_repo.updated_at = repo.updated_at
+        this_repo.pushed_at = repo.pushed_at
         this_repo.last_updated = datetime.datetime.now()
         this_repo.stargazers_count = repo.stargazers_count
 
@@ -304,7 +308,7 @@ def update_user_repos(user, num_layers_to_crawl=0, force_refresh=False):
 
         for repo in repos:
             print(f"Updating repo: {repo.name}")
-            update_repo(repo, force_refresh)
+            update_repo(repo, force_refresh=force_refresh)
 
     #TODO: A queue might be more robust than a recursive process.
     if num_layers_to_crawl:
