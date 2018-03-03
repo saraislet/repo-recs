@@ -11,13 +11,6 @@ import api_utils, config
 
 def get_ratings_from_db(debug=False):
     """Return list of ratings of repos by users."""
-    # stars = Stargazer.query.all()
-    # ratings = [ [star.user_id, star.repo_id, 1] for star in stars ]
-
-    # dislikes = Dislike.query.all()
-    # ratings.extend( [ [dislike.user_id, dislike.repo_id, -1] for dislike in dislikes ] )
-
-    # query =  "SELECT s.stargazer_id, d.dislike_id,"
     query = """SELECT 
                CASE WHEN s.stargazer_id IS NULL THEN d.user_id ELSE s.user_id END AS user_id,
                CASE WHEN s.stargazer_id IS NULL THEN d.repo_id ELSE s.repo_id END AS repo_id,
