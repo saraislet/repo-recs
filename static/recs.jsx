@@ -1,18 +1,26 @@
-window.onload = makeCalls;
-
 let myData;
-let numItems = 0;
 let pageNumber = 1;
 let startLoad = new Date().getTime();
+let code;
+
+window.onload = makeCalls;
 
 ReactDOM.render(
     <PlaceholderList/>,
     document.getElementById("repo-recs")
 );
 
+async function generateCode() {
+    code = Math.random().toString(36).substring(2);
+    console.log(code);
+    return code;
+}
+
 function makeCalls() {
-    getRepoRecs(pageNumber);
-    updateUser();
+    generateCode()
+        .then( thisCode => getRepoRecs(pageNumber, thisCode) )
+        .then(updateUser);
+    // setTimeout(updateUser, 2000);
 }
 
 function updateUser() {
@@ -30,19 +38,18 @@ function updateUser() {
         });
 }
 
-function getRepoRecs(pageNumber) {
-    let data = {"page": pageNumber};
+function getRepoRecs(pageNumber, thisCode) {
+    console.log(`Requesting repo recs with code ${thisCode}.`)
     let payload = {method: "GET",
                    credentials: "same-origin",
                    headers: new Headers({"Content-Type": "application/json"})};
-    fetch(`/get_repo_recs?page=${pageNumber}`, payload)
+    fetch(`/get_repo_recs?page=${pageNumber}&code=${thisCode}`, payload)
         .then( response => response.json() )
         .then( (data) => showRepoRecs(data) );
 }
 
 function showRepoRecs(data) {
     myData = data;
-    numItems += data.length;
     pageNumber += 1;
     renderRepoComponents(data);
     let endLoad = new Date().getTime();
@@ -52,7 +59,7 @@ function showRepoRecs(data) {
 
 function renderRepoComponents(data) {
     ReactDOM.render(
-        <RepoList repos={ data } />,
+        <RepoList repos={ data } code={ code } />,
         document.getElementById("repo-recs")
     );
 }

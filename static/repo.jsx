@@ -1,10 +1,90 @@
 class RepoList extends React.Component {
-  render() {
-    let repos = this.props.repos
+  constructor(props) {
+    console.log("constructor called");
+    super(props);
+    this.state = {data: [],
+                  requestSent: false,
+                  pageNumber: 2,
+                  count: 9};
+
+    this.handleScroll = this.handleScroll.bind(this)
+    this.getRepoRecs = this.getRepoRecs.bind(this)
+    this.handleData = this.handleData.bind(this)
+  }
+
+  componentDidMount() {
+    console.log("componentDidMount called");
+    let repos = this.props.repos;
     let listRepos = repos.map( (repo) => buildRepo(repo) );
+    this.setState({data: listRepos});
+
+    window.addEventListener('scroll', this.handleScroll);
+    // this.getRepoRecs();
+  }
+
+  componentWillUnmount() {
+    console.log("componentWillUnmount called");
+    window.removeEventListener('scroll', this.handleScroll);
+  }
+
+  getRepoRecs() {
+    console.log("getRepoRecs called");
+    this.setState({requestSent: true});
+    console.log(`pageNumber: ${this.state.pageNumber}`);
+    console.log(`code: ${this.props.code}`);
+    let payload = {method: "GET",
+                   credentials: "same-origin",
+                   headers: new Headers({"Content-Type": "application/json"})};
+    fetch(`/get_repo_recs?page=${this.state.pageNumber}&code=${this.props.code}`, payload)
+      .then( response => response.json() )
+      .then( (data) => this.handleData(data) );
+  }
+
+  handleData(data) {
+    console.log("handleData called");
+    let oldData = this.state.data;
+    let listRepos = data.map( (repo) => buildRepo(repo) );
+    let newData = oldData.concat(listRepos);
+    this.setState( (prevState) => (
+                    {data: newData,
+                     requestSent: false,
+                     pageNumber: 1 + prevState.pageNumber
+                    })
+                  );
+  }
+
+  handleScroll() {
+    console.log("handleScroll called");
+    // http://stackoverflow.com/questions/9439725/javascript-how-to-detect-if-browser-window-is-scrolled-to-bottom
+    let scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
+
+    if (scrollTop + 50 >= window.innerHeight && !this.state.requestSent) {
+      // bottom reached
+      console.log("bottom reached")
+      setTimeout(this.getRepoRecs, 1);
+    }
+  }
+
+  render() {
+    console.log("render called in RepoList");
+
     return (
-      <span>{ listRepos }</span>
-    )
+      <div>
+        <span onScroll={this.handleScroll.bind(this)}>
+          { this.state.data }
+        </span>
+
+        {(() => {
+          if (this.state.requestSent) {
+            return (
+              <div className="data-loading">
+                Loading data...
+              </div>
+            );
+          };
+        })()}
+      </div>
+    );
   }
 }
 
@@ -13,7 +93,7 @@ function buildRepo(repo) {
   if ( repo.langs.length > 0 ) {
     let languages = repo.langs.map( (lang) => buildLang(lang) );
     listLangs = (<ul>{ languages.slice(0,3) }</ul>);
-  }
+  };
 
   return (
     <div key={ repo.repo_id } className="w3-card-4 w3-margin repo">
@@ -37,13 +117,13 @@ function buildRepo(repo) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function buildLang(lang) {
   return (
     <li key={ lang.language_id }>{ lang.language_name } : { lang.language_bytes }</li>
-  )
+  );
 }
 
 class PlaceholderList extends React.Component {
@@ -52,7 +132,7 @@ class PlaceholderList extends React.Component {
     let listPlaceholders = arr.map( (num) => buildPlaceholder(num) );
     return (
       <span>{ listPlaceholders }</span>
-    )
+    );
   }
 }
 
@@ -92,7 +172,7 @@ function buildPlaceholder(num) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 class Star extends React.Component {
@@ -105,7 +185,7 @@ class Star extends React.Component {
 
   handle_error(e) {
     console.error(e);
-    this.setState({error: true})
+    this.setState({error: true});
   }
 
   add_star(e) {
@@ -132,7 +212,7 @@ class Star extends React.Component {
     fetch("/remove_star", payload)
           .then( response => response.json() )
           .then( (data) => this.update_star(data) )
-          .catch( error => this.handle_error(error) )
+          .catch( error => this.handle_error(error) );
     this.setState({pending: true});
   }
 
@@ -150,7 +230,7 @@ class Star extends React.Component {
                        isStarred: false,
                        pending: false,
                        error: false});
-      }
+      };
     } else {
       this.setState({error: true});
       if (data.action == "add_star") {
@@ -158,7 +238,7 @@ class Star extends React.Component {
       } else if (data.action == "remove_star") {
         console.log("Unable to unstar repo " + data.repo_id + "."); 
       }
-    }
+    };
   }
 
   render() {
@@ -169,11 +249,11 @@ class Star extends React.Component {
 
     if (this.state.error) {
       className += " star-error";
-    }
+    };
 
     if (this.state.pending) {
       className += " star-spin";
-    }
+    };
 
     if (this.state.isStarred) {
       return (
@@ -183,7 +263,8 @@ class Star extends React.Component {
             {this.state.star}
         </span>
       );
-    }
+    };
+
     return (
       <span className={className} 
           onClick={this.add_star.bind(this)} 
@@ -205,7 +286,7 @@ class Dislike extends React.Component {
 
   handle_error(e) {
     console.error(e);
-    this.setState({error: true})
+    this.setState({error: true});
   }
 
   add_dislike(e) {
@@ -218,7 +299,7 @@ class Dislike extends React.Component {
     fetch("/add_dislike", payload)
           .then( response => response.json() )
           .then( (data) => this.update_dislike(data) )
-          .catch( error => this.handle_error(error) )
+          .catch( error => this.handle_error(error) );
     this.setState({pending: true});
   }
 
@@ -232,7 +313,7 @@ class Dislike extends React.Component {
     fetch("/remove_dislike", payload)
           .then( response => response.json() )
           .then( (data) => this.update_dislike(data) )
-          .catch( error => this.handle_error(error) )
+          .catch( error => this.handle_error(error) );
     this.setState({pending: true});
   }
 
@@ -250,7 +331,7 @@ class Dislike extends React.Component {
                        isDisliked: false,
                        pending: false,
                        error: false});
-      }
+      };
     } else {
       this.setState({error: true});
       if (data.action == "add_dislike") {
@@ -258,7 +339,7 @@ class Dislike extends React.Component {
       } else if (data.action == "remove_dislike") {
         console.log("Unable to undislike repo " + data.repo_id + "."); 
       }
-    }
+    };
   }
 
   render() {
@@ -269,14 +350,14 @@ class Dislike extends React.Component {
 
     if (this.state.error) {
       className += " dislike-error";
-    }
+    };
 
     if (this.state.pending) {
       className += " star-spin";
-    }
+    };
 
     if (this.state.isDisliked) {
-      className += " dislike-true"
+      className += " dislike-true";
       return (
         <span className={className} 
             onClick={this.remove_dislike.bind(this)} 
@@ -285,9 +366,9 @@ class Dislike extends React.Component {
             &nbsp;<span className="dislike-icon">&#10006;</span>
         </span>
       );
-    }
+    };
 
-    className += " dislike-false"
+    className += " dislike-false";
     return (
       <span className={className} 
           onClick={this.add_dislike.bind(this)} 

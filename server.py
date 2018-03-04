@@ -184,10 +184,25 @@ def get_repo_recs_json():
     if "user_id" not in session:
         return redirect("/")
 
-    limit = int(request.args.get("count", config.DEFAULT_COUNT))
-    offset = limit * (-1 + int(request.args.get("page", 1)))
     login = request.args.get("login")
     user_id = request.args.get("user_id")
+    limit = int(request.args.get("count", config.DEFAULT_COUNT))
+    page = int(request.args.get("page", 1))
+    offset = 2*limit * (-1 + page)
+    code = request.args.get("code")
+    print("Code boolean: ", code == session.get("code"))
+    print("Page boolean: ", page == session.get("page"))
+
+    if (code == session.get("code") and page == session.get("page")):
+        logging.warning(f"Code {code} and page {page} already requested. Ignoring request.")
+        return json.dumps({"Status": 404,
+                           "action": "get_repo_recs",
+                           "message": f"Code {code} and page {page} already requested. Ignoring request."})
+
+    print(f"Code {code} sessioncode {session['code']}, page {page}, sessionpage {session['page']}.")
+    session["code"] = code
+    session["page"] = page
+
     if user_id:
         user_id = int(user_id)
 
@@ -208,10 +223,16 @@ def get_repo_recs_json():
         user_id = session['user_id']
         logging.info(f"{session['user_id']}: Using logged in user for recs.")
 
+    print(f"Fetching recs for user {user_id}, page {page}, code {code}.")
+
     # Note start time to estimate time to complete process.
     times = [datetime.datetime.now()]
 
-    recs = rec.get_repo_suggestions(user_id)[offset:2*limit]
+    # import pdb; pdb.set_trace()
+    slice_end = offset + 2*limit
+    print(f"Slicing recs from {offset} to {slice_end}.")
+    recs = rec.get_repo_suggestions(user_id)
+    recs = recs[offset:slice_end]
     times.append(datetime.datetime.now())
     rec_delta = (times[1] - times[0]).total_seconds()
     logging.info(f"{user_id}: get_repo_suggestions: {rec_delta} seconds.")
@@ -228,7 +249,7 @@ def get_repo_recs_json():
     query_delta = (times[3] - times[2]).total_seconds()
     logging.info(f"{user_id}: Repo query: {query_delta} seconds.")
 
-    repos_json = db_utils.get_json_from_repos(repos[0:limit])
+    repos_json = db_utils.get_json_from_repos(repos[:limit])
     times.append(datetime.datetime.now())
     json_delta = (times[4] - times[3]).total_seconds()
     logging.info(f"{user_id}: get_json_from_repos: {json_delta} seconds.")
@@ -397,7 +418,7 @@ def update_user():
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
     # point that we invoke the DebugToolbarExtension
-    # app.debug = True
+    app.debug = True
 
     # make sure templates, etc. are not cached in debug mode
     app.jinja_env.auto_reload = app.debug
