@@ -9,7 +9,7 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
 ## Built With
 * Languages: Python, SQL (PostGRES), JavaScript, HTML, CSS
 * Frameworks: Flask, Jinja, [React](https://reactjs.org/), [Flask-SQLAlchemy](http://flask-sqlalchemy.pocoo.org/)
-* [w3.CSS](https://www.w3schools.com/w3css/)
+* [W3.CSS](https://www.w3schools.com/w3css/)
 * Libraries:
   * [PyGithub](http://pygithub.readthedocs.io)
   * [Progress](https://github.com/verigak/progress/) by @verigak
@@ -52,10 +52,10 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
 ## TODO:
 * Todo for 1.0:
   * Refine UI & CSS
-  * Add AJAX to request additional suggestions & infinite scroll
   * Build modal to display information about languages?
 * Plan features for 2.0:
   * Add AJAX to follow users
+  * Write route to show stars of a user
   * Write API requests instead of using PyGithub?
   * Build queue table and handlers instead of crawling recursively
   * Expand async calls to dynamically increase crawl breadth on login
