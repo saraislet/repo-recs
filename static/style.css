@@ -78,6 +78,10 @@ a:hover {
     height: 250px;
 }
 
+.repo-langs {
+    margin-bottom: 0px;
+}
+
 .star {
     display: inline-block;
     cursor: pointer;
