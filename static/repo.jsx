@@ -28,23 +28,42 @@ class RepoList extends React.Component {
   }
 
   getRepoRecs() {
-    console.log("getRepoRecs called");
+    console.log(`getRepoRecs called; requesting page ${pageNumber} with code ${this.props.code}`);
     this.setState({requestSent: true});
-    console.log(`pageNumber: ${this.state.pageNumber}`);
-    console.log(`code: ${this.props.code}`);
+    // console.log(`state.pageNumber: ${this.state.pageNumber}`);
+    // console.log(`variable pageNumber: ${pageNumber}`);
+    pageNumber += 1;
+    console.log(`new pageNumber: ${pageNumber}`);
+    // console.log(`code: ${this.props.code}`);
     let payload = {method: "GET",
                    credentials: "same-origin",
                    headers: new Headers({"Content-Type": "application/json"})};
-    fetch(`/get_repo_recs?page=${this.state.pageNumber}&code=${this.props.code}`, payload)
+    fetch(`/get_repo_recs?page=${pageNumber}&code=${this.props.code}`, payload)
       .then( response => response.json() )
       .then( (data) => this.handleData(data) );
   }
 
   handleData(data) {
     console.log("handleData called");
+
+    // let newRepoIDs = data.map( (repo) => getRepoID(repo) );
+    // repoIDs.concat(newRepoIDs);
+    let newData = [];
+
+    for (var i = data.length - 1; i >= 0; i--) {
+      if ( repoIDs.has(data[i].repo_id) ) {
+        console.log(`Oops, repo ${data[i].repo_id} already shown.`);
+      } else {
+        newData.push(data[i]);
+        repoIDs.add(data[i].repo_id);
+      }
+
+    }
+    
     let oldData = this.state.data;
-    let listRepos = data.map( (repo) => buildRepo(repo) );
-    let newData = oldData.concat(listRepos);
+    let listRepos = newData.map( (repo) => buildRepo(repo) );
+    newData = oldData.concat(listRepos);
+
     this.setState( (prevState) => (
                     {data: newData,
                      requestSent: false,
@@ -54,7 +73,7 @@ class RepoList extends React.Component {
   }
 
   handleScroll() {
-    console.log("handleScroll called");
+    // console.log("handleScroll called");
     // http://stackoverflow.com/questions/9439725/javascript-how-to-detect-if-browser-window-is-scrolled-to-bottom
     let scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
 
@@ -128,7 +147,7 @@ function buildLang(lang) {
 
 class PlaceholderList extends React.Component {
   render() {
-    let arr = Array.from(Array(9).keys());
+    let arr = Array.from(Array(15).keys());
     let listPlaceholders = arr.map( (num) => buildPlaceholder(num) );
     return (
       <span>{ listPlaceholders }</span>
@@ -347,13 +366,14 @@ class Dislike extends React.Component {
     let repo_id = this.props.repo_id;
 
     let className = "dislike";
+    let iconClassName = "dislike-icon";
 
     if (this.state.error) {
       className += " dislike-error";
     };
 
     if (this.state.pending) {
-      className += " star-spin";
+      iconClassName += " star-spin";
     };
 
     if (this.state.isDisliked) {
@@ -374,7 +394,7 @@ class Dislike extends React.Component {
           onClick={this.add_dislike.bind(this)} 
           repo_id={ repo_id }>
           <span className="dislike-text">I dislike this repo</span>
-          &nbsp;<span className="dislike-icon">&#10006;</span>
+          &nbsp;<span className={iconClassName}>&#10006;</span>
       </span>
     );
   }

@@ -2,6 +2,7 @@ let myData;
 let pageNumber = 1;
 let startLoad = new Date().getTime();
 let code;
+let repoIDs = new Set();
 
 window.onload = makeCalls;
 
@@ -12,7 +13,7 @@ ReactDOM.render(
 
 async function generateCode() {
     code = Math.random().toString(36).substring(2);
-    console.log(code);
+    // console.log(code);
     return code;
 }
 
@@ -20,7 +21,6 @@ function makeCalls() {
     generateCode()
         .then( thisCode => getRepoRecs(pageNumber, thisCode) )
         .then(updateUser);
-    // setTimeout(updateUser, 2000);
 }
 
 function updateUser() {
@@ -50,7 +50,7 @@ function getRepoRecs(pageNumber, thisCode) {
 
 function showRepoRecs(data) {
     myData = data;
-    pageNumber += 1;
+    repoIDs = new Set(data.map( (repo) => getRepoID(repo) ));
     renderRepoComponents(data);
     let endLoad = new Date().getTime();
     var delta = (endLoad - startLoad)/1000;
@@ -62,4 +62,8 @@ function renderRepoComponents(data) {
         <RepoList repos={ data } code={ code } />,
         document.getElementById("repo-recs")
     );
+}
+
+function getRepoID(repo) {
+    return repo.repo_id;
 }
