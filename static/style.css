@@ -2,31 +2,18 @@ a:hover {
     text-decoration-style: dotted;
 }
 
-p {
-    /*background-color: blue;*/
-    /*color: blue;*/
+#body {
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
-.flash {
+#auth {
     max-width: 500px;
 }
 
-.repo {
-    width: 400px;
-    min-height: 250px;
-    display: inline-block;
-    border-radius: 5px;
-}
-
-.repo header {
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-}
-
-.repo .repo-owner {
-    color: #ccc;
-    font-size: 80%;
-    font-weight: 100;
+.data-loading {
+    height: 300px;
+    text-align: center;
 }
 
 .dislike {
@@ -64,6 +51,33 @@ p {
     text-shadow: 0 0 8px #9ECFE4;
 }
 
+.flash {
+    max-width: 500px;
+}
+
+.repo {
+    width: 400px;
+    min-height: 250px;
+    display: inline-block;
+    vertical-align: top;
+    border-radius: 5px;
+}
+
+.repo header {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.repo .repo-owner {
+    color: #ccc;
+    font-size: 70%;
+    font-weight: 100;
+}
+
+.repo .user-repo {
+    height: 250px;
+}
+
 .star {
     display: inline-block;
     cursor: pointer;
@@ -94,15 +108,6 @@ p {
     to {
         transform:rotate(360deg);
     }
-}
-
-#body {
-    margin-left: 10px;
-    margin-right: 10px;
-}
-
-#auth {
-    max-width: 500px;
 }
 
 @keyframes placeHolderFrames{
