@@ -1,10 +1,8 @@
 class RepoList extends React.Component {
   constructor(props) {
-    console.log("constructor called");
     super(props);
     this.state = {data: [],
                   requestSent: false,
-                  pageNumber: 2,
                   count: 9};
 
     this.handleScroll = this.handleScroll.bind(this)
@@ -13,7 +11,6 @@ class RepoList extends React.Component {
   }
 
   componentDidMount() {
-    console.log("componentDidMount called");
     let repos = this.props.repos;
     let listRepos = repos.map( (repo) => buildRepo(repo) );
     this.setState({data: listRepos});
@@ -23,18 +20,14 @@ class RepoList extends React.Component {
   }
 
   componentWillUnmount() {
-    console.log("componentWillUnmount called");
     window.removeEventListener('scroll', this.handleScroll);
   }
 
   getRepoRecs() {
     console.log(`getRepoRecs called; requesting page ${pageNumber} with code ${this.props.code}`);
     this.setState({requestSent: true});
-    // console.log(`state.pageNumber: ${this.state.pageNumber}`);
-    // console.log(`variable pageNumber: ${pageNumber}`);
     pageNumber += 1;
-    console.log(`new pageNumber: ${pageNumber}`);
-    // console.log(`code: ${this.props.code}`);
+    // console.log(`new pageNumber: ${pageNumber}`);
     let payload = {method: "GET",
                    credentials: "same-origin",
                    headers: new Headers({"Content-Type": "application/json"})};
@@ -44,18 +37,14 @@ class RepoList extends React.Component {
   }
 
   handleData(data) {
-    console.log("handleData called");
-
-    // let newRepoIDs = data.map( (repo) => getRepoID(repo) );
-    // repoIDs.concat(newRepoIDs);
     let newData = [];
 
-    for (var i = data.length - 1; i >= 0; i--) {
-      if ( repoIDs.has(data[i].repo_id) ) {
-        console.log(`Oops, repo ${data[i].repo_id} already shown.`);
-      } else {
+    for (let i = 0; i < data.length; i++) {
+      if ( !repoIDs.has(data[i].repo_id) ) {
         newData.push(data[i]);
         repoIDs.add(data[i].repo_id);
+      } else {
+        // console.log(`Oops, repo ${data[i].repo_id} already shown.`);
       }
 
     }
@@ -67,26 +56,24 @@ class RepoList extends React.Component {
     this.setState( (prevState) => (
                     {data: newData,
                      requestSent: false,
-                     pageNumber: 1 + prevState.pageNumber
                     })
                   );
   }
 
   handleScroll() {
-    // console.log("handleScroll called");
     // http://stackoverflow.com/questions/9439725/javascript-how-to-detect-if-browser-window-is-scrolled-to-bottom
     let scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
+    // console.log("document.body.scrollTop: " + document.body.scrollTop)
 
-    if (scrollTop + 50 >= window.innerHeight && !this.state.requestSent) {
+    if (scrollTop + 1.5 * window.innerHeight > document.body.scrollHeight 
+        && !this.state.requestSent && pageNumber<5) {
       // bottom reached
-      console.log("bottom reached")
+      // console.log("bottom reached")
       setTimeout(this.getRepoRecs, 1);
     }
   }
 
   render() {
-    console.log("render called in RepoList");
-
     return (
       <div>
         <span onScroll={this.handleScroll.bind(this)}>
@@ -111,7 +98,7 @@ function buildRepo(repo) {
   let listLangs = null;
   if ( repo.langs.length > 0 ) {
     let languages = repo.langs.map( (lang) => buildLang(lang) );
-    listLangs = (<ul>{ languages.slice(0,3) }</ul>);
+    listLangs = (<ul className="repo-langs">{ languages.slice(0,3) }</ul>);
   };
 
   return (
