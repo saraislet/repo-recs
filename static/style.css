@@ -2,9 +2,14 @@ a:hover {
     text-decoration-style: dotted;
 }
 
+.nav a {
+    font-size: 15px;
+}
+
 #body {
     margin-left: 10px;
     margin-right: 10px;
+    font-size: 14px;
 }
 
 #auth {
@@ -21,6 +26,8 @@ a:hover {
     float: right;
     cursor: pointer;
     color: transparent;
+    position: relative;
+    right: 0;
 }
 
 .repo:hover .dislike {
@@ -61,6 +68,7 @@ a:hover {
     display: inline-block;
     vertical-align: top;
     border-radius: 5px;
+    border-color: #e5e6e9 #dfe0e4 #d0d1d5;
 }
 
 .repo header {
@@ -68,7 +76,7 @@ a:hover {
     border-top-right-radius: 5px;
 }
 
-.repo .repo-owner {
+.repo-owner {
     color: #ccc;
     font-size: 70%;
     font-weight: 100;
@@ -76,6 +84,18 @@ a:hover {
 
 .repo .user-repo {
     height: 250px;
+}
+
+.repo-footer {
+    position: absolute;
+    bottom: 0px;
+    width: 368px;
+    height: 65px;
+}
+
+.repo-body {
+    min-height: 200px;
+    position: relative;
 }
 
 .repo-langs {
@@ -127,7 +147,6 @@ a:hover {
     background: #fff;
     border: 1px solid;
     border-color: #e5e6e9 #dfe0e4 #d0d1d5;
-    padding: 12px;
     margin: 0 auto;
     max-width: 400px;
     min-height: 250px;
@@ -140,7 +159,7 @@ a:hover {
     animation-name: placeHolderFrames;
     animation-timing-function: linear;
     background: #f6f7f8;
-    background: linear-gradient(to right, #e8eced 8%, #dfe5e7 18%, #e8eced 33%); /*9ECFE4 B0E6FE d6f3ff ebf9ff 92A5AD e8eced dfe5e7*/
+    background: linear-gradient(to right, #e8eced 8%, #d0d9dc 18%, #e8eced 33%); /*9ECFE4 B0E6FE d6f3ff ebf9ff 92A5AD e8eced dfe5e7*/
     background-size: 400px 230px;
     height: 200px;
     position: relative;
@@ -152,11 +171,13 @@ a:hover {
 }
 
 header .mask-bg {
-    background: #607D8B;
+    background: #3F51B5;
     position: absolute;
 }
 
 .mask-bg.header-top {
+    border-top-left-radius: 5px!important;
+    border-top-right-radius: 5px!important;
     top: 0;
     left: 0px;
     right: 0;

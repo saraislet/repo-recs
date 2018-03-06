@@ -20,13 +20,22 @@
   {% endif %}
 
   {% if "user_id" in session %}
-    <h1>{{ user.name }}</h1>
-    <p>{{ user.login }}</p>
+    <h3 className="w3-container w3-indigo">
+      <a className="repo-owner" href="https://www.github.com/{{ user.login }}">
+        @{{ user.login }}
+      </a>
+      &nbsp;/&nbsp;
+      <b><span className="repo-name" href="https://www.github.com/{{ user.login }}">
+        {{ user.name }}
+      </span></b>
+    </h3>
+    <h1></h1>
+    <p></p>
 
     {% for repo in repos %}
     <div class="w3-card-4 w3-margin repo user-repo">
-      <header class="w3-container w3-blue-grey">
-        <h3 class="w3-container w3-blue-grey">
+      <header class="w3-container w3-indigo">
+        <h3 class="w3-container w3-indigo">
           <a className="repo-owner" href="{{repo.url}}">
             {{repo.name}}
           </a>

@@ -2,18 +2,17 @@ let myData;
 let pageNumber = 1;
 let startLoad = new Date().getTime();
 let code;
-let repoIDs = new Set();
+let repoIDs;
 
 window.onload = makeCalls;
 
 ReactDOM.render(
-    <PlaceholderList/>,
+    <PlaceholderList count={12} />,
     document.getElementById("repo-recs")
 );
 
 async function generateCode() {
     code = Math.random().toString(36).substring(2);
-    // console.log(code);
     return code;
 }
 
@@ -39,7 +38,6 @@ function updateUser() {
 }
 
 function getRepoRecs(pageNumber, thisCode) {
-    console.log(`Requesting repo recs with code ${thisCode}.`)
     let payload = {method: "GET",
                    credentials: "same-origin",
                    headers: new Headers({"Content-Type": "application/json"})};

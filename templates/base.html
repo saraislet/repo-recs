@@ -3,24 +3,44 @@
       <title>Repo Recommender</title>
       <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
       <link rel=stylesheet type=text/css href="/static/style.css">
+      <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
   </head>
   <body>
-    <nav class="w3-bar w3-light-grey w3-card">
-      <span class="w3-bar-item w3-mobile w3-blue-grey nav-brand">Repo Recommender</span>
-      <a href="/" class="w3-bar-item w3-button w3-mobile">Home</a>
-      <a href="/about" class="w3-bar-item hover-subtle w3-button w3-mobile">About</a>
+    <nav class="w3-bar w3-black w3-card">
+      <a href="/" class="w3-bar-item w3-button w3-mobile w3-hide-small w3-hover-none w3-hover-text-red nav-brand w3-text-red">Repo Recommender</a>
+      <a href="/about" class="w3-bar-item w3-button w3-mobile w3-hide-small w3-hide-medium w3-hover-none w3-hover-text-light-blue">About</a>
       {% if "user_id" in session %}
-        <a href="/recs" class="w3-bar-item hover-subtle w3-button w3-mobile">Recommendations</a>
-        <a href="/logout" class="w3-bar-item w3-right hover-subtle w3-button w3-pale-red w3-mobile">
-          Logout
+        <a href="/recs" class="w3-bar-item w3-button w3-mobile w3-hide-small w3-hide-medium w3-hover-none w3-hover-text-light-blue">Recommendations</a>
+        <a href="/logout" class="w3-bar-item w3-right w3-button w3-mobile w3-hide-small w3-hide-medium w3-hover-none w3-hover-text-light-blue">
+          <i class="fas fa-sign-out-alt"></i> Logout
         </a>
-        <a href="/me" class="w3-bar-item w3-right hover-subtle w3-button w3-mobile">
-          Profile
+        <a href="/me" class="w3-bar-item w3-right w3-button w3-mobile w3-hide-small w3-hide-medium w3-hover-none w3-hover-text-light-blue">
+          <i class="fas fa-user-circle"></i> Profile
         </a>
       {% endif %}
       {% if "user_id" not in session %}
-        <a href="/login" class="w3-bar-item w3-right hover-subtle w3-button w3-pale-red w3-mobile">
-          Login
+        <a href="/login" class="w3-bar-item w3-right w3-button w3-mobile w3-hide-small w3-hide-medium w3-hover-none w3-hover-text-light-blue">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+      {% endif %}
+      <a href="javascript:void(0)" class="w3-bar-item w3-button w3-mobile w3-right w3-hide-large" onclick="showNav()">&#9776;</a>
+    </nav>
+
+    <nav id="nav-small" class="w3-bar w3-black w3-card w3-hide w3-hide-large">
+      <a href="/" class="w3-bar-item w3-button w3-mobile w3-hover-none w3-hover-text-red nav-brand w3-text-red w3-hide-medium">Repo Recommender</a>
+      <a href="/about" class="w3-bar-item w3-button w3-mobile w3-hover-none w3-hover-text-light-blue">About</a>
+      {% if "user_id" in session %}
+        <a href="/recs" class="w3-bar-item w3-button w3-mobile w3-hover-none w3-hover-text-light-blue">Recommendations</a>
+        <a href="/logout" class="w3-bar-item w3-right w3-button w3-mobile w3-hover-none w3-hover-text-light-blue">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+        <a href="/me" class="w3-bar-item w3-right w3-button w3-mobile w3-hover-none w3-hover-text-light-blue">
+          <i class="fas fa-user-circle"></i> Profile
+        </a>
+      {% endif %}
+      {% if "user_id" not in session %}
+        <a href="/login" class="w3-bar-item w3-right w3-button w3-mobile w3-hover-none w3-hover-text-light-blue">
+          <i class="fas fa-sign-in-alt"></i> Login
         </a>
       {% endif %}
     </nav>
@@ -52,5 +72,16 @@
       </div>
     </section>
 
+
+    <script>
+    function showNav() {
+        var x = document.getElementById("nav-small");
+        if (x.className.indexOf("w3-show") == -1) {
+            x.className += " w3-show";
+        } else { 
+            x.className = x.className.replace(" w3-show", "");
+        }
+    }
+    </script>
   </body>
 </html>

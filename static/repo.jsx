@@ -3,7 +3,7 @@ class RepoList extends React.Component {
     super(props);
     this.state = {data: [],
                   requestSent: false,
-                  count: 9};
+                  count: 15};
 
     this.handleScroll = this.handleScroll.bind(this)
     this.getRepoRecs = this.getRepoRecs.bind(this)
@@ -66,7 +66,7 @@ class RepoList extends React.Component {
     // console.log("document.body.scrollTop: " + document.body.scrollTop)
 
     if (scrollTop + 1.5 * window.innerHeight > document.body.scrollHeight 
-        && !this.state.requestSent && pageNumber<5) {
+        && !this.state.requestSent) {
       // bottom reached
       // console.log("bottom reached")
       setTimeout(this.getRepoRecs, 1);
@@ -83,9 +83,9 @@ class RepoList extends React.Component {
         {(() => {
           if (this.state.requestSent) {
             return (
-              <div className="data-loading">
-                Loading data...
-              </div>
+              // <div className="data-loading">
+                <PlaceholderList count={9} />
+              // </div>
             );
           };
         })()}
@@ -103,8 +103,8 @@ function buildRepo(repo) {
 
   return (
     <div key={ repo.repo_id } className="w3-card-4 w3-margin repo">
-      <header className="w3-container w3-blue-grey">
-        <h3 className="w3-container w3-blue-grey">
+      <header className="w3-container w3-indigo">
+        <h3 className="w3-container w3-indigo">
           <a className="repo-owner" href={"https://www.github.com/" + repo.owner_login }>
             @{ repo.owner_login } 
           </a>
@@ -114,12 +114,14 @@ function buildRepo(repo) {
           </a></b>
         </h3>
       </header>
-      <div className="w3-container">
+      <div className="w3-container repo-body">
         <p className="repo-description">{ repo.description }</p>
         { listLangs }
         <div className="repo-footer">
-          <Star isStarred="" repo_id={ repo.repo_id }/>
-          <Dislike isDisliked="" repo_id={ repo.repo_id }/>
+          <span className="repo-actions">
+            <Star isStarred="" repo_id={ repo.repo_id }/>
+            <Dislike isDisliked="" repo_id={ repo.repo_id }/>
+          </span>
         </div>
       </div>
     </div>
@@ -133,8 +135,12 @@ function buildLang(lang) {
 }
 
 class PlaceholderList extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
   render() {
-    let arr = Array.from(Array(15).keys());
+    let arr = Array.from(Array(this.props.count).keys());
     let listPlaceholders = arr.map( (num) => buildPlaceholder(num) );
     return (
       <span>{ listPlaceholders }</span>
