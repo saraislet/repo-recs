@@ -1,24 +1,17 @@
 {% extends 'base.html' %}
 {% block content %}
 
-  <h1>Repositories you might like:</h1>
+  <h2>Repositories you might like:</h2>
 
-  {% for repo in repos %}
-  <div class="w3-card-4 w3-margin repo">
-    <header class="w3-container w3-blue-grey">
-      <h2>{{repo.name}}</h2>
-    </header>
-    <div class="w3-container">
-      <p>{{repo.description}}</p>
-      <ul>
-        {% for lang in repo.repo_langs %}
-        <li>
-          {{ lang.language.language_name }}: {{ lang.language_bytes }}
-        </li>
-        {% endfor %}
-      </ul>
+  <section id="repo-recs">
+    Recommendations will show here.
+  </section>
+
+  {% if "access_token" in session %}
+    <div id="details" data-access-token="{{ session['access_token'] }}">
     </div>
-  </div>      
-  {% endfor %}
+  {% endif %}
 
+  <script src="/static/repo.jsx" type="text/jsx"></script>
+  <script src="/static/recs.jsx" type="text/jsx" ></script>
 {% endblock %}
