@@ -177,7 +177,7 @@ def get_repo_recs_react():
         user_id = session["user_id"]
         print("Using logged in user {} for recs.".format(user_id))
 
-    return render_template("repo_recs_json.html",
+    return render_template("repo_recs.html",
                            user_id=user_id,
                            count=limit,
                            page=page)
