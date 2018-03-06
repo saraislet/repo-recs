@@ -19,12 +19,17 @@ app = Flask(__name__)
 #TODO: Generate random string for secret_key before deploying.
 app.secret_key = "temp"
 # Don't let undefined variables fail silently.
-app.jinja_env.undefined = StrictUndefined
+# app.jinja_env.undefined = StrictUndefined
 
 
 @app.route("/")
 def main():
-    return render_template("home.html")
+    if "user_id" not in session:
+        return render_template("home.html")
+
+    user = User.query.get(session["user_id"])
+    compliment = requests.get("https://hello.sar.ai").text
+    return render_template("home.html", user=user, compliment=compliment)
 
 
 @app.route("/about")
