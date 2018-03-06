@@ -6,7 +6,7 @@
       <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
   </head>
   <body>
-    <nav class="w3-bar w3-top w3-black w3-card-4">
+    <nav class="w3-bar w3-top w3-black w3-card-4 w3-mobile">
       <a href="/" class="w3-bar-item w3-button w3-mobile w3-hide-small w3-hover-none w3-hover-text-red nav-brand w3-text-red">Repo Recommender</a>
       <a href="/about" class="w3-bar-item w3-button w3-mobile w3-hide-small w3-hide-medium w3-hover-none w3-hover-text-light-blue">About</a>
       {% if "user_id" in session %}
@@ -26,16 +26,16 @@
       <a href="javascript:void(0)" class="w3-bar-item w3-button w3-mobile w3-right w3-hide-large" onclick="showNav()">&#9776;</a>
     </nav>
 
-    <nav id="nav-small" class="w3-bar w3-black w3-card w3-hide w3-hide-large">
-      <a href="/" class="w3-bar-item w3-button w3-mobile w3-hover-none w3-hover-text-red nav-brand w3-text-red w3-hide-medium">Repo Recommender</a>
+    <nav id="nav-small" class="w3-bar-block w3-mobile w3-black w3-card w3-hide w3-hide-large">
+      <a href="/" class="w3-bar-item w3-button w3-mobile w3-hover-none w3-hover-text-red  w3-text-red w3-hide-medium">Repo Recommender</a>
       <a href="/about" class="w3-bar-item w3-button w3-mobile w3-hover-none w3-hover-text-light-blue">About</a>
       {% if "user_id" in session %}
         <a href="/recs" class="w3-bar-item w3-button w3-mobile w3-hover-none w3-hover-text-light-blue">Recommendations</a>
-        <a href="/logout" class="w3-bar-item w3-right w3-button w3-mobile w3-hover-none w3-hover-text-light-blue">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </a>
         <a href="/me" class="w3-bar-item w3-right w3-button w3-mobile w3-hover-none w3-hover-text-light-blue">
           <i class="fas fa-user-circle"></i> Profile
+        </a>
+        <a href="/logout" class="w3-bar-item w3-right w3-button w3-mobile w3-hover-none w3-hover-text-light-blue">
+          <i class="fas fa-sign-out-alt"></i> Logout
         </a>
       {% endif %}
       {% if "user_id" not in session %}
