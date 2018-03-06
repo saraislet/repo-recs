@@ -50,9 +50,6 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
         └── user_info.html       # Details about a user and their repositories
 
 ## TODO:
-* Todo for 1.0:
-  * Refine UI & CSS
-  * Build modal to display information about languages?
 * Plan features for 2.0:
   * Add AJAX to follow users
   * Write route to show stars of a user
