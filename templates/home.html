@@ -1,10 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h1>Repo Recommender</h1>
-<p>Welcome!</p>
+<h2>Repo Recommender</h2>
+{% if "user_id" in session %}
+  <p>Welcome, {{user.name}}!</p>
+{% endif %}
+{% if compliment %}
+  <p>{{compliment}}</p>
+{% endif %}
 
 {% if "user_id" not in session %}
+<p>Welcome!</p>
   <div id="auth" class="w3-card-4 w3-margin">
     <header class="w3-container w3-blue-grey">
       <h2>Authenticate with Github</h2>
