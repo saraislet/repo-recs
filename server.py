@@ -8,12 +8,28 @@ from model import (Repo, User, Follower, Account,
                    Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db)
+from timing import timelog
 
 if not os.environ.get("CLIENT_ID"):
     import secrets2
     print(os.environ.get("CLIENT_ID"))
 
-logging.basicConfig(filename='server.log',level=logging.DEBUG,format="%(asctime)s | %(message)s")
+# logging.basicConfig(filename='server.log',level=logging.DEBUG,format="%(asctime)s | %(message)s")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+# create file handler which logs even debug messages
+fh = logging.FileHandler('timelogs.log')
+fh.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.ERROR)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+# add the handlers to the logger
+logger.addHandler(fh)
+logger.addHandler(ch)
+
+
 
 app = Flask(__name__)
 #TODO: Generate random string for secret_key before deploying.
@@ -23,6 +39,7 @@ app.secret_key = "temp"
 
 
 @app.route("/")
+@timelog(logger)
 def main():
     if "user_id" not in session:
         return render_template("home.html")
@@ -75,7 +92,7 @@ def get_user_profile(user_id="", login=""):
                            user=user,
                            repos=user.repos)
 
-
+# 
 @app.route("/logout")
 def logout():
     if "user_id" in session:
@@ -184,6 +201,7 @@ def get_repo_recs_react():
 
 
 @app.route("/get_repo_recs", methods=["GET"])
+@timelog(logger)
 def get_repo_recs_json():
     """Return JSON of repo recommendations for a user_id or login."""
     if "user_id" not in session:
@@ -195,8 +213,6 @@ def get_repo_recs_json():
     page = int(request.args.get("page", 1))
     offset = 2*limit * (-1 + page)
     code = request.args.get("code")
-    print("Code boolean: ", code == session.get("code"))
-    print("Page boolean: ", page == session.get("page"))
 
     if (code == session.get("code") and page == session.get("page")):
         logging.warning(f"Code {code} and page {page} already requested. Ignoring request.")
@@ -389,8 +405,8 @@ def remove_dislike():
                        "action": "remove_dislike",
                        "repo_id": repo_id})
 
-
 @app.route("/update_user", methods=["POST"])
+@timelog(logger)
 def update_user():
     user_id = session.get("user_id")
 
@@ -421,6 +437,9 @@ def update_user():
 
 
 if __name__ == "__main__":
+    # import logging.config
+    # logging.config.fileConfig('/path/to/logging.conf')
+
     # We have to set debug=True here, since it has to be True at the
     # point that we invoke the DebugToolbarExtension
     app.debug = True

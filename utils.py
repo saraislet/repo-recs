@@ -1,4 +1,4 @@
-import datetime
+import datetime, logging
 import github
 from github import GithubException
 from progress.bar import ShadyBar
@@ -9,11 +9,28 @@ from model import (Repo, User, Follower, Account,
                    Watcher, Contributor,
                    Language, RepoLanguage,
                    db, connect_to_db)
+from timing import timelog
+
 # TODO: try Tenacity library
+
+timelogger = logging.getLogger(__name__)
+timelogger.setLevel(logging.DEBUG)
+# create file handler which logs even debug messages
+fh = logging.FileHandler('timelogs_utils.log')
+fh.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.ERROR)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+# add the handlers to the logger
+timelogger.addHandler(fh)
+timelogger.addHandler(ch)
 
 progress_bar_suffix = "%(index)d/%(max)d, estimated %(eta)d seconds remaining."
 spinner_suffix = "%(index)d added, avg %(avg)ds each, %(elapsed)d time elapsed."
 
+@timelog(timelogger)
 def get_repo_object_from_input(repo_info):
     # If the argument is not a PyGithub repo object, get the PyGithub repo object:
     if isinstance(repo_info, github.Repository.Repository):
@@ -32,7 +49,7 @@ def get_repo_object_from_input(repo_info):
     # Return PyGithub repository object.
     return api_utils.get_repo_from_api(repo_id)
 
-
+@timelog(timelogger)
 def add_repo(repo_info, num_layers_to_crawl=0, force_refresh=False):
     """Query API, and update repo details in db."""
 
@@ -80,6 +97,7 @@ def add_repo(repo_info, num_layers_to_crawl=0, force_refresh=False):
         # print("Error in add_repo({}): ".format(repo_info), e)
 
 
+@timelog(timelogger)
 def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0, force_refresh=False):
     """Add repo, and add all users connected to that repo.
 
@@ -124,6 +142,7 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0, force_refresh=Fal
                                       1+num_layers_to_crawl)
 
 
+@timelog(timelogger)
 def update_repo(repo, num_layers_to_crawl=0, force_refresh=False):
     """Update repo if it hasn't been updated in more than 7 days."""
     this_repo = Repo.query.get(repo.id)
@@ -157,6 +176,7 @@ def update_repo(repo, num_layers_to_crawl=0, force_refresh=False):
     return
 
 
+@timelog(timelogger)
 def get_user_object_from_input(user_info):
     if (isinstance(user_info, github.NamedUser.NamedUser) or 
         isinstance(user_info, github.AuthenticatedUser.AuthenticatedUser)):
@@ -188,6 +208,7 @@ def get_user_object_from_input(user_info):
     return api_utils.get_user_from_api(login)
 
 
+@timelog(timelogger)
 def add_user(user_info, num_layers_to_crawl=0):
     """Query API, and update user details in db."""
     try:    
@@ -220,6 +241,7 @@ def add_user(user_info, num_layers_to_crawl=0):
     #     print("Error in add_user({}): ".format(user_info), e)        
 
 
+@timelog(timelogger)
 def crawl_from_user_to_repos(user, num_layers_to_crawl=0, force_refresh=False):
     """Add user, and add all repos connected to that user.
     Adds repos that are starred.
@@ -268,6 +290,7 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0, force_refresh=False):
                                       1+num_layers_to_crawl)
 
 
+@timelog(timelogger)
 def update_user(user, num_layers_to_crawl=0, force_refresh=False):
     """Update user if it hasn't been updated in more than 7 days."""
     this_user = User.query.get(user.id)
@@ -291,6 +314,7 @@ def update_user(user, num_layers_to_crawl=0, force_refresh=False):
     return
 
 
+@timelog(timelogger)
 def update_user_repos(user, num_layers_to_crawl=0, force_refresh=False):
     """Update user's repositories if they haven't been updated in more than 7 days."""
 
@@ -317,6 +341,7 @@ def update_user_repos(user, num_layers_to_crawl=0, force_refresh=False):
     return
 
 
+@timelog(timelogger)
 def add_stars(repo, num_layers_to_crawl=0, force_refresh=False):
     """Add all stargazers of repo to db."""
     stars = api_utils.get_stargazers_from_api(repo)
@@ -355,6 +380,7 @@ def add_stars(repo, num_layers_to_crawl=0, force_refresh=False):
     return num_users
 
 
+@timelog(timelogger)
 def add_watchers(repo, num_layers_to_crawl=0):
     """Add all watchers of repo to db."""
     watchers = repo.get_watchers()
@@ -393,6 +419,7 @@ def add_watchers(repo, num_layers_to_crawl=0):
     return num_users
 
 
+@timelog(timelogger)
 def add_contributors(repo, num_layers_to_crawl=0):
     """Add all contributors of repo to db."""
     contributors = repo.get_contributors()
@@ -432,6 +459,7 @@ def add_contributors(repo, num_layers_to_crawl=0):
     return num_users
 
 
+@timelog(timelogger)
 def add_starred_repos(user, num_layers_to_crawl=0, force_refresh=False):
     """Add all repos starred by user to db."""
     stars = api_utils.get_starred_repos_from_api(user)
