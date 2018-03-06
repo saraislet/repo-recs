@@ -87,6 +87,15 @@ a:hover {
     height: 250px;
 }
 
+.repo-body {
+    min-height: 200px;
+    position: relative;
+}
+
+.repo-description {
+    cursor: default;
+}
+
 .repo-footer {
     position: absolute;
     bottom: 0px;
@@ -94,13 +103,9 @@ a:hover {
     height: 65px;
 }
 
-.repo-body {
-    min-height: 200px;
-    position: relative;
-}
-
 .repo-langs {
     margin-bottom: 0px;
+    cursor: default;
 }
 
 .star {

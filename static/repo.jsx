@@ -105,11 +105,15 @@ function buildRepo(repo) {
     <div key={ repo.repo_id } className="w3-card-4 w3-margin repo">
       <header className="w3-container w3-indigo">
         <h3 className="w3-container w3-indigo">
-          <a className="repo-owner" href={"https://www.github.com/" + repo.owner_login }>
+          <a className="repo-owner"
+             target="_blank" 
+             href={"https://www.github.com/" + repo.owner_login }>
             @{ repo.owner_login } 
           </a>
           &nbsp;/&nbsp;
-          <b><a className="repo-name" href={"" + repo.url }>
+          <b><a className="repo-name"
+                target="_blank" 
+                href={"" + repo.url }>
             { repo.name }
           </a></b>
         </h3>
