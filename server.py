@@ -13,11 +13,8 @@ if not os.environ.get("CLIENT_ID"):
     import secrets2
     print(os.environ.get("CLIENT_ID"))
 
-logging.basicConfig(filename='server.log',level=logging.DEBUG,format="%(asctime)s | %(message)s")
-
 app = Flask(__name__)
-#TODO: Generate random string for secret_key before deploying.
-app.secret_key = "temp"
+app.secret_key = "|/tGf*uu`]oBkg498D7d"
 # Don't let undefined variables fail silently.
 # app.jinja_env.undefined = StrictUndefined
 
@@ -443,10 +440,10 @@ def get_graph():
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
     # point that we invoke the DebugToolbarExtension
-    app.debug = True
+    # app.debug = True
 
     # make sure templates, etc. are not cached in debug mode
-    app.jinja_env.auto_reload = app.debug
+    # app.jinja_env.auto_reload = app.debug
 
     # Use the DebugToolbar
     # DebugToolbarExtension(app)
