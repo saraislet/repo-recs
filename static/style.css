@@ -96,6 +96,10 @@ a:hover {
     cursor: default;
 }
 
+.repo-disliked {
+    opacity: 0.5;
+}
+
 .repo-footer {
     position: absolute;
     bottom: 0px;
@@ -106,6 +110,8 @@ a:hover {
 .repo-langs {
     margin-bottom: 0px;
     cursor: default;
+    padding-left: 60px;
+    padding-bottom: 10px;
 }
 
 .star {
@@ -117,7 +123,6 @@ a:hover {
 
 .star:hover {
     text-shadow: 0 0 8px #9ECFE4;
-    /*color: #5e6788;*/
 }
 
 .star-error {
