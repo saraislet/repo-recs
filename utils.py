@@ -1,7 +1,7 @@
 import datetime
 import github
 from github import GithubException
-from progress.bar import ShadyBar
+# from progress.bar import ShadyBar
 import config, api_utils, db_utils
 from model import (Repo, User, Follower, Account,
                    Stargazer, Dislike,
@@ -114,7 +114,7 @@ def crawl_from_repo_to_users(repo_info, num_layers_to_crawl=0, force_refresh=Fal
     end_time = datetime.datetime.now()
     time_delta = (end_time - start_time).total_seconds()
     time_delta = round(time_delta, 3)
-    print("\r\x1b[K\n {} users loaded in {} seconds."
+    print("{} users loaded in {} seconds."
           .format(num_users, time_delta))
 
     db_utils.set_last_crawled_in_repo(repo.id,
@@ -179,8 +179,7 @@ def get_user_object_from_input(user_info):
         login = user_info.login
 
     else:
-        raise TypeError("""expected id, string, or PyGithub user object, 
-                           {} found""".format(type(user_info)))
+        raise TypeError("expected id, string, or PyGithub user object, {type(user_info)} found")
     
     # Get the PyGithub user object.
     return api_utils.get_user_from_api(login)
@@ -256,7 +255,7 @@ def crawl_from_user_to_repos(user, num_layers_to_crawl=0, force_refresh=False):
     end_time = datetime.datetime.now()
     time_delta = (end_time - start_time).total_seconds()
     time_delta = round(time_delta, 3)
-    print("\r\x1b[K" + "\n{} repos loaded for {} in {} seconds."
+    print("{} repos loaded for {} in {} seconds."
           .format(num_repos,
                   user.login,
                   time_delta))
@@ -324,11 +323,11 @@ def add_stars(repo, num_layers_to_crawl=0, force_refresh=False):
     num_users = 0
     count = 0
 
-    msg = "Adding {} stargazers: ".format(num_stars)
-    bar = ShadyBar(msg, max=num_stars, suffix=progress_bar_suffix)
+    # msg = "Adding {} stargazers: ".format(num_stars)
+    # bar = ShadyBar(msg, max=num_stars, suffix=progress_bar_suffix)
 
     for star in stars:
-        bar.next()
+        # bar.next()
         count += 1
         if (num_users > config.MAX_CRAWL_COUNT_NEW
             or count > config.MAX_CRAWL_COUNT_TOTAL):
@@ -351,7 +350,7 @@ def add_stars(repo, num_layers_to_crawl=0, force_refresh=False):
         db.session.add(this_star)
         db.session.commit()
 
-    bar.finish()
+    # bar.finish()
     return num_users
 
 
@@ -362,11 +361,11 @@ def add_watchers(repo, num_layers_to_crawl=0):
     num_users = 0
     count = 0
 
-    msg = "Adding {} watchers: ".format(num_watchers)
-    bar = ShadyBar(msg, max=num_watchers, suffix=progress_bar_suffix)
+    # msg = "Adding {} watchers: ".format(num_watchers)
+    # bar = ShadyBar(msg, max=num_watchers, suffix=progress_bar_suffix)
 
     for watcher in watchers:
-        bar.next()
+        # bar.next()
         count += 1
         if (num_users > config.MAX_CRAWL_COUNT_NEW
             or count > config.MAX_CRAWL_COUNT_TOTAL):
@@ -389,7 +388,7 @@ def add_watchers(repo, num_layers_to_crawl=0):
         db.session.commit()
 
 
-    bar.finish()
+    # bar.finish()
     return num_users
 
 
@@ -400,7 +399,7 @@ def add_contributors(repo, num_layers_to_crawl=0):
     num_users = 0
     count = 0
 
-    msg = "Adding contributors: "#.format(num_contributors)
+    # msg = "Adding contributors: "#.format(num_contributors)
 
     for contributor in contributors:
         count += 1
@@ -434,7 +433,7 @@ def add_starred_repos(user, num_layers_to_crawl=0, force_refresh=False):
     num_repos = 0
     count = 0
 
-    msg = "Adding starred repositories for " + user.login + ": "
+    # msg = "Adding starred repositories for " + user.login + ": "
 
     for star in stars:
         count += 1
