@@ -4,7 +4,7 @@
 
 See [Product Requirements Document](https://docs.google.com/document/d/1Y0B8MoOj3lp8YS9QbsYC92vsY3Bjg_gF1gXMOUPOnRw) on Google Docs.
 
-The Repository Recommendation engine uses a Github-authenticated user's stars as features to recommend other repositories or users to follow, using low-rank matrix approximation (may later add kNN or collaborative filtering with additional features).
+The Repository Recommendation engine uses a Github-authenticated user's stars as features to recommend other repositories to follow, using low-rank matrix approximation (may later add kNN or collaborative filtering with additional features).
 
 ## Built With
 * Languages: Python, SQL (PostGRES), JavaScript, HTML, CSS
@@ -53,6 +53,8 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
 * Plan features for 2.0:
   * Add AJAX to follow users
   * Write route to show stars of a user
+  * Add like/dislike feature to "Like" a repo without starring
+    * I.e., "see more like this" / "see less like this"
   * Write API requests instead of using PyGithub?
   * Build queue table and handlers instead of crawling recursively
   * Expand async calls to dynamically increase crawl breadth on login
