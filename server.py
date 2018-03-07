@@ -195,8 +195,6 @@ def get_repo_recs_json():
     page = int(request.args.get("page", 1))
     offset = 2*limit * (-1 + page)
     code = request.args.get("code")
-    print("Code boolean: ", code == session.get("code"))
-    print("Page boolean: ", page == session.get("page"))
 
     if (code == session.get("code") and page == session.get("page")):
         logging.warning(f"Code {code} and page {page} already requested. Ignoring request.")
@@ -204,7 +202,6 @@ def get_repo_recs_json():
                            "action": "get_repo_recs",
                            "message": f"Code {code} and page {page} already requested. Ignoring request."})
 
-    print(f"Code {code} sessioncode {session['code']}, page {page}, sessionpage {session['page']}.")
     session["code"] = code
     session["page"] = page
 
@@ -235,7 +232,7 @@ def get_repo_recs_json():
 
     # import pdb; pdb.set_trace()
     slice_end = offset + 2*limit
-    print(f"Slicing recs from {offset} to {slice_end}.")
+    print(f"{session['user_id']}: Slicing recs from {offset} to {slice_end}.")
     recs = rec.get_repo_suggestions(user_id)
     recs = recs[offset:slice_end]
     times.append(datetime.datetime.now())
@@ -393,6 +390,15 @@ def remove_dislike():
 @app.route("/update_user", methods=["POST"])
 def update_user():
     user_id = session.get("user_id")
+    crawl_depth = 1
+    # import pdb; pdb.set_trace()
+    data = request.get_json()
+    if data.get("crawlFurther"):
+        #TODO: implement dynamic crawl
+        # E.g., fetch depth/breadth of crawl and increase
+        # Or pass crawl_further to utils functions and evaluate within add_stars, etc.
+        crawl_depth = 2
+        print(f"{session['user_id']}: Crawling further.")
 
     if user_id:
         user_id = int(user_id)
@@ -406,9 +412,11 @@ def update_user():
             print(f"User {user_id} repos updated.")
             message = "User updated."
 
-        if not db_utils.is_last_crawled_in_user_good(user_id, 1, crawled_since):
+        if not db_utils.is_last_crawled_in_user_good(user_id, crawl_depth, crawled_since):
             print(f"Updating user {user_id}.")
-            utils.crawl_from_user_to_repos(user_id, force_refresh=True)
+            utils.crawl_from_user_to_repos(user_id,
+                                           num_layers_to_crawl=crawl_depth,
+                                           force_refresh=False)
             print(f"User {user_id} updated.")
             message = "User updated."
 
