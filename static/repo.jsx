@@ -16,7 +16,6 @@ class RepoList extends React.Component {
     this.setState({data: listRepos});
 
     window.addEventListener('scroll', this.handleScroll);
-    // this.getRepoRecs();
   }
 
   componentWillUnmount() {
@@ -27,7 +26,6 @@ class RepoList extends React.Component {
     console.log(`getRepoRecs called; requesting page ${pageNumber} with code ${this.props.code}`);
     this.setState({requestSent: true});
     pageNumber += 1;
-    // console.log(`new pageNumber: ${pageNumber}`);
     let payload = {method: "GET",
                    credentials: "same-origin",
                    headers: new Headers({"Content-Type": "application/json"})};
@@ -63,12 +61,9 @@ class RepoList extends React.Component {
   handleScroll() {
     // http://stackoverflow.com/questions/9439725/javascript-how-to-detect-if-browser-window-is-scrolled-to-bottom
     let scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
-    // console.log("document.body.scrollTop: " + document.body.scrollTop)
 
     if (scrollTop + 1.5 * window.innerHeight > document.body.scrollHeight 
         && !this.state.requestSent) {
-      // bottom reached
-      // console.log("bottom reached")
       setTimeout(this.getRepoRecs, 1);
     }
   }
@@ -83,9 +78,7 @@ class RepoList extends React.Component {
         {(() => {
           if (this.state.requestSent) {
             return (
-              // <div className="data-loading">
-                <PlaceholderList count={9} />
-              // </div>
+              <PlaceholderList count={9} />
             );
           };
         })()}
@@ -95,41 +88,68 @@ class RepoList extends React.Component {
 }
 
 function buildRepo(repo) {
-  let listLangs = null;
-  if ( repo.langs.length > 0 ) {
-    let languages = repo.langs.map( (lang) => buildLang(lang) );
-    listLangs = (<ul className="repo-langs">{ languages.slice(0,3) }</ul>);
-  };
-
   return (
-    <div key={ repo.repo_id } className="w3-card-4 w3-margin repo">
-      <header className="w3-container w3-indigo">
-        <h3 className="w3-container w3-indigo">
-          <a className="repo-owner"
-             target="_blank" 
-             href={"https://www.github.com/" + repo.owner_login }>
-            @{ repo.owner_login } 
-          </a>
-          &nbsp;/&nbsp;
-          <b><a className="repo-name"
-                target="_blank" 
-                href={"" + repo.url }>
-            { repo.name }
-          </a></b>
-        </h3>
-      </header>
-      <div className="w3-container repo-body">
-        <p className="repo-description">{ repo.description }</p>
-        { listLangs }
-        <div className="repo-footer">
-          <span className="repo-actions">
-            <Star isStarred="" repo_id={ repo.repo_id }/>
-            <Dislike isDisliked="" repo_id={ repo.repo_id }/>
-          </span>
+    <Repo repo={repo} key={ repo.repo_id } />
+  );
+}
+
+class Repo extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {isDisliked: false};
+    this.toggleDislike = this.toggleDislike.bind(this)
+  }
+
+  toggleDislike(bool) {
+    this.setState({isDisliked: bool});
+  }
+
+  render() {
+    let listLangs = null;
+    if ( this.props.repo.langs.length > 0 ) {
+      let languages = this.props.repo.langs.map( (lang) => buildLang(lang) );
+      listLangs = (<ul className="repo-langs">{ languages.slice(0,3) }</ul>);
+    };
+
+    let repoClassName = "w3-card-4 w3-margin repo";
+
+    if ( this.state.isDisliked ) {
+      repoClassName += " repo-disliked"
+    }
+
+    return (
+      <div key={ this.props.repo.repo_id } className={ repoClassName }>
+        <header className="w3-container w3-indigo">
+          <h3 className="w3-container w3-indigo">
+            <a className="repo-owner"
+               target="_blank" 
+               href={"https://www.github.com/" + this.props.repo.owner_login }>
+              @{ this.props.repo.owner_login } 
+            </a>
+            &nbsp;/&nbsp;
+            <b><a className="repo-name"
+                  target="_blank" 
+                  href={"" + this.props.repo.url }>
+              { this.props.repo.name }
+            </a></b>
+          </h3>
+        </header>
+        <div className="w3-container repo-body">
+          <p className="repo-description">{ this.props.repo.description }</p>
+          { listLangs }
+          <div className="repo-footer">
+            <span className="repo-actions">
+              <Star isStarred=""
+                    repo_id={ this.props.repo.repo_id }/>
+              <Dislike isDisliked=""
+                       repo_id={ this.props.repo.repo_id }
+                       toggleDislike = {this.toggleDislike} />
+            </span>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 function buildLang(lang) {
@@ -341,12 +361,14 @@ class Dislike extends React.Component {
                        isDisliked: true,
                        pending: false,
                        error: false});
+        this.props.toggleDislike(true);
       } else if (data.action == "remove_dislike") {
         console.log("Successfully undisliked repo " + data.repo_id + "."); 
         this.setState({star: "X&#9747;&#10006;",
                        isDisliked: false,
                        pending: false,
                        error: false});
+        this.props.toggleDislike(false);
       };
     } else {
       this.setState({error: true});
