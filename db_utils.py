@@ -1,5 +1,6 @@
 import datetime, json
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload, subqueryload
 from sqlalchemy.sql import text
 from model import (Repo, User, Follower, Account,
                    Stargazer, Dislike,
@@ -7,6 +8,7 @@ from model import (Repo, User, Follower, Account,
                    Language, RepoLanguage,
                    db, connect_to_db)
 import api_utils, config
+import random
 
 
 def get_ratings_from_db(debug=False):
@@ -28,6 +30,65 @@ def get_ratings_from_db(debug=False):
     ratings = db.session.execute( text(query) ).fetchall()
 
     return ratings
+
+
+def build_graph():
+    """Return dictionary of graph nodes: source, target, names"""
+    stars = Stargazer.query.options(joinedload(Stargazer.user),
+                                    joinedload(Stargazer.repo)).all()
+    
+    nodes = []
+    for star in stars:
+        node1 = {"source": star.repo_id,
+                 "target": star.user_id,
+                 "source_name": star.repo.name,
+                 "target_name": star.user.login,
+                 "type": "repo-to-user"}
+        node2 = {"source": star.user_id,
+                 "target": star.repo_id,
+                 "source_name": star.user.login,
+                 "target_name": star.repo.name,
+                 "type": "user-to-repo"}
+        nodes.append(node1)
+        nodes.append(node2)
+
+    count = 4000
+    skip = 20
+    start = random.randrange(len(nodes) - count)
+    return nodes[start:start+count:skip]
+
+def build_graph1():
+    """Return dictionary of graph nodes: source, target, names"""
+    me = User.query.filter_by(login="Saraislet").first()
+    cap = 20
+    stars = set((me.stars_sec)[:cap])
+    stars_to_add = set()
+
+    for star in stars:
+        new_stars = (star.repo.stargazers_sec)[:cap]
+        stars_to_add.update(new_stars)
+    stars.update(stars_to_add)
+
+    nodes = []
+    for star in stars:
+        node1 = {"source": star.repo_id,
+                 "target": star.user_id,
+                 "source_name": star.repo.name,
+                 "target_name": star.user.login,
+                 "type": "repo-to-user"}
+        node2 = {"source": star.user_id,
+                 "target": star.repo_id,
+                 "source_name": star.user.login,
+                 "target_name": star.repo.name,
+                 "type": "user-to-repo"}
+        nodes.append(node1)
+        # nodes.append(node2)
+
+    # count = 4000
+    # skip = 20
+    # start = random.randrange(len(nodes) - count)
+    # return nodes[start:start+count:skip]
+    return nodes
 
 
 def get_json_from_repos(repos):

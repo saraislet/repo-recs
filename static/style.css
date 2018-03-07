@@ -2,6 +2,19 @@ a:hover {
     text-decoration-style: dotted;
 }
 
+/*#bg {
+    width: auto;
+    height: auto;
+    position: absolute;
+    left:0;
+    top:0;
+}*/
+
+/*body {
+    background-image: url(/static/bg.jpg) no-repeat center center;
+    background-size: cover;
+}*/
+
 .nav a {
     font-size: 15px;
 }
@@ -291,3 +304,40 @@ header .mask-bg {
     width: auto;
 }
 
+
+/*Graph styles for d3*/
+
+
+.link {
+    fill: none;
+    stroke: #88A;
+    stroke-width: 0.3px;
+}
+
+.link.repo-to-user {
+    stroke: #88A;
+}
+
+.link.repo.user-to-repo {
+    stroke-dasharray: 0,2 1;
+    stroke: #A88;
+}
+
+circle {
+    fill: #544;
+    stroke: #333;
+    stroke-width: 0.5px;
+}
+
+text {
+    font: 10px sans-serif;
+    pointer-events: none;
+    text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+}
+
+#d3 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: -1;
+}

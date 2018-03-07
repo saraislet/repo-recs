@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{% block style %}
+{% endblock %}
+
 {% block content %}
 
 <h2>Repo Recommender</h2>
@@ -8,14 +11,16 @@
 {% if compliment %}
   <p>{{compliment}}</p>
 {% endif %}
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="/static/graph.js"></script>
 
 {% if "user_id" not in session %}
 <p>Welcome!</p>
-  <div id="auth" class="w3-card-4 w3-margin">
+  <div id="auth" class="w3-card-4 w3-margin w3-round">
     <header class="w3-container w3-blue-grey">
       <h2>Authenticate with Github</h2>
     </header>
-    <div class="w3-container">
+    <div class="w3-container w3-white">
       <p>
         Please <a href="/login">click here</a> 
         to authenticate with Github OAuth.</p>
@@ -26,6 +31,9 @@
       </p>
     </div>
   </div>
+  <div id="bg"></div>
+
+
 {% endif %}
 
 {% endblock %}

@@ -152,6 +152,9 @@ class Stargazer(db.Model):
     repo_id = db.Column(db.ForeignKey("repos.repo_id"), nullable=False)
     user_id = db.Column(db.ForeignKey("users.user_id"), nullable=False)
 
+    user = db.relationship("User", backref=db.backref("stars_sec"))
+    repo = db.relationship("Repo", backref=db.backref("stargazers_sec"))
+
     __table_args__ = ( db.UniqueConstraint("user_id",
                                            "repo_id",
                                            name="uniq_star_user_repo_id"), )
