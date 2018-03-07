@@ -435,6 +435,11 @@ def update_user():
                        "message": "No user_id."})
 
 
+@app.route("/get_graph", methods=["GET"])
+def get_graph():
+    return json.dumps(db_utils.build_graph1())
+
+
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
     # point that we invoke the DebugToolbarExtension
