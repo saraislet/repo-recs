@@ -14,6 +14,7 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
   * [PyGithub](http://pygithub.readthedocs.io)
   * [Progress](https://github.com/verigak/progress/) by @verigak
   * [SciPy SVDS](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.svds.html), [pandas](https://pandas.pydata.org/), [numpy](http://www.numpy.org/)
+  * [d3](https://d3js.org/)
 
 ### Key algorithms/methods
 * [Low-rank matrix approximation](https://en.wikipedia.org/wiki/Low-rank_matrix_approximations)
@@ -63,6 +64,7 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
 * [SciPy Sparse Single Value Decomposition](http://scipy.github.io/devdocs/generated/scipy.sparse.linalg.svds.html#scipy.sparse.linalg.svds)
 * [Matrix Factorization for Movie Recommendations in Python](https://beckernick.github.io/matrix-factorization-recommender/)
 * [How the Facebook content placeholder works](https://cloudcannon.com/deconstructions/2014/11/15/facebook-content-placeholder-deconstruction.html)
+* [d3](http://bl.ocks.org/mbostock/1153292)
 
 ## Acknowledgements
 * [Katie Byers @lobsterkatie](https://github.com/lobsterkatie) — Wrote update_pkey_seqs.py
