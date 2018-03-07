@@ -2,7 +2,6 @@ import datetime
 import github
 from github import GithubException
 from progress.bar import ShadyBar
-from progress.spinner import Spinner
 import config, api_utils, db_utils
 from model import (Repo, User, Follower, Account,
                    Stargazer, Dislike,
@@ -12,7 +11,6 @@ from model import (Repo, User, Follower, Account,
 # TODO: try Tenacity library
 
 progress_bar_suffix = "%(index)d/%(max)d, estimated %(eta)d seconds remaining."
-spinner_suffix = "%(index)d added, avg %(avg)ds each, %(elapsed)d time elapsed."
 
 def get_repo_object_from_input(repo_info):
     # If the argument is not a PyGithub repo object, get the PyGithub repo object:
@@ -401,10 +399,8 @@ def add_contributors(repo, num_layers_to_crawl=0):
     count = 0
 
     msg = "Adding contributors: "#.format(num_contributors)
-    bar = Spinner(msg, suffix=spinner_suffix)
 
     for contributor in contributors:
-        bar.next()
         count += 1
         if (num_users > config.MAX_CRAWL_COUNT_NEW
             or count > config.MAX_CRAWL_COUNT_TOTAL):
@@ -427,8 +423,6 @@ def add_contributors(repo, num_layers_to_crawl=0):
         db.session.add(this_contributor)
         db.session.commit()
 
-
-    bar.finish()
     return num_users
 
 
@@ -439,10 +433,8 @@ def add_starred_repos(user, num_layers_to_crawl=0, force_refresh=False):
     count = 0
 
     msg = "Adding starred repositories for " + user.login + ": "
-    bar = Spinner(msg, suffix=spinner_suffix)
 
     for star in stars:
-        bar.next()
         count += 1
         if (num_repos > config.MAX_CRAWL_COUNT_NEW
             or count > config.MAX_CRAWL_COUNT_TOTAL):
@@ -467,7 +459,6 @@ def add_starred_repos(user, num_layers_to_crawl=0, force_refresh=False):
         db.session.add(this_star)
         db.session.commit()
 
-    bar.finish()
     return num_repos
 
 

@@ -112,6 +112,26 @@ def is_last_crawled_in_user_good(user_id, crawl_depth, crawled_since=None):
     return True
 
 
+def is_last_crawled_user_repos_good(user_id, crawled_since=None):
+    """Return boolean identifying if user must be crawled further now."""
+    # If a crawl soon after has a lower depth, we don't need to crawl,
+    # but a deeper crawl will need to crawl from here further.
+
+    this_user = User.query.get(user_id)
+    if not this_user.last_crawled_user_repos:
+        return False
+
+    if (crawled_since
+        and crawled_since > this_user.last_crawled_user_repos):
+        return False
+
+    delta = datetime.datetime.now().timestamp() - this_user.last_crawled_user_repos.timestamp()
+    if delta/60/60/24 > min(config.REFRESH_UPDATE_USER_REPOS_DAYS, REFRESH_UPDATE_USER_DAYS):
+        return False
+
+    return True
+
+
 def set_last_crawled_in_repo(repo_id, last_crawled_time, last_crawled_depth):
     """Set last_crawled to now() in repo."""
     # If a crawl soon after has a lower depth, we don't need to crawl,

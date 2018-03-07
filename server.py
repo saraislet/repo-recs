@@ -395,25 +395,33 @@ def update_user():
     user_id = session.get("user_id")
 
     if user_id:
-      user_id = int(user_id)
+        user_id = int(user_id)
 
-      crawled_since = (datetime.datetime.now()
-                       - datetime.timedelta(days = config.REFRESH_UPDATE_USER_REPOS_DAYS))
+        crawled_since = (datetime.datetime.now()
+                   - datetime.timedelta(days = config.REFRESH_UPDATE_USER_REPOS_DAYS))
 
-      if not db_utils.is_last_crawled_in_user_good(user_id, 1, crawled_since):
-          print(f"Updating user {user_id}.")
-          utils.update_user_repos(user_id, force_refresh=True)
-          utils.crawl_from_user_to_repos(user_id, force_refresh=True)
-          print(f"User {user_id} updated.")
+        import pdb; pdb.set_trace()
+        if not db_utils.is_last_crawled_user_repos_good(user_id, crawled_since):
+            print(f"Updating repos for user {user_id}.")
+            utils.update_user_repos(user_id, force_refresh=True)
+            print(f"User {user_id} repos updated.")
+            message = "User updated."
 
-          return json.dumps({"Status": 200,
-                             "action": "update_user",
-                             "message": "User updated."})
+        if not db_utils.is_last_crawled_user_repos_good(user_id, crawled_since):
+            print(f"Updating user {user_id}.")
+            utils.crawl_from_user_to_repos(user_id, force_refresh=True)
+            print(f"User {user_id} updated.")
+            message = "User updated."
 
-      print(f"User {user_id} is up-to-date.")
-      return json.dumps({"Status": 200,
-                         "action": "update_user",
-                         "message": "User up-to-date."})
+        if message:
+            return json.dumps({"Status": 200,
+                               "action": "update_user",
+                               "message": "User updated."})
+
+        print(f"User {user_id} is up-to-date.")
+        return json.dumps({"Status": 200,
+                           "action": "update_user",
+                           "message": "User up-to-date."})
 
     return json.dumps({"Status": 400,
                        "action": "update_user",

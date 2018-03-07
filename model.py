@@ -86,6 +86,7 @@ class User(db.Model):
                            default=datetime.datetime.utcnow)    
     last_crawled = db.Column(db.DateTime(), nullable=True)
     last_crawled_depth = db.Column(db.Integer, nullable=True)
+    last_crawled_user_repos = db.Column(db.DateTime(), nullable=True)
     
     followers = db.relationship("User",
                                 secondary="followers",
