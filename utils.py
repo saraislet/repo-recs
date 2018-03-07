@@ -308,6 +308,8 @@ def update_user_repos(user, num_layers_to_crawl=0, force_refresh=False):
             print(f"Updating repo: {repo.name}")
             update_repo(repo, force_refresh=force_refresh)
 
+    db_utils.set_last_crawled_user_repos(user.id, datetime.datetime.now())
+
     #TODO: A queue might be more robust than a recursive process.
     if num_layers_to_crawl:
         crawl_from_user_to_repos(user, num_layers_to_crawl)

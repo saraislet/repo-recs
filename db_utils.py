@@ -90,6 +90,15 @@ def set_last_crawled_in_user(user_id, last_crawled_time, last_crawled_depth):
     db.session.commit()
 
 
+def set_last_crawled_user_repos(user_id, last_crawled_time):
+    """Set last_crawled_user_repos to now() in user."""
+    this_user = User.query.get(user_id)
+    this_user.last_crawled_user_repos = last_crawled_time
+
+    db.session.add(this_user)
+    db.session.commit()
+
+
 def is_last_crawled_in_user_good(user_id, crawl_depth, crawled_since=None):
     """Return boolean identifying if user must be crawled further now."""
     # If a crawl soon after has a lower depth, we don't need to crawl,
@@ -126,7 +135,7 @@ def is_last_crawled_user_repos_good(user_id, crawled_since=None):
         return False
 
     delta = datetime.datetime.now().timestamp() - this_user.last_crawled_user_repos.timestamp()
-    if delta/60/60/24 > min(config.REFRESH_UPDATE_USER_REPOS_DAYS, REFRESH_UPDATE_USER_DAYS):
+    if delta/60/60/24 > config.REFRESH_UPDATE_USER_REPOS_DAYS:
         return False
 
     return True
