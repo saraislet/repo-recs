@@ -1,4 +1,4 @@
-import datetime, json, logging, os, requests, urllib
+import datetime, json, os, requests, urllib
 from flask import (Flask, flash, redirect, render_template,
                    request, session)
 from jinja2 import StrictUndefined
@@ -194,7 +194,7 @@ def get_repo_recs_json():
     code = request.args.get("code")
 
     if (code == session.get("code") and page == session.get("page")):
-        logging.warning(f"Code {code} and page {page} already requested. Ignoring request.")
+        printing(f"Code {code} and page {page} already requested. Ignoring request.")
         return json.dumps({"Status": 404,
                            "action": "get_repo_recs",
                            "message": f"Code {code} and page {page} already requested. Ignoring request."})
@@ -209,7 +209,7 @@ def get_repo_recs_json():
         if not utils.is_user_in_db(user_id):
             flash("No user found with id {}.".format(user_id))
             return redirect("/") 
-        logging.info(f"{session['user_id']}: Using user_id for recs.")
+        print(f"{session['user_id']}: Using user_id for recs.")
         
     # Login parameter takes precedence.
     if login:
@@ -217,10 +217,10 @@ def get_repo_recs_json():
             flash("No user found with login {}.".format(login))
             return redirect("/")
         user_id = User.query.filter_by(login=login).first().user_id
-        logging.info(f"{session['user_id']}: Using login {login} for recs.")
+        print(f"{session['user_id']}: Using login {login} for recs.")
     elif not user_id:
         user_id = session['user_id']
-        logging.info(f"{session['user_id']}: Using logged in user for recs.")
+        print(f"{session['user_id']}: Using logged in user for recs.")
 
     print(f"Fetching recs for user {user_id}, page {page}, code {code}.")
 
@@ -234,24 +234,24 @@ def get_repo_recs_json():
     recs = recs[offset:slice_end]
     times.append(datetime.datetime.now())
     rec_delta = (times[1] - times[0]).total_seconds()
-    logging.info(f"{user_id}: get_repo_suggestions: {rec_delta} seconds.")
+    print(f"{user_id}: get_repo_suggestions: {rec_delta} seconds.")
     
     filtered_recs = db_utils.filter_stars_from_repo_ids(recs, user_id)
     times.append(datetime.datetime.now())
     filter_delta = (times[2] - times[1]).total_seconds()
-    logging.info(f"{user_id}: filter_stars_from_repo_ids: {filter_delta} seconds.")
+    print(f"{user_id}: filter_stars_from_repo_ids: {filter_delta} seconds.")
 
     repos_query = Repo.query.filter(Repo.repo_id.in_(filtered_recs),
                                     Repo.owner_id != user_id)
     repos = repos_query.all()
     times.append(datetime.datetime.now())
     query_delta = (times[3] - times[2]).total_seconds()
-    logging.info(f"{user_id}: Repo query: {query_delta} seconds.")
+    print(f"{user_id}: Repo query: {query_delta} seconds.")
 
     repos_json = db_utils.get_json_from_repos(repos[:limit])
     times.append(datetime.datetime.now())
     json_delta = (times[4] - times[3]).total_seconds()
-    logging.info(f"{user_id}: get_json_from_repos: {json_delta} seconds.")
+    print(f"{user_id}: get_json_from_repos: {json_delta} seconds.")
     return repos_json
 
 
