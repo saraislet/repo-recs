@@ -194,7 +194,7 @@ def get_repo_recs_json():
     code = request.args.get("code")
 
     if (code == session.get("code") and page == session.get("page")):
-        printing(f"Code {code} and page {page} already requested. Ignoring request.")
+        print(f"Code {code} and page {page} already requested. Ignoring request.")
         return json.dumps({"Status": 404,
                            "action": "get_repo_recs",
                            "message": f"Code {code} and page {page} already requested. Ignoring request."})
