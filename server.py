@@ -98,6 +98,7 @@ def login():
     p = requests.Request("GET", 
                          config.GITHUB_AUTH_REQUEST_CODE_URL,
                          params=payload).prepare()
+    print(p.url)
     return redirect(p.url)
 
 
@@ -105,7 +106,8 @@ def login():
 def auth():
     if "user_id" in session:
         return redirect("/")
-
+ 
+    print(request.args)
     code = request.args.get("code")
     state = request.args.get("state")
 
