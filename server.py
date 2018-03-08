@@ -87,7 +87,7 @@ def login():
     if "user_id" in session:
         return redirect("/")
 
-    session["state"] = "foo"
+    session["state"] = os.environ.get("STATE")
     #TODO: set this to random string when OAuth is working.
     payload = {"client_id": os.environ.get("CLIENT_ID"),
                "state": session["state"],
