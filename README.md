@@ -1,10 +1,12 @@
-# Repository Recommendations
+# Repo Recommender
 
 [![Coverage Status](https://coveralls.io/repos/github/Saraislet/repo-recs/badge.svg?branch=master)](https://coveralls.io/github/Saraislet/repo-recs?branch=master)
 
 See [Product Requirements Document](https://docs.google.com/document/d/1Y0B8MoOj3lp8YS9QbsYC92vsY3Bjg_gF1gXMOUPOnRw) on Google Docs.
 
-The Repository Recommendation engine uses a Github-authenticated user's stars as features to recommend other repositories to follow, using low-rank matrix approximation (may later add kNN or collaborative filtering with additional features).
+The Repository Recommender engine uses a Github-authenticated user's stars as features to recommend other repositories to follow, using low-rank matrix approximation (may later add kNN or collaborative filtering with additional features).
+
+![Repo Recommender Demo Screencast](https://media.giphy.com/media/1jWBZonnxK4WgOpxhR/giphy.gif)
 
 ## Built With
 * Languages: Python, SQL (PostGRES), JavaScript, HTML, CSS
@@ -33,12 +35,15 @@ The Repository Recommendation engine uses a Github-authenticated user's stars as
     ├── server.py                # Flask routes
     ├── test_db_utils.py         # Tests for db_utils.py
     ├── test_model.py            # Tests for model.py
+    ├── test_rec.py              # Tests for rec.py
     ├── test_server.py           # Tests for server.py and front-end
     ├── test_utils.py            # Tests for utils.py
+    ├── timelog.py               # Decorator for logging
     ├── update_pkey_seqs.py      # Script by Katie Byers to introspect DB & set autoincrementing primary keys
     ├── utils.py                 # Helper methods for server.py
     │
     ├── static
+    │   ├── graph.js             # d3 for graph on homepage
     │   ├── recs.jsx             # AJAX requests and functions to render React components
     │   ├── repo.jsx             # React components for displaying repositories
     │   └── style.css            # CSS
