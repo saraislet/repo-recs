@@ -163,6 +163,11 @@ class PlaceholderList extends React.Component {
     super(props);
   }
 
+  componentDidMount() {
+    makeCalls()
+  }
+
+
   render() {
     let arr = Array.from(Array(this.props.count).keys());
     let listPlaceholders = arr.map( (num) => buildPlaceholder(num) );

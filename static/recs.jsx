@@ -3,8 +3,10 @@ let pageNumber = 1;
 let startLoad = new Date().getTime();
 let code;
 let repoIDs;
+let callsMade = false;
 
-window.onload = makeCalls;
+// window.onload = makeCalls;
+
 
 ReactDOM.render(
     <PlaceholderList count={12} />,
@@ -17,6 +19,7 @@ async function generateCode() {
 }
 
 function makeCalls() {
+    callsMade = true;
     generateCode()
         .then( thisCode => getRepoRecs(pageNumber, thisCode) )
         .then(updateUser);
