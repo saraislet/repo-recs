@@ -91,10 +91,7 @@ def login():
     #TODO: set this to random string when OAuth is working.
     payload = {"client_id": os.environ.get("CLIENT_ID"),
                "state": session["state"],
-               "redirect_uri": os.environ.get("AUTH_CALLBACK_URL"),
                "scope": config.OAUTH_SCOPE}
-    print(os.environ.get("AUTH_CALLBACK_URL"))
-    # print("Preparing OAuth get code request.")
     p = requests.Request("GET", 
                          config.GITHUB_AUTH_REQUEST_CODE_URL,
                          params=payload).prepare()
@@ -121,7 +118,6 @@ def auth():
                "client_secret": os.environ.get("CLIENT_SECRET"),
                "code": code,
                "state": session["state"],
-               "redirect_uri": os.environ.get("AUTH_CALLBACK_URL"),
                "scope": config.OAUTH_SCOPE}
 
     r = requests.post(config.GITHUB_AUTH_REQUEST_TOKEN_URL, params=payload)
