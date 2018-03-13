@@ -4,7 +4,7 @@
 
 See [Product Requirements Document](https://docs.google.com/document/d/1Y0B8MoOj3lp8YS9QbsYC92vsY3Bjg_gF1gXMOUPOnRw) on Google Docs.
 
-The Repository Recommender engine uses a Github-authenticated user's stars as features to recommend other repositories to follow, using low-rank matrix approximation (may later add kNN or collaborative filtering with additional features).
+The Repository Recommender system uses a Github-authenticated user's stars as machine learning features to recommend other repositories to follow, using low-rank matrix approximation.
 
 ![Repo Recommender Demo Screencast](https://media.giphy.com/media/1jWBZonnxK4WgOpxhR/giphy.gif)
 
@@ -51,8 +51,7 @@ The Repository Recommender engine uses a Github-authenticated user's stars as fe
     └── templates
         ├── base.html            # Template (includes navbar, header, & footer)
         ├── home.html            # Homepage
-        ├── repo_recs.html       # Repo recommendations loaded with Jinja
-        ├── repo_recs_json.html  # Repo recommendations rendered with React 
+        ├── repo_recs.html       # Repo recommendations rendered with React components
         └── user_info.html       # Details about a user and their repositories
 
 ## TODO:
