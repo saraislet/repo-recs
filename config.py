@@ -13,6 +13,7 @@ DEFAULT_COUNT = 15
 DB_URI = "postgresql:///git_data"
 TEST_DB_URI = "postgresql:///git_test"
 OAUTH_SCOPE = "user user:follow read:user public_repo"
+OAUTH_SCOPE_READ_ONLY = ""
 ENDPOINT = "https://api.github.com"
 GITHUB_AUTH_REQUEST_CODE_URL = "https://github.com/login/oauth/authorize"
 GITHUB_AUTH_REQUEST_TOKEN_URL = "https://github.com/login/oauth/access_token"

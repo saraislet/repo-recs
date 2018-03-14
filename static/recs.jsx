@@ -4,9 +4,9 @@ let startLoad = new Date().getTime();
 let code;
 let repoIDs;
 let callsMade = false;
+let scope = document.getElementById("details").dataset.scope;
 
 // window.onload = makeCalls;
-
 
 ReactDOM.render(
     <PlaceholderList count={12} />,

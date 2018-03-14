@@ -26,7 +26,9 @@ def main():
 
     user = User.query.get(session["user_id"])
     compliment = requests.get("https://hello.sar.ai").text
-    return render_template("home.html", user=user, compliment=compliment)
+    return render_template("home.html",
+                           user=user,
+                           compliment=compliment)
 
 
 @app.route("/about")
@@ -82,16 +84,23 @@ def logout():
     return redirect("/")
 
 
-@app.route("/login")
+@app.route("/login", methods=["GET"])
 def login():
     if "user_id" in session:
         return redirect("/")
 
+
     session["state"] = os.environ.get("STATE")
     #TODO: set this to random string when OAuth is working.
     payload = {"client_id": os.environ.get("CLIENT_ID"),
-               "state": session["state"],
-               "scope": config.OAUTH_SCOPE}
+               "state": session["state"]}
+
+    # Unless user includes a scope, default to read-only public data.
+    user_scope = request.args.get("scope")
+    if user_scope:
+        payload["scope"] = config.OAUTH_SCOPE
+        session["scope"] = config.OAUTH_SCOPE
+
     p = requests.Request("GET", 
                          config.GITHUB_AUTH_REQUEST_CODE_URL,
                          params=payload).prepare()
@@ -104,7 +113,6 @@ def auth():
     if "user_id" in session:
         return redirect("/")
  
-    print(request.args)
     code = request.args.get("code")
     state = request.args.get("state")
 
@@ -113,15 +121,15 @@ def auth():
                  please try again.""")
         return redirect("/")
 
-    print("Preparing OAuth post request for access token.")
     payload = {"client_id": os.environ.get("CLIENT_ID"),
                "client_secret": os.environ.get("CLIENT_SECRET"),
                "code": code,
-               "state": session["state"],
-               "scope": config.OAUTH_SCOPE}
+               "state": session["state"]}
+    # Unless user includes a scope, default to read-only public data.
+    if "scope" in session:
+        payload["scope"] = config.OAUTH_SCOPE
 
     r = requests.post(config.GITHUB_AUTH_REQUEST_TOKEN_URL, params=payload)
-    print(r.text)
     access_token =  urllib.parse.parse_qs(r.text).get("access_token")
     if not access_token:
         flash("""Oops. We couldn't authorize your Github account; 
@@ -145,6 +153,7 @@ def get_repo_recs_react():
     if "user_id" not in session:
         return redirect("/")
 
+    scope = session.get("scope")
     limit = int(request.args.get("count", config.DEFAULT_COUNT))
     # offset = limit * (-1 + int(request.args.get("page", 1)))
     page = int(request.args.get("page", 1))
@@ -175,7 +184,8 @@ def get_repo_recs_react():
     return render_template("repo_recs.html",
                            user_id=user_id,
                            count=limit,
-                           page=page)
+                           page=page,
+                           scope=scope)
 
 
 @app.route("/get_repo_recs", methods=["GET"])

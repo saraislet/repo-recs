@@ -17,17 +17,20 @@
 {% if "user_id" not in session %}
 <p>Welcome!</p>
   <div id="auth" class="w3-card-4 w3-margin w3-round">
-    <header class="w3-container w3-blue-grey">
+    <header class="w3-container w3-indigo">
       <h2>Authenticate with Github</h2>
     </header>
     <div class="w3-container w3-white">
       <p>
-        Please <a href="/login">click here</a> 
+        Please <a href="/login?scope=true">click here</a> 
         to authenticate with Github OAuth.</p>
       <p>
         <i>To view your profile details, follow users, or 
         star/watch repositories, Repo Recommender needs access to
         read your profile and to update your follows.</i>
+      </p>
+      <p>
+        To authenticate with read-only access, <a href="/login">click here</a>.
       </p>
     </div>
   </div>
