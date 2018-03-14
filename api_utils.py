@@ -7,7 +7,6 @@ if not os.environ.get("CLIENT_ID"):
     print(os.environ.get("CLIENT_ID"))
 
 def get_auth_api(access_token):
-    print(f"Access token: {access_token[:5]}...")
     return github.Github(access_token,
                          client_id=config.CLIENT_ID,
                          client_secret=os.environ.get("CLIENT_SECRET"))
