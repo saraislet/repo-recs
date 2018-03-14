@@ -118,13 +118,13 @@ class Repo extends React.Component {
     }
 
     let star;
-    if ( scope ) {
+    if ( scope && scope != "None" ) {
       star = ( <Star isStarred=""
                      repo_id={ this.props.repo.repo_id }/> )      
     } else {
       star = <span></span>
     }
-    
+
     return (
       <div key={ this.props.repo.repo_id } className={ repoClassName }>
         <header className="w3-container w3-indigo">
@@ -151,7 +151,6 @@ class Repo extends React.Component {
               <Dislike isDisliked=""
                        repo_id={ this.props.repo.repo_id }
                        toggleDislike = {this.toggleDislike} />
-              }
             </span>
           </div>
         </div>
