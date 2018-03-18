@@ -400,7 +400,7 @@ def update_user():
     data = request.get_json()
 
     # Note start time to estimate time to complete process.
-    times = [time.time.now()]
+    times = [datetime.datetime.now()]
 
     if data.get("crawlFurther"):
         #TODO: implement dynamic crawl
@@ -420,7 +420,7 @@ def update_user():
             utils.update_user_repos(user_id, force_refresh=True)
 
             # Log time to complete update_user_repos:
-            times.append(time.time.now())
+            times.append(datetime.datetime.now())
             delta = (times[-1] - times[-2]).total_seconds()
             print(f"{user_id}: update_user_repos: {delta} seconds.")
 
@@ -433,7 +433,7 @@ def update_user():
                                            force_refresh=False)
 
             # Log time to complete crawl_from_user_to_repos:
-            times.append(time.time.now())
+            times.append(datetime.datetime.now())
             delta = (times[-1] - times[-2]).total_seconds()
             print(f"{user_id}: crawl_from_user_to_repos({crawl_depth}): {delta} seconds.")
 
