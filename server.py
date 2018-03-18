@@ -11,7 +11,7 @@ from model import (Repo, User, Follower, Account,
 
 if not os.environ.get("CLIENT_ID"):
     import secrets2
-    print(os.environ.get("CLIENT_ID"))
+    logging.debug(os.environ.get("CLIENT_ID"))
 
 app = Flask(__name__)
 app.secret_key = "|/tGf*uu`]oBkg498D7d"
@@ -104,7 +104,7 @@ def login():
     p = requests.Request("GET", 
                          config.GITHUB_AUTH_REQUEST_CODE_URL,
                          params=payload).prepare()
-    print(p.url)
+    # logging.debug(p.url)
     return redirect(p.url)
 
 
@@ -166,7 +166,7 @@ def get_repo_recs_react():
         if not utils.is_user_in_db(user_id):
             flash("No user found with id {}.".format(user_id))
             return redirect("/") 
-        print("Using user_id {} for recs.".format(user_id))
+        logging.debug("Using user_id {} for recs.".format(user_id))
         
 
     # Login parameter takes precedence.
@@ -175,11 +175,11 @@ def get_repo_recs_react():
             flash("No user found with login {}.".format(login))
             return redirect("/")
         user_id = User.query.filter_by(login=login).first().user_id
-        print("Using login {} for user_id {} for recs."
+        logging.debug("Using login {} for user_id {} for recs."
               .format(login, user_id))
     elif not user_id:
         user_id = session["user_id"]
-        print("Using logged in user {} for recs.".format(user_id))
+        logging.debug(f"{session['user_id']}: Using logged in user for recs.")
 
     return render_template("repo_recs.html",
                            user_id=user_id,
@@ -202,7 +202,7 @@ def get_repo_recs_json():
     code = request.args.get("code")
 
     if (code == session.get("code") and page == session.get("page")):
-        print(f"Code {code} and page {page} already requested. Ignoring request.")
+        logging.warning(f"{session['user_id']}: Code {code} and page {page} already requested. Ignoring request.")
         return json.dumps({"Status": 404,
                            "action": "get_repo_recs",
                            "message": f"Code {code} and page {page} already requested. Ignoring request."})
@@ -217,7 +217,6 @@ def get_repo_recs_json():
         if not utils.is_user_in_db(user_id):
             flash("No user found with id {}.".format(user_id))
             return redirect("/") 
-        print(f"{session['user_id']}: Using user_id for recs.")
         
     # Login parameter takes precedence.
     if login:
@@ -225,41 +224,39 @@ def get_repo_recs_json():
             flash("No user found with login {}.".format(login))
             return redirect("/")
         user_id = User.query.filter_by(login=login).first().user_id
-        print(f"{session['user_id']}: Using login {login} for recs.")
     elif not user_id:
         user_id = session['user_id']
-        print(f"{session['user_id']}: Using logged in user for recs.")
 
-    print(f"Fetching recs for user {user_id}, page {page}, code {code}.")
+    logging.debug(f"{session['user_id']}: Fetching recs, page {page}, code {code}.")
 
     # Note start time to estimate time to complete process.
     times = [datetime.datetime.now()]
 
     # import pdb; pdb.set_trace()
     slice_end = offset + 2*limit
-    print(f"{session['user_id']}: Slicing recs from {offset} to {slice_end}.")
+    logging.debug(f"{session['user_id']}: Slicing recs from {offset} to {slice_end}.")
     recs = rec.get_repo_suggestions(user_id)
     recs = recs[offset:slice_end]
     times.append(datetime.datetime.now())
     rec_delta = (times[1] - times[0]).total_seconds()
-    print(f"{user_id}: get_repo_suggestions: {rec_delta} seconds.")
+    logging.info(f"{user_id}: get_repo_suggestions: {rec_delta} seconds.")
     
     filtered_recs = db_utils.filter_stars_from_repo_ids(recs, user_id)
     times.append(datetime.datetime.now())
     filter_delta = (times[2] - times[1]).total_seconds()
-    print(f"{user_id}: filter_stars_from_repo_ids: {filter_delta} seconds.")
+    logging.info(f"{user_id}: filter_stars_from_repo_ids: {filter_delta} seconds.")
 
     repos_query = Repo.query.filter(Repo.repo_id.in_(filtered_recs),
                                     Repo.owner_id != user_id)
     repos = repos_query.all()
     times.append(datetime.datetime.now())
     query_delta = (times[3] - times[2]).total_seconds()
-    print(f"{user_id}: Repo query: {query_delta} seconds.")
+    logging.info(f"{user_id}: Repo query: {query_delta} seconds.")
 
     repos_json = db_utils.get_json_from_repos(repos[:limit])
     times.append(datetime.datetime.now())
     json_delta = (times[4] - times[3]).total_seconds()
-    print(f"{user_id}: get_json_from_repos: {json_delta} seconds.")
+    logging.info(f"{user_id}: get_json_from_repos: {json_delta} seconds.")
     return repos_json
 
 
@@ -278,21 +275,15 @@ def add_star():
     user.add_to_starred(repo)
 
     if not user.has_in_starred(repo):
+        logging.warning(f"{session['user_id']}: Unable to star repo {repo.name} ({repo.id}).")
         flash("Unable to star this repo ({}). Please try again later."
               .format(repo.name))
-        print("User {} was unable to star repo {} ({})"
-              .format(user.login,
-                      repo.name,
-                      repo.id))
         return json.dumps({"Status": 404,
                            "action": "add_star",
                            "repo_id": repo.id})
 
     db_utils.add_stargazer(repo_id, session["user_id"])
-    print("User {} sucessfully added a star for repo {} ({})"
-          .format(user.login,
-                  repo.name,
-                  repo.id))
+    logging.debug(f"{session['user_id']}: Successfully added a star for repo {repo.name} ({repo.id})")
     return json.dumps({"Status": 204,
                        "action": "add_star",
                        "repo_id": repo.id})
@@ -313,21 +304,15 @@ def remove_star():
     user.remove_from_starred(repo)
 
     if user.has_in_starred(repo):
+        logging.warning(f"{session['user_id']}: Unable to unstar repo {repo.name} ({repo.id}).")
         flash("Unable to unstar this repo ({}). Please try again later."
               .format(repo.name))
-        print("User {} was unable to unstar repo {} ({})"
-              .format(user.login,
-                      repo.name,
-                      repo.id))
         return json.dumps({"Status": 404,
                            "action": "remove_star",
                            "repo_id": repo.id})
 
     db_utils.remove_stargazer(repo_id, session["user_id"])
-    print("User {} sucessfully unstarred repo {} ({})"
-          .format(user.login,
-                  repo.name,
-                  repo.id))
+    logging.debug(f"{session['user_id']}: Successfully unstarred repo {repo.name} ({repo.id}).")
     return json.dumps({"Status": 204,
                        "action": "remove_star",
                        "repo_id": repo.id})
@@ -340,12 +325,12 @@ def check_star():
 
     repo_id = int(request.args.get("repo_id"))
 
+    # Build Pygithub api object then get user & repo objects
     g = api_utils.get_auth_api(session["access_token"])
     user = g.get_user()
-    print(user, user.login, user.name)
     repo = utils.get_repo_object_from_input(repo_id)
-    print(repo, repo_id, repo.name)
-    print(user.has_in_starred(repo))
+
+    # Check github api for if user starred repo.
     if user.has_in_starred(repo):
         return json.dumps({"Status": 204,
                            "action": "check_star",
@@ -368,7 +353,7 @@ def add_dislike():
     
     db_utils.add_dislike(repo_id, user_id)
 
-    print(f"User {user_id} sucessfully added a dislike for repo {repo_id}.")
+    logging.debug(f"{session['user_id']}: Successfully added a dislike for repo {repo_id}.")
     return json.dumps({"Status": 204,
                        "action": "add_dislike",
                        "repo_id": repo_id})
@@ -386,7 +371,7 @@ def remove_dislike():
 
     db_utils.remove_dislike(repo_id, user_id)
 
-    print(f"User {user_id} sucessfully removed a dislike for repo {repo_id}.")
+    logging.debug(f"{session['user_id']}: Successfully removed a dislike for repo {repo_id}.")
     return json.dumps({"Status": 204,
                        "action": "remove_dislike",
                        "repo_id": repo_id})
@@ -407,7 +392,7 @@ def update_user():
         # E.g., fetch depth/breadth of crawl and increase
         # Or pass crawl_further to utils functions and evaluate within add_stars, etc.
         crawl_depth = 2
-        print(f"{session['user_id']}: Crawling further.")
+        logging.debug(f"{session['user_id']}: Crawling further.")
 
     if user_id:
         user_id = int(user_id)
@@ -416,18 +401,18 @@ def update_user():
                    - datetime.timedelta(days = config.REFRESH_UPDATE_USER_REPOS_DAYS))
 
         if not db_utils.is_last_crawled_user_repos_good(user_id, crawled_since):
-            print(f"Updating repos for user {user_id}.")
+            logging.debug(f"{session['user_id']}: Updating repos.")
             utils.update_user_repos(user_id, force_refresh=True)
 
             # Log time to complete update_user_repos:
             times.append(datetime.datetime.now())
             delta = (times[-1] - times[-2]).total_seconds()
-            print(f"{user_id}: update_user_repos: {delta} seconds.")
+            logging.info(f"{user_id}: update_user_repos: {delta} seconds.")
 
             message = "User updated."
 
         if not db_utils.is_last_crawled_in_user_good(user_id, crawl_depth, crawled_since):
-            print(f"Updating user {user_id}.")
+            logging.debug(f"{session['user_id']}: Crawling user ({crawl_depth}).")
             utils.crawl_from_user_to_repos(user_id,
                                            num_layers_to_crawl=crawl_depth,
                                            force_refresh=False)
@@ -435,9 +420,9 @@ def update_user():
             # Log time to complete crawl_from_user_to_repos:
             times.append(datetime.datetime.now())
             delta = (times[-1] - times[-2]).total_seconds()
-            print(f"{user_id}: crawl_from_user_to_repos({crawl_depth}): {delta} seconds.")
+            logging.info(f"{user_id}: crawl_from_user_to_repos({crawl_depth}): {delta} seconds.")
 
-            print(f"User {user_id} updated.")
+            logging.debug(f"{session['user_id']}: User updated.")
             message = "User updated."
 
         if message:
@@ -445,7 +430,7 @@ def update_user():
                                "action": "update_user",
                                "message": "User updated."})
 
-        print(f"User {user_id} is up-to-date.")
+        logging.debug(f"{session['user_id']}: User is up-to-date.")
         return json.dumps({"Status": 200,
                            "action": "update_user",
                            "message": "User up-to-date."})
@@ -473,9 +458,9 @@ if __name__ == "__main__":
     # logger.addHandler(fh)
     # logging.getLogger('').addHandler(fh)
 
-    # logging.basicConfig(filename='timelog.log',
-    #                 level=logging.INFO,
-    #                 format='%(asctime)s | %(filename)s | %(message)s')
+    logging.basicConfig(filename='timelog.log',
+                    level=logging.INFO,
+                    format='%(asctime)s | %(filename)s | %(message)s')
 
 
     # logging.info("test")
