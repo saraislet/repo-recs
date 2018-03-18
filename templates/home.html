@@ -7,6 +7,11 @@
 <h2>Repo Recommender</h2>
 {% if "user_id" in session %}
   <p>Welcome, {{user.name}}!</p>
+  <script src="/static/user.js"></script>
+  <script>
+    let startLoad = new Date().getTime();
+    window.onload = updateUser;
+  </script>
 {% endif %}
 {% if compliment %}
   <p>{{compliment}}</p>
