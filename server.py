@@ -1,3 +1,4 @@
+import logging
 import datetime, json, os, requests, urllib
 from flask import (Flask, flash, redirect, render_template,
                    request, session)
@@ -446,7 +447,7 @@ def get_graph():
 
 
 if __name__ == "__main__":
-    import logging
+    # import logging
     # logger = logging.getLogger('timelog')
     # logger.setLevel(logging.INFO)
     # # create file handler which logs even debug messages
