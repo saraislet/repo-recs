@@ -398,6 +398,10 @@ def update_user():
     crawl_depth = 1
     # import pdb; pdb.set_trace()
     data = request.get_json()
+
+    # Note start time to estimate time to complete process.
+    times = [time.time.now()]
+
     if data.get("crawlFurther"):
         #TODO: implement dynamic crawl
         # E.g., fetch depth/breadth of crawl and increase
@@ -414,7 +418,12 @@ def update_user():
         if not db_utils.is_last_crawled_user_repos_good(user_id, crawled_since):
             print(f"Updating repos for user {user_id}.")
             utils.update_user_repos(user_id, force_refresh=True)
-            print(f"User {user_id} repos updated.")
+
+            # Log time to complete update_user_repos:
+            times.append(time.time.now())
+            delta = (times[-1] - times[-2]).total_seconds()
+            print(f"{user_id}: update_user_repos: {delta} seconds.")
+
             message = "User updated."
 
         if not db_utils.is_last_crawled_in_user_good(user_id, crawl_depth, crawled_since):
@@ -422,6 +431,12 @@ def update_user():
             utils.crawl_from_user_to_repos(user_id,
                                            num_layers_to_crawl=crawl_depth,
                                            force_refresh=False)
+
+            # Log time to complete crawl_from_user_to_repos:
+            times.append(time.time.now())
+            delta = (times[-1] - times[-2]).total_seconds()
+            print(f"{user_id}: crawl_from_user_to_repos({crawl_depth}): {delta} seconds.")
+
             print(f"User {user_id} updated.")
             message = "User updated."
 
@@ -446,6 +461,27 @@ def get_graph():
 
 
 if __name__ == "__main__":
+    import logging
+    # logger = logging.getLogger('timelog')
+    # logger.setLevel(logging.INFO)
+    # # create file handler which logs even debug messages
+    # fh = logging.FileHandler('timelog.log')
+    # fh.setLevel(logging.DEBUG)
+    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # fh.setFormatter(formatter)
+    # # add the handlers to the logger
+    # logger.addHandler(fh)
+    # logging.getLogger('').addHandler(fh)
+
+    # logging.basicConfig(filename='timelog.log',
+    #                 level=logging.INFO,
+    #                 format='%(asctime)s | %(filename)s | %(message)s')
+
+
+    # logging.info("test")
+    # import test_time
+    # logger.info("test2")
+
     # We have to set debug=True here, since it has to be True at the
     # point that we invoke the DebugToolbarExtension
     # app.debug = True
