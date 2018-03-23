@@ -381,6 +381,12 @@ def remove_dislike():
 @app.route("/update_user", methods=["POST"])
 def update_user():
     user_id = session.get("user_id")
+
+    if not user_id:
+        return json.dumps({"Status": 400,
+                           "action": "update_user",
+                           "message": "No user_id."})
+
     crawl_depth = 1
     # import pdb; pdb.set_trace()
     data = request.get_json()
@@ -395,50 +401,45 @@ def update_user():
         crawl_depth = 2
         logging.debug(f"{session['user_id']}: Crawling further.")
 
-    if user_id:
-        user_id = int(user_id)
-        message = None
-        crawled_since = (datetime.datetime.now()
-                   - datetime.timedelta(days = config.REFRESH_UPDATE_USER_REPOS_DAYS))
+    user_id = int(user_id)
+    message = None
+    crawled_since = (datetime.datetime.now()
+               - datetime.timedelta(days = config.REFRESH_UPDATE_USER_REPOS_DAYS))
 
-        if not db_utils.is_last_crawled_user_repos_good(user_id, crawled_since):
-            logging.debug(f"{session['user_id']}: Updating repos.")
-            utils.update_user_repos(user_id, force_refresh=True)
+    if not db_utils.is_last_crawled_user_repos_good(user_id, crawled_since):
+        logging.debug(f"{session['user_id']}: Updating repos.")
+        utils.update_user_repos(user_id, force_refresh=True)
 
-            # Log time to complete update_user_repos:
-            times.append(datetime.datetime.now())
-            delta = (times[-1] - times[-2]).total_seconds()
-            logging.info(f"{user_id}: update_user_repos: {delta} seconds.")
+        # Log time to complete update_user_repos:
+        times.append(datetime.datetime.now())
+        delta = (times[-1] - times[-2]).total_seconds()
+        logging.info(f"{user_id}: update_user_repos: {delta} seconds.")
 
-            message = "User updated."
+        message = "User updated."
 
-        if not db_utils.is_last_crawled_in_user_good(user_id, crawl_depth, crawled_since):
-            logging.debug(f"{session['user_id']}: Crawling user ({crawl_depth}).")
-            utils.crawl_from_user_to_repos(user_id,
-                                           num_layers_to_crawl=crawl_depth,
-                                           force_refresh=False)
+    if not db_utils.is_last_crawled_in_user_good(user_id, crawl_depth, crawled_since):
+        logging.debug(f"{session['user_id']}: Crawling user ({crawl_depth}).")
+        utils.crawl_from_user_to_repos(user_id,
+                                       num_layers_to_crawl=crawl_depth,
+                                       force_refresh=False)
 
-            # Log time to complete crawl_from_user_to_repos:
-            times.append(datetime.datetime.now())
-            delta = (times[-1] - times[-2]).total_seconds()
-            logging.info(f"{user_id}: crawl_from_user_to_repos({crawl_depth}): {delta} seconds.")
+        # Log time to complete crawl_from_user_to_repos:
+        times.append(datetime.datetime.now())
+        delta = (times[-1] - times[-2]).total_seconds()
+        logging.info(f"{user_id}: crawl_from_user_to_repos({crawl_depth}): {delta} seconds.")
 
-            logging.debug(f"{session['user_id']}: User updated.")
-            message = "User updated."
+        logging.debug(f"{session['user_id']}: User updated.")
+        message = "User updated."
 
-        if message:
-            return json.dumps({"Status": 200,
-                               "action": "update_user",
-                               "message": "User updated."})
-
-        logging.debug(f"{session['user_id']}: User is up-to-date.")
+    if message:
         return json.dumps({"Status": 200,
                            "action": "update_user",
-                           "message": "User up-to-date."})
+                           "message": "User updated."})
 
-    return json.dumps({"Status": 400,
+    logging.debug(f"{session['user_id']}: User is up-to-date.")
+    return json.dumps({"Status": 200,
                        "action": "update_user",
-                       "message": "No user_id."})
+                       "message": "User up-to-date."})
 
 
 @app.route("/get_graph", methods=["GET"])
