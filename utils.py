@@ -55,7 +55,7 @@ def add_repo(repo_info, num_layers_to_crawl=0, force_refresh=False):
                          updated_at=repo.updated_at,
                          last_updated=datetime.datetime.now(),
                          pushed_at=repo.pushed_at,
-                         url=repo.url,
+                         url=repo.html_url,
                          stargazers_count=repo.stargazers_count)
         db.session.add(this_repo)
         db.session.commit()
@@ -141,6 +141,7 @@ def update_repo(repo, num_layers_to_crawl=0, force_refresh=False):
         this_repo.updated_at = repo.updated_at
         this_repo.pushed_at = repo.pushed_at
         this_repo.last_updated = datetime.datetime.now()
+        this_repo.url = repo.html_url
         this_repo.stargazers_count = repo.stargazers_count
 
         db_utils.add_languages(repo)
